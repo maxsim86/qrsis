@@ -14,10 +14,14 @@
 
         <form method="POST">
             {% csrf_token %}
-            <div class="mb-3">
-                <input type="text" name="name" class="form-control form-control-lg bg-light border-0" placeholder="masukkan nama anda" required style="padding: 15px;">
-            </div>
-            <button type="submit" class="btn btn-primary btn-lg w-100 border-0" style="background-color: #93c5fd; padding: 12px; font-weight: 500;">Join</button>
+            
+            {% if queue.input_label %}
+                <div class="mb-3">
+                    <input type="text" name="name" class="form-control form-control-lg bg-light border-0" placeholder="{{ queue.input_label }}" required style="padding: 15px;">
+                </div>
+            {% endif %}
+            
+            <button type="submit" class="btn btn-primary btn-lg w-100 border-0" style="background-color: #3b82f6; padding: 12px; font-weight: 500;">Join</button>
         </form>
     </div>
 </div>

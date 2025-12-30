@@ -13,4 +13,7 @@ urlpatterns = [
     path('q/<slug:slug>/join/', views.visitor_join, name='visitor_join'), # Page Masukkan Nama
     path('visitor/<int:visitor_id>/status/', views.visitor_status, name='visitor_status'), # Page Bulatan Biru
     path('visitor/<int:visitor_id>/quit/', views.visitor_quit, name='visitor_quit'), # Function Quit
+    path('visitor/<int:visitor_id>/return/', views.return_to_queue, name='return_to_queue'),
+    path('q/<slug:slug>/remove_all/', views.remove_visitors, name='remove_visitors'),
+    path('visitor/<int:visitor_id>/ack/', views.acknowledge_return, name='acknowledge_return'),
 ]

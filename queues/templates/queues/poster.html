@@ -1,51 +1,156 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container text-center mt-5">
-    <div class="card shadow p-4 mx-auto" style="max-width: 500px; border: 2px solid #eee;">
-        
-        <h1 class="fw-bold mb-0">Queue up!</h1>
-        <p class="text-muted fs-4">Scan here to join virtual queue</p>
-        
-        <hr class="my-3">
-
-        <div class="my-2 bg-primary p-3 rounded">
-            <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" class="img-fluid bg-white p-2 rounded" style="width: 100%; max-width: 300px;">
-        </div>
-
-        <div class="mt-3">
-            <p class="fw-bold text-primary mb-0" style="word-break: break-all;">
-                {{ join_url }}
-            </p>
-        </div>
-    </div>
-
-    <div class="mt-4 d-print-none">
-        <button onclick="window.print()" class="btn btn-primary btn-lg px-4 me-2">
-            🖨️ Print Sign
-        </button>
-        <a href="{% url 'dashboard' queue.slug %}" class="btn btn-outline-secondary btn-lg px-4">
-            Back
-        </a>
-    </div>
-</div>
-
 <style>
+    /* CSS Khas untuk Halaman Ini */
+    body {
+        background-color: #fff; /* Latar belakang putih bersih */
+    }
+
+    /* Style Butang Atas */
+    .action-bar {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 30px;
+        margin-top: 20px;
+    }
+
+    .btn-pill-blue {
+        background-color: #3b82f6;
+        color: white;
+        border-radius: 50px; /* Bentuk Pill */
+        padding: 8px 24px;
+        font-weight: 500;
+        border: none;
+        font-size: 0.9rem;
+    }
+    .btn-pill-blue:hover { background-color: #2563eb; color: white; }
+
+    .btn-pill-gray {
+        background-color: #f3f4f6;
+        color: #3b82f6;
+        border-radius: 50px; /* Bentuk Pill */
+        padding: 8px 24px;
+        font-weight: 500;
+        border: none;
+        font-size: 0.9rem;
+        text-decoration: none; /* Hilangkan garis bawah link */
+    }
+    .btn-pill-gray:hover { background-color: #e5e7eb; color: #2563eb; }
+
+    /* Style Poster (Kertas Putih) */
+    .poster-card {
+        border: 1px solid #e5e7eb;
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 40px;
+        text-align: center;
+        border-radius: 4px;
+    }
+
+    .poster-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #000;
+        margin-bottom: 10px;
+    }
+
+    .poster-subtitle {
+        border-top: 1px solid #f0f0f0;
+        border-bottom: 1px solid #f0f0f0;
+        padding: 10px 0;
+        margin-bottom: 30px;
+        font-size: 1.2rem;
+        color: #000;
+    }
+
+    /* Kotak Biru QR Code */
+    .qr-container {
+        background-color: #3ba1ff; /* Warna biru cerah seperti screenshot */
+        padding: 30px;
+        border-radius: 30px; /* Bucu bulat besar */
+        display: inline-block;
+        width: 100%;
+    }
+
+    .qr-image {
+        background-color: white;
+        padding: 15px;
+        border-radius: 20px;
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+
+    .qr-link {
+        color: white;
+        font-weight: 700;
+        font-size: 1.2rem;
+        margin-top: 15px;
+        display: block;
+        word-break: break-all;
+        text-decoration: none;
+    }
+
+    /* CSS Untuk Printing (Hilangkan butang bila print) */
     @media print {
-        body { background-color: white; }
-        body * { visibility: hidden; }
-        .card, .card * { visibility: visible; }
-        .card {
-            position: absolute;
-            left: 50%;
-            top: 100px;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 600px;
-            box-shadow: none !important;
-            border: none !important;
+        body * {
+            visibility: hidden;
         }
-        .d-print-none { display: none !important; }
+        .poster-card, .poster-card * {
+            visibility: visible;
+        }
+        .poster-card {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            border: none; /* Hilangkan border masa print */
+            margin: 0;
+            padding: 20px;
+        }
+        .action-bar, nav, header, footer {
+            display: none !important;
+        }
     }
 </style>
+
+<div class="container pb-5">
+    
+    <div class="action-bar d-print-none">
+        <button onclick="window.print()" class="btn-pill-blue">
+            Print sign
+        </button>
+        
+        <a href="data:image/png;base64,{{ qr_code }}" download="qr-code-{{ queue.slug }}.png" class="btn-pill-gray">
+            Download QR code
+        </a>
+    </div>
+
+    <div class="poster-card">
+        
+        <h1 class="poster-title">Queue up!</h1>
+        
+        <div class="poster-subtitle">
+            Scan here to join virtual queue
+        </div>
+
+        <div class="qr-container">
+            <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" class="qr-image">
+            
+            <div class="mt-2">
+                <span class="qr-link">{{ join_url }}</span>
+            </div>
+        </div>
+
+    </div>
+    
+    <div class="text-center mt-4 d-print-none">
+        <a href="{% url 'dashboard' queue.slug %}" class="text-muted text-decoration-none small">
+            &larr; Back to Dashboard
+        </a>
+    </div>
+
+</div>
 {% endblock %}

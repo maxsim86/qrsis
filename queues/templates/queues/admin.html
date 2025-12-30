@@ -1,19 +1,202 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="center-box">
-    <h5>Currently Serving</h5>
-    <div class="card p-5 mb-4 bg-white">
-        {% if current_serving %}
-            <div class="big-number">{{ current_serving.number }}</div>
-            <p>{{ current_serving.name }}</p>
+
+<style>
+    /* CSS Khas untuk meniru UI image_b0f2f7.png */
+    body {
+        background-color: #ffffff; /* Latar putih bersih */
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    /* Header atas kanan */
+    .top-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 0;
+        margin-bottom: 40px;
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    .upgrade-link {
+        color: #3b82f6;
+        text-decoration: none;
+        font-weight: 500;
+        margin-right: 15px;
+    }
+
+    /* Kotak Currently Serving */
+    .serving-card {
+        background-color: #f8f9fa; /* Kelabu sangat cair */
+        border-radius: 20px;
+        padding: 40px 20px;
+        text-align: center;
+        max-width: 400px;
+        margin: 0 auto 50px auto;
+    }
+    
+    .serving-title {
+        font-weight: 700;
+        font-size: 1rem;
+        margin-bottom: 10px;
+        color: #000;
+    }
+
+    .serving-number {
+        font-size: 5rem; /* Nombor Besar */
+        font-weight: 800;
+        line-height: 1;
+        color: #000;
+        letter-spacing: -2px;
+    }
+
+    .serving-name {
+        color: #6c757d;
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+    }
+
+    .btn-return {
+        background-color: #e9ecef;
+        color: #000;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-block;
+    }
+    .btn-return:hover { background-color: #dee2e6; color: black; }
+
+    /* Butang-butang Tindakan (Stack Buttons) */
+    .action-buttons {
+        max-width: 400px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px; /* Jarak antara butang */
+    }
+
+    /* 1. Invite Next (Biru Lembut) */
+    .btn-invite-next {
+        background-color: #93c5fd; /* Biru cair seperti gambar */
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        width: 100%;
+    }
+    .btn-invite-next:hover { background-color: #60a5fa; color: white; }
+
+    /* 2. Invite by number (Putih/Kelabu cair) */
+    .btn-invite-num {
+        background-color: #f8f9fa;
+        color: #93c5fd;
+        border: none;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 500;
+        width: 100%;
+    }
+
+    /* 3. Add (Outline Biru) */
+    .btn-add-outline {
+        background-color: white;
+        color: #2563eb;
+        border: 1px solid #2563eb;
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 500;
+        width: 100%;
+    }
+    
+    /* 4. Remove Visitors (Outline Merah) */
+    .btn-remove-outline {
+        background-color: white;
+        color: #ef4444; /* Merah */
+        border: 1px solid #fca5a5; /* Merah cair border */
+        padding: 12px;
+        border-radius: 8px;
+        font-weight: 400;
+        width: 100%;
+    }
+
+    .footer-link {
+        text-align: center;
+        margin-top: 30px;
+    }
+    .footer-link a { color: #3b82f6; text-decoration: none; font-size: 0.9rem; }
+</style>
+
+<div class="container" style="max-width: 800px;">
+    
+    <div class="top-header">
+        <span class="text-muted">{{ queue.name }}</span>
+        <div>
+            <a href="#" class="upgrade-link">Upgrade to QRQ+</a>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#3b82f6" class="bi bi-sliders" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3h9.05zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8h2.05zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1h9.05z"/>
+            </svg>
+        </div>
+    </div>
+
+    <div class="text-center mb-4 text-muted">
+        {% if waiting_count > 0 %}
+            {{ waiting_count }} people waiting in queue
         {% else %}
-            <div class="big-number">--</div>
-            <p>No one served</p>
+            There is no one in the queue
         {% endif %}
     </div>
 
-    <a href="{% url 'call_next' queue.slug %}" class="btn btn-primary btn-lg w-100 mb-2">Invite Next</a>
-    <p class="text-muted">Waiting in queue: {{ waiting_count }}</p>
+    <div class="serving-card">
+        <div class="serving-title">Currently serving</div>
+        
+        {% if current_serving %}
+            <div class="serving-number">{{ current_serving.number|stringformat:"03d" }}</div>
+            <div class="serving-name">"{{ current_serving.name }}"</div>
+            
+            <a href="{% url 'return_to_queue' current_serving.id %}" class="btn-return">
+                Return to queue
+            </a>
+        {% else %}
+            <div class="serving-number" style="color: #dee2e6;">---</div>
+            <div class="serving-name text-muted">Waiting to serve</div>
+        {% endif %}
+    </div>
+
+    <div class="action-buttons">
+        
+        <a href="{% url 'call_next' queue.slug %}" class="btn btn-invite-next text-decoration-none text-center">
+            Invite next
+        </a>
+
+        <button class="btn btn-invite-num">
+            Invite by number
+        </button>
+
+        <a href="{% url 'visitor_join' queue.slug %}" target="_blank" class="btn btn-add-outline text-decoration-none text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-plus-fill me-2" viewBox="0 0 16 16">
+              <path d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+              <path fill-rule="evenodd" d="M13.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5z"/>
+            </svg>
+            Add
+        </a>
+
+        <form action="{% url 'remove_visitors' queue.slug %}" method="POST" onsubmit="return confirm('Are you sure you want to remove ALL visitors?');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-remove-outline">
+                Remove visitors
+            </button>
+        </form>
+
+    </div>
+
+    <div class="footer-link">
+        <a href="#">Report a problem</a>
+    </div>
+
 </div>
 
 <script>
@@ -21,4 +204,5 @@
        location.reload();
     }, 5000); 
 </script>
+
 {% endblock %}

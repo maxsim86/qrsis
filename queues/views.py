@@ -4,22 +4,23 @@ from django.db.models import Max
 import qrcode
 from io import BytesIO
 import base64
+from django.core.exceptions import ObjectDoesNotExist
 
 
-
-
-
-# 1. Page Create Queue (Screenshot 1 & 4)
 def create_queue(request):
     if request.method == "POST":
         name = request.POST.get('name')
         
-        # Ambil label dari form. 
-        # Jika user biarkan kosong atau toggle OFF, kita guna default 'Masukkan nama anda'
-        label = request.POST.get('label')
+        # Semak status Toggle (checkbox)
+        # HTML checkbox hantar 'on' jika dicentang, atau None jika tidak.
+        ask_input = request.POST.get('ask_input') 
         
-        if not label: 
-            label = "Masukkan nama anda" # Default value
+        if ask_input == 'on':
+            # Jika Toggle ON, ambil input label user, atau guna default
+            label = request.POST.get('label') or "Masukkan nama anda"
+        else:
+            # Jika Toggle OFF, set label jadi Kosong String
+            label = "" 
 
         new_queue = Queue.objects.create(name=name, input_label=label)
         return redirect('dashboard', slug=new_queue.slug)
@@ -66,21 +67,24 @@ def visitor_join(request, slug):
     queue = get_object_or_404(Queue, slug=slug)
     
     if request.method == "POST":
-        name = request.POST.get('name')
-        
-        # Logic nombor giliran
+        # Logic nombor giliran (Kekal sama)
         last_visitor = Visitor.objects.filter(queue=queue).aggregate(Max('number'))
         next_number = (last_visitor['number__max'] or 0) + 1
         
-        # Create visitor
+        # LOGIC BARU: Tentukan Nama
+        if queue.input_label:
+            # Jika ada label, maksudnya user kena isi nama
+            name = request.POST.get('name')
+        else:
+            # Jika tiada label (Toggle OFF), kita bagi nama automatik
+            name = f"Visitor #{next_number}"
+        
         new_visitor = Visitor.objects.create(
             queue=queue, 
             name=name, 
             number=next_number,
             status='WAITING'
         )
-        
-        # Simpan ID dalam session (pilihan) & Redirect ke Status Page
         return redirect('visitor_status', visitor_id=new_visitor.id)
         
     return render(request, 'queues/join.html', {'queue': queue})
@@ -88,7 +92,10 @@ def visitor_join(request, slug):
 
 # 2. Page Status (Bulatan Biru)
 def visitor_status(request, visitor_id):
-    visitor = get_object_or_404(Visitor, id=visitor_id)
+    try:
+        visitor = Visitor.objects.get(id=visitor_id)
+    except Visitor.DoesNotExist:   
+        return render(request, 'queues/session_ended.html')
     queue = visitor.queue
     
     # Logic: Kira berapa orang 'WAITING' yang join SEBELUM visitor ini
@@ -126,12 +133,13 @@ def visitor_quit(request, visitor_id):
     # Redirect balik ke page join
     return redirect('visitor_join', slug=queue_slug)
 
-# 5. Page Admin Manage (Screenshot 6)
 def admin_interface(request, slug):
     queue = get_object_or_404(Queue, slug=slug)
     
-    # Dapatkan siapa tengah serving sekarang
+    # Dapatkan visitor yang sedang dilayan (SERVING)
     current_serving = Visitor.objects.filter(queue=queue, status='SERVING').first()
+    
+    # Kira berapa orang menunggu
     waiting_count = Visitor.objects.filter(queue=queue, status='WAITING').count()
     
     return render(request, 'queues/admin.html', {
@@ -139,6 +147,30 @@ def admin_interface(request, slug):
         'current_serving': current_serving,
         'waiting_count': waiting_count
     })
+    
+    
+def acknowledge_return(request, visitor_id):
+    visitor = get_object_or_404(Visitor, id=visitor_id)
+    
+    # User dah tekan "Good", so kita padam flag return
+    visitor.is_returned = False 
+    visitor.save()
+    
+    return redirect('visitor_status', visitor_id=visitor.id)
+    
+def return_to_queue(request, visitor_id):
+    visitor = get_object_or_404(Visitor, id=visitor_id)
+    visitor.status = 'WAITING'
+    visitor.is_returned = True  # Setkan flag ini jadi True
+    visitor.save()
+    return redirect('admin_interface', slug=visitor.queue.slug)
+
+def remove_visitors(request, slug):
+    # Fungsi: Kosongkan semua visitor dalam queue ini (Reset)
+    queue = get_object_or_404(Queue, slug=slug)
+    if request.method == "POST":
+        Visitor.objects.filter(queue=queue).delete()
+    return redirect('admin_interface', slug=slug)
 
 # Logic Button "Invite Next"
 def call_next(request, slug):
