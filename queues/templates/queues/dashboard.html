@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5 mb-5" style="max-width: 800px;">
+    
+    <div class="mb-4 text-start">
+        <div class="d-flex align-items-center mb-3">
+             <div class="bg-light p-3 rounded-3 me-3 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-qr-code" viewBox="0 0 16 16">
+                  <path d="M2 2h2v2H2V2Z"/>
+                  <path d="M6 0v6H0V0h6ZM5 1H1v4h4V1ZM4 12H2v2h2v-2Z"/>
+                  <path d="M6 10v6H0v-6h6Zm-5 1v4h4v-4H1Zm11-9h2v2h-2V2Z"/>
+                  <path d="M10 0v6h6V0h-6Zm5 1h-4v4h4V1ZM8 1V0h1v2H8v2H7V1h1Zm0 5V4h1v2H8ZM6 8V7h1V6h1v2h1V7h5v1h-4v1H7V8H6Zm0 0v1H2V8H1v1H0V7h3v1h3Zm10 1h-1V7h1v2Zm-1 0h-1v2h2v-1h-1V9Zm-4 0h2v1h-1v1h-1v1H9v1h3v-2h1Zm0 0h3v1h-3v-1Z"/>
+                </svg>
+            </div>
+        </div>
+        
+        <h2 class="fw-bold">Done. Now it’s up to you!</h2>
+        <p class="text-muted lead fs-6">
+            Print a sign with a QR code so visitors can easily scan it. 
+            Use the administration link to manage your queue. 
+            <span class="text-danger fw-semibold">Keep the admin link safe and do not share it with visitors.</span>
+        </p>
+    </div>
+
+    <div class="d-flex gap-3 mb-4 align-items-center">
+        <button onclick="copyAllLinks()" class="btn btn-primary px-3 py-2 d-flex align-items-center gap-2 fw-semibold">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-clipboard" viewBox="0 0 16 16">
+              <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+              <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+            </svg>
+            Copy all
+        </button>
+        <a href="{% url 'create_queue' %}" class="btn btn-link text-decoration-none fw-semibold p-0">+ Create more queues</a>
+    </div>
+
+    <div class="card bg-light border-0 p-4 rounded-4 mb-5 shadow-sm">
+        <h5 class="fw-bold mb-3 text-dark">Queue: {{ queue.name }}</h5>
+        
+        <div class="mb-3">
+            <span class="fw-bold text-dark">Link for visitors (used in QR code):</span> 
+            <a href="{{ visitor_url }}" target="_blank" class="text-break text-primary text-decoration-none">{{ visitor_url }}</a>
+        </div>
+        
+        <div class="mb-3">
+            <span class="fw-bold text-dark">Sign with QR code:</span> 
+            <a href="{{ poster_url }}" target="_blank" class="text-break text-primary text-decoration-none">{{ poster_url }}</a>
+        </div>
+        
+        <div class="mb-3">
+            <span class="fw-bold text-dark">Admin interface:</span> 
+            <a href="{{ admin_url }}" target="_blank" class="text-break text-primary text-decoration-none">{{ admin_url }}</a>
+        </div>
+        
+        <div>
+            <span class="fw-bold text-dark">Status Display:</span> 
+            <a href="{{ display_url }}" target="_blank" class="text-break text-primary text-decoration-none">{{ display_url }}</a>
+        </div>
+    </div>
+    
+    <div class="d-flex gap-4">
+        <a href="#" class="text-decoration-none text-primary fw-semibold small">How does it work?</a>
+        <a href="#" class="text-decoration-none text-primary fw-semibold small">Chat with support</a>
+    </div>
+</div>
+
+<script>
+function copyAllLinks() {
+    // Membina teks yang akan disalin ke papan keratan
+    const textToCopy = `Queue: {{ queue.name }}
+Link for visitors: {{ visitor_url }}
+Sign with QR code: {{ poster_url }}
+Admin interface: {{ admin_url }}
+Status Display: {{ display_url }}`;
+
+    // Menggunakan Clipboard API untuk menyalin teks
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        // Memberi maklum balas kepada pengguna
+        alert("All links copied to clipboard! You can now paste them somewhere safe.");
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+        alert("Failed to copy links. Please try again manually.");
+    });
+}
+</script>
+{% endblock %}

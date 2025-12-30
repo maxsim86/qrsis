@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="text-center mt-5">
+    <h2>Current Visitor Number</h2>
+    
+    {% if current_serving %}
+        <div class="big-number" style="font-size: 15rem;">{{ current_serving.number }}</div>
+        <h3>Serving: {{ current_serving.name }}</h3>
+    {% else %}
+        <div class="big-number" style="font-size: 15rem;">000</div>
+        <h3>There is no one in the queue</h3>
+    {% endif %}
+</div>
+
+<script>
+    setTimeout(function(){
+       location.reload();
+    }, 2000); 
+</script>
+{% endblock %}

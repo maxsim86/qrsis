@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="center-box">
+    <h5>Currently Serving</h5>
+    <div class="card p-5 mb-4 bg-white">
+        {% if current_serving %}
+            <div class="big-number">{{ current_serving.number }}</div>
+            <p>{{ current_serving.name }}</p>
+        {% else %}
+            <div class="big-number">--</div>
+            <p>No one served</p>
+        {% endif %}
+    </div>
+
+    <a href="{% url 'call_next' queue.slug %}" class="btn btn-primary btn-lg w-100 mb-2">Invite Next</a>
+    <p class="text-muted">Waiting in queue: {{ waiting_count }}</p>
+</div>
+
+<script>
+    setTimeout(function(){
+       location.reload();
+    }, 5000); 
+</script>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    /* Custom CSS untuk bulatan biru */
+    .queue-circle {
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        border: 15px solid #3b82f6; /* Warna biru */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto;
+        background-color: white;
+        box-shadow: 0 10px 25px rgba(59, 130, 246, 0.15);
+    }
+    .btn-notification {
+        background-color: #3b82f6; 
+        border: none;
+        color: white;
+    }
+    .btn-quit {
+        background-color: #f3f4f6;
+        color: #3b82f6;
+        border: none;
+    }
+</style>
+
+<div class="d-flex flex-column align-items-center justify-content-center min-vh-100 text-center py-4">
+    
+    <div class="mb-5 text-muted">
+        <small>📍 {{ queue.name }}</small>
+    </div>
+
+    <div class="queue-circle mb-5">
+        {% if visitor.status == 'WAITING' %}
+            <p class="text-muted mb-0 fs-5">Your number is <strong>#{{ visitor.number }}</strong></p>
+            <h1 class="fw-bolder display-4 lh-1 mt-2 mb-2">
+                You are {{ position_text }}<br>in the queue
+            </h1>
+            <p class="text-muted mb-0">— almost there!</p>
+        {% elif visitor.status == 'SERVING' %}
+            <h1 class="fw-bold text-success">It's Your Turn!</h1>
+            <p>Please proceed to counter.</p>
+        {% else %}
+             <h2 class="text-muted">Completed</h2>
+        {% endif %}
+    </div>
+
+    <div class="w-100" style="max-width: 350px;">
+        <button onclick="enableNotif()" class="btn btn-notification btn-lg w-100 mb-3 py-3 rounded-3 fw-bold">
+            Enable notifications
+        </button>
+        
+        <form action="{% url 'visitor_quit' visitor.id %}" method="POST" onsubmit="return confirm('Are you sure you want to quit?');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-quit btn-lg w-100 py-3 rounded-3 fw-bold">
+                Quit the queue
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Logic Reload Automatik
+    setTimeout(function(){
+       if("{{ visitor.status }}" === "WAITING") {
+           location.reload();
+       }
+    }, 5000); // Check status setiap 5 saat
+
+    // Dummy Notification Function
+    function enableNotif() {
+        alert("Notifications enabled! We will alert you when it's your turn.");
+    }
+</script>
+{% endblock %}
