@@ -84,16 +84,15 @@
             document.getElementById('active-container').style.display = 'block';
         }
 
-        // 2. RETURN TO QUEUE (Jadi 000)
-        if (eventType === 'return_queue') {
-            // Tukar Nombor jadi 000
-            document.getElementById('number-text').innerText = "000"; 
-            document.getElementById('name-text').innerText = ""; 
-            
-            // Kita masih tunjuk active container (tapi 000), atau boleh tunjuk empty container
-            document.getElementById('empty-container').style.display = 'none';
-            document.getElementById('active-container').style.display = 'block';
-        }
+        // --- LOGIC: RETURN TO QUEUE (TV SAHAJA) ---
+    if (eventType === 'return_queue') {
+        // 1. PAKSA NOMBOR JADI 000 (Seperti yang anda mahu)
+        document.getElementById('number-text').innerText = "000"; 
+        
+        // 2. Update list orang menunggu & Total
+        if (payload.next_visitors) updateNextList(payload.next_visitors);
+        if (payload.waiting_count !== undefined) document.getElementById('total-waiting').innerText = payload.waiting_count;
+    }
 
         // 3. QUEUE RESET
         if (eventType === 'queue_reset') {

@@ -2,40 +2,60 @@
 {% block content %}
 
 <style>
-    /* CSS Global */
+    /* --- CSS GLOBAL --- */
     body { background-color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     .top-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; margin-bottom: 40px; color: #6c757d; font-size: 0.9rem; }
     .upgrade-link { color: #3b82f6; text-decoration: none; font-weight: 500; margin-right: 15px; }
     
-    /* Serving Card */
+    /* --- SERVING CARD --- */
     .serving-card { background-color: #f8f9fa; border-radius: 20px; padding: 40px 20px; text-align: center; max-width: 400px; margin: 0 auto 50px auto; }
     .serving-title { font-weight: 700; font-size: 1rem; margin-bottom: 10px; color: #000; }
     .serving-number { font-size: 5rem; font-weight: 800; line-height: 1; color: #000; letter-spacing: -2px; }
     .serving-name { color: #6c757d; font-size: 1.1rem; margin-bottom: 20px; }
     
-    /* Buttons */
+    /* --- BUTTONS --- */
     .btn-return { background-color: #e9ecef; color: #000; border: none; border-radius: 8px; padding: 8px 20px; font-size: 0.9rem; font-weight: 500; text-decoration: none; display: inline-block; }
     .btn-return:hover { background-color: #dee2e6; color: black; }
+    
     .action-buttons { max-width: 400px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
     .btn-invite-next { background-color: #93c5fd; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; width: 100%; }
     .btn-invite-next:hover { background-color: #60a5fa; }
     .btn-invite-next:disabled { background-color: #e5e7eb; cursor: not-allowed; }
+    
     .btn-invite-num { background-color: #f8f9fa; color: #93c5fd; border: none; padding: 12px; border-radius: 8px; font-weight: 500; width: 100%; }
     .btn-add-outline { background-color: white; color: #2563eb; border: 1px solid #2563eb; padding: 12px; border-radius: 8px; font-weight: 500; width: 100%; }
     .btn-remove-outline { background-color: white; color: #ef4444; border: 1px solid #fca5a5; padding: 12px; border-radius: 8px; font-weight: 400; width: 100%; }
-    .alert-msg { position: fixed; top: 20px; right: 20px; z-index: 10000; }
     
-    /* Modal CSS */
+    /* --- MODAL CSS --- */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px); z-index: 9999; display: flex; justify-content: center; align-items: center; }
     .modal-card { background-color: white; width: 90%; max-width: 400px; border-radius: 15px; padding: 30px; text-align: center; position: relative; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); }
     .close-btn { position: absolute; top: 10px; right: 15px; font-size: 1.5rem; color: #ccc; cursor: pointer; }
     .fade-in { animation: fadeInScale 0.2s ease-out forwards; }
     @keyframes fadeInScale { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     
-    /* Style Khas untuk Pill Nombor */
+    /* --- PILL BUTTONS --- */
     .btn-number-pill { background-color: #f3f4f6; border: none; border-radius: 50px; padding: 10px 25px; font-size: 1.5rem; font-weight: 700; color: #000; min-width: 100px; }
     .btn-number-pill:hover { background-color: #e5e7eb; }
     .btn-number-pill.selected { background-color: #3b82f6; color: white; }
+    .btn-number-pill.selected-red { background-color: #ef4444; color: white; border: 1px solid #ef4444; }
+
+    /* --- SETTINGS STYLES --- */
+    .btn-settings { background-color: #e0f2fe; color: #3b82f6; border: none; border-radius: 12px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; }
+    .btn-settings:hover { background-color: #dbeafe; }
+
+    .form-group { margin-bottom: 20px; }
+    .form-label { font-size: 0.9rem; color: #6b7280; margin-bottom: 5px; display: block; }
+    .form-control-custom { width: 100%; padding: 10px 15px; border: 1px solid #e5e7eb; border-radius: 8px; background-color: #f9fafb; font-size: 1rem; color: #1f2937; }
+    .link-box { display: flex; justify-content: space-between; align-items: center; color: #3b82f6; font-weight: 500; word-break: break-all; }
+    .btn-copy { background: none; border: none; color: #3b82f6; cursor: pointer; }
+
+    /* --- TOGGLE SWITCH --- */
+    .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+    .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: #3b82f6; }
+    input:checked + .slider:before { transform: translateX(24px); }
 </style>
 
 <div class="container" style="max-width: 800px;">
@@ -51,8 +71,14 @@
     </div>
 
     <div class="top-header">
-        <span class="text-muted">{{ queue.name }}</span>
-        <div><a href="#" class="upgrade-link">Upgrade to QRQ+</a></div>
+        <span class="text-muted fw-bold">{{ queue.name }}</span>
+        <div class="d-flex align-items-center">
+            <button onclick="openSettingsModal()" class="btn-settings">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-sliders" viewBox="0 0 16 16">
+                  <path fill-rule="evenodd" d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3h9.05zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8h2.05zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1h9.05z"/>
+                </svg>
+            </button>
+        </div>
     </div>
 
     <div class="text-center mb-4 text-muted">
@@ -87,13 +113,12 @@
                 <button class="btn btn-invite-next text-center w-100 mb-2" disabled style="opacity: 0.6; cursor: not-allowed;">Invite next</button>
             {% endif %}
         </div>
+        
         <button onclick="showNumberModal()" class="btn btn-invite-num w-100">Invite by number</button>
         <button onclick="showAddModal('{{ next_new_number|stringformat:'03d' }}')" class="btn btn-add-outline text-center w-100">Add</button>
-        <form action="{% url 'remove_visitors' queue.slug %}" method="POST" onsubmit="return confirm('Are you sure you want to remove ALL visitors?');">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-remove-outline">Remove visitors</button>
-        </form>
+        <button onclick="showRemoveModal()" class="btn btn-remove-outline w-100">Remove visitors</button>
     </div>
+    
     <div class="footer-link"><a href="#">Report a problem</a></div>
 </div>
 
@@ -147,8 +172,249 @@
     </div>
 </div>
 
+<div id="removeModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card fade-in" style="max-width: 500px;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="fw-bold mb-0">Choose visitors</h4>
+            <a href="javascript:void(0)" onclick="closeRemoveModal()" class="text-primary text-decoration-none small fw-bold">Close</a>
+        </div>
+        <div class="d-flex flex-wrap justify-content-center gap-2 mb-4" style="max-height: 300px; overflow-y: auto;">
+            {% for v in all_waiting_visitors %}
+                <button onclick="selectVisitorToRemove(this, '{{ v.id }}')" class="btn btn-number-pill remove-pill">
+                    {{ v.number|stringformat:"03d" }}
+                </button>
+            {% empty %}
+                <p class="text-muted">No visitors to remove.</p>
+            {% endfor %}
+        </div>
+        <div class="d-flex justify-content-center align-items-center">
+            <a href="#" id="removeLink" class="btn btn-danger w-100 py-2 rounded-3 fw-bold" style="display: none;">
+                Remove Selected
+            </a>
+        </div>
+    </div>
+</div>
+
+<div id="settingsModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card fade-in text-start" style="max-width: 600px; padding: 0; overflow: hidden;">
+        
+        <form action="{% url 'update_queue_settings' queue.slug %}" method="POST">
+            {% csrf_token %}
+            
+            <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-white">
+                <span onclick="closeSettingsModal()" style="cursor: pointer; font-size: 1.5rem; color: #9ca3af;">&times;</span>
+                <h5 class="m-0 fw-bold">Queue Settings</h5>
+                <button type="submit" class="btn text-primary fs-4 p-0 border-0 bg-transparent">
+                    &#10003;
+                </button>
+            </div>
+
+            <div class="p-4" style="max-height: 70vh; overflow-y: auto;">
+                
+                <h6 class="text-uppercase text-muted small fw-bold mb-3">Queue Info</h6>
+
+                <div class="form-group">
+                    <label class="form-label">Sign-in link</label>
+                    <div class="link-box">
+                        <a href="{{ request.scheme }}://{{ request.get_host }}/q/{{ queue.slug }}/join/" target="_blank" id="signInLink">
+                            {{ request.scheme }}://{{ request.get_host }}/q/{{ queue.slug }}/join/
+                        </a>
+                        <button type="button" class="btn-copy" onclick="copyToClipboard('signInLink')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-files" viewBox="0 0 16 16"><path d="M13 0H6a2 2 0 0 0-2 2 2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2 9a9 0 0 0 0-18zm-5 2h5a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1 1 1 0 0 1 1-1zm4 12H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h1v1H2v10h10v-1h1v1a1 1 0 0 1-1 1z"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Status screen link</label>
+                    <div class="link-box">
+                        <a href="{{ request.scheme }}://{{ request.get_host }}/q/{{ queue.slug }}/display/" target="_blank" id="statusLink">
+                            {{ request.scheme }}://{{ request.get_host }}/q/{{ queue.slug }}/display/
+                        </a>
+                        <button type="button" class="btn-copy" onclick="copyToClipboard('statusLink')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-files" viewBox="0 0 16 16"><path d="M13 0H6a2 2 0 0 0-2 2 2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2 9a9 0 0 0 0-18zm-5 2h5a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1 1 1 0 0 1 1-1zm4 12H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h1v1H2v10h10v-1h1v1a1 1 0 0 1-1 1z"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group mt-4">
+                    <label class="form-label">Queue name</label>
+                    <input type="text" name="name" class="form-control-custom" value="{{ queue.name }}">
+                </div>
+
+                <hr class="my-4">
+
+                <h6 class="text-uppercase text-muted small fw-bold mb-3">Sign-in Settings</h6>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <div class="fw-bold">Visitor self-sign-in</div>
+                        <small class="text-muted">Allow or disallow new visitors to join the queue</small>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" name="allow_join" {% if queue.allow_join %}checked{% endif %}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <div class="fw-bold">Ask for visitor input</div>
+                        <small class="text-muted">Ask visitors to input name/info when joining</small>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="askInputToggle" name="ask_input" {% if queue.ask_input %}checked{% endif %} onchange="toggleInputPrompt()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div id="inputPromptContainer" class="form-group bg-light p-3 rounded border" style="display: {% if queue.ask_input %}block{% else %}none{% endif %};">
+                    <label class="form-label text-muted small fw-bold">Visitor input prompt</label>
+                    <input type="text" name="input_label" class="form-control-custom bg-white" 
+                           value="{{ queue.input_label|default:'Enter your name' }}" 
+                           placeholder="e.g. Enter your name">
+                    <small class="text-muted d-block mt-2" style="font-size: 0.8rem; line-height: 1.4;">
+                        Ask visitors to input some information when they are joining the queue: name, contact info, vehicle plate number, etc.
+                    </small>
+                </div>
+
+                <div class="form-group mt-3">
+                    <label class="form-label">Queue capacity</label>
+                    <input type="number" name="capacity" class="form-control-custom" value="{{ queue.capacity }}">
+                </div>
+
+                <hr class="my-4">
+
+                <h6 class="text-uppercase text-muted small fw-bold mb-3">Appearance</h6>
+                
+                <div class="form-group">
+                    <label class="form-label">Display estimated waiting time</label>
+                    <select name="wait_time_display" class="form-control-custom">
+                        <option value="AUTO" {% if queue.wait_time_display == 'AUTO' %}selected{% endif %}>Automatically calculated</option>
+                        <option value="HIDDEN" {% if queue.wait_time_display == 'HIDDEN' %}selected{% endif %}>Hidden</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Status screen language</label>
+                    <select name="status_language" class="form-control-custom">
+                        <option value="AUTO" {% if queue.status_language == 'AUTO' %}selected{% endif %}>Auto</option>
+                        <option value="EN" {% if queue.status_language == 'EN' %}selected{% endif %}>English</option>
+                        <option value="MS" {% if queue.status_language == 'MS' %}selected{% endif %}>Malay</option>
+                    </select>
+                </div>
+
+                <hr class="my-4">
+
+                <h6 class="text-uppercase text-muted small fw-bold mb-3">Reset Queue</h6>
+                
+                <button type="button" class="btn btn-danger w-100 fw-bold py-2" onclick="triggerReset()">
+                    Reset
+                </button>
+                <small class="text-muted d-block mt-2" style="font-size: 0.8rem;">
+                    Resetting queue empties the waiting list and resets the ticket numbering
+                </small>
+
+                <hr class="my-4">
+
+                <h6 class="text-uppercase text-muted small fw-bold mb-3">Feedback</h6>
+                
+                <a href="mailto:support@qrq.app" class="btn btn-outline-primary w-100 fw-bold py-2">
+                    Chat with support
+                </a>
+                <small class="text-muted d-block mt-2" style="font-size: 0.8rem;">
+                    In case you need any assistance or just want to leave a feedback you can also contact us by email: <a href="mailto:inbox@qrq.app" class="text-decoration-none">inbox@qrq.app</a>
+                </small>
+                
+                <div class="mb-5"></div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<div id="addInputModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card fade-in" style="max-width: 450px; text-align: center;">
+        <span onclick="closeAddInputModal()" class="close-btn">&times;</span>
+
+        <h4 class="fw-bold mb-1">Add Visitor</h4>
+        <p class="text-muted small mb-4">Enter visitor information</p>
+
+        <form action="{% url 'add_manual_visitor' queue.slug %}" method="POST">
+            {% csrf_token %}
+            
+            <div class="mb-4">
+                <input type="text" name="custom_name" class="form-control form-control-lg" 
+                       placeholder="{{ queue.input_label|default:'Enter name' }}" required>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="button" onclick="closeAddInputModal()" class="btn btn-light w-50 py-2 rounded-3 fw-bold border">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary w-50 py-2 rounded-3 fw-bold">
+                    Add
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+<form id="resetQueueForm" action="{% url 'remove_visitors' queue.slug %}" method="POST" style="display: none;">
+    {% csrf_token %}
+</form>
+
 <script>
-    // --- Modal Logic ---
+    // --- SETTINGS LOGIC (TOGGLE INPUT) ---
+    function toggleInputPrompt() {
+        const toggle = document.getElementById('askInputToggle');
+        const container = document.getElementById('inputPromptContainer');
+        
+        if (toggle.checked) {
+            container.style.display = 'block';
+        } else {
+            container.style.display = 'none';
+        }
+    }
+
+    // --- RESET TRIGGER ---
+    function triggerReset() {
+        if(confirm('Are you sure you want to RESET the queue? This will remove all visitors.')) {
+            document.getElementById('resetQueueForm').submit();
+        }
+    }
+
+    // --- MODAL & BUTTON FUNCTIONS ---
+    function openSettingsModal() { 
+        document.getElementById('settingsModal').style.display = 'flex';
+        // Check state bila modal buka
+        toggleInputPrompt(); 
+    }
+    function closeSettingsModal() { document.getElementById('settingsModal').style.display = 'none'; }
+
+    function copyToClipboard(elementId) {
+        var copyText = document.getElementById(elementId).href;
+        navigator.clipboard.writeText(copyText).then(function() {
+            alert("Copied to clipboard!");
+        }, function(err) { console.error('Could not copy text: ', err); });
+    }
+
+    function showRemoveModal() { document.getElementById('removeModal').style.display = 'flex'; }
+    function closeRemoveModal() {
+        document.getElementById('removeModal').style.display = 'none';
+        document.querySelectorAll('.remove-pill').forEach(el => el.classList.remove('selected-red'));
+        document.getElementById('removeLink').style.display = 'none';
+    }
+    function selectVisitorToRemove(btnElement, visitorId) {
+        document.querySelectorAll('.remove-pill').forEach(el => el.classList.remove('selected-red'));
+        btnElement.classList.add('selected-red');
+        const removeLink = document.getElementById('removeLink');
+        removeLink.href = "/visitor/" + visitorId + "/remove/";
+        removeLink.style.display = 'block';
+    }
+
     function showConfirmModal(visitorId, visitorNumber) {
         document.getElementById('modalVisitorNum').innerText = visitorNumber;
         document.getElementById('confirmYesBtn').href = "/visitor/" + visitorId + "/return/";
@@ -162,13 +428,40 @@
     }
     function closeInviteModal() { document.getElementById('inviteModal').style.display = 'none'; }
 
-    function showAddModal(nextNewNumber) {
-        document.getElementById('addNum').innerText = nextNewNumber;
-        document.getElementById('addModal').style.display = 'flex';
-    }
-    function closeAddModal() { document.getElementById('addModal').style.display = 'none'; }
     
-    // Choose Visitor Modal
+    
+    // Ambil status setting dari Database
+    const isAskInputEnabled = "{{ queue.ask_input|yesno:'true,false' }}" === "true";
+
+    function showAddModal(nextNewNumber) {
+        if (isAskInputEnabled) {
+            // JIKA SETTING ON: Buka Modal Input (Modal Baru 3B)
+            document.getElementById('addInputModal').style.display = 'flex';
+            // Auto focus pada kotak input
+            document.querySelector('#addInputModal input').focus();
+        } else {
+            // JIKA SETTING OFF: Buka Modal Confirmation Biasa (Modal Lama 3)
+            document.getElementById('addNum').innerText = nextNewNumber;
+            document.getElementById('addModal').style.display = 'flex';
+        }
+    }
+    // Fungsi Tutup Modal Biasa
+    function closeAddModal() { 
+        document.getElementById('addModal').style.display = 'none'; 
+    }
+
+    // Fungsi Tutup Modal Input Baru
+    function closeAddInputModal() {
+        document.getElementById('addInputModal').style.display = 'none';
+    }
+
+
+    function closeAddModal() { document.getElementById('addModal').style.display = 'none'; }
+    // Fungsi Tutup Modal Input Baru
+    function closeAddInputModal() {
+        document.getElementById('addInputModal').style.display = 'none';
+    }
+    
     function showNumberModal() { document.getElementById('numberModal').style.display = 'flex'; }
     function closeNumberModal() { 
         document.getElementById('numberModal').style.display = 'none';
@@ -184,12 +477,14 @@
         inviteLink.innerText = "Invite Visitor";
     }
 
-    // Close Modals on click outside
+    // --- GLOBAL CLICK LISTENER (Tutup Modals) ---
     window.onclick = function(event) {
         if (event.target == document.getElementById('inviteModal')) closeInviteModal();
         if (event.target == document.getElementById('confirmModal')) closeConfirmModal();
         if (event.target == document.getElementById('addModal')) closeAddModal();
         if (event.target == document.getElementById('numberModal')) closeNumberModal();
+        if (event.target == document.getElementById('removeModal')) closeRemoveModal();
+        if (event.target == document.getElementById('settingsModal')) closeSettingsModal();
     }
 
     // --- WEBSOCKET SETUP ---
@@ -215,17 +510,21 @@
         else if (eventType === 'invite_next' || eventType === 'queue_reset') {
             location.reload();
         }
-        // PEMBETULAN: Logik ini MESTI di dalam function socket.onmessage
         else if (eventType === 'return_queue') {
-            // 1. Update Nombor Admin jadi 000
-            document.getElementById('admin-serving-num').innerText = "000";
-            document.getElementById('admin-serving-name').innerText = "Waiting to serve";
-            
-            // 2. Sorokkan butang Return
+            if (payload.returned_number) {
+                document.getElementById('admin-serving-num').innerText = payload.returned_number;
+                document.getElementById('admin-serving-name').innerText = payload.returned_name;
+            }
             const btnReturn = document.getElementById('btn-return-queue');
-            if(btnReturn) btnReturn.style.display = 'none';
-
-            // 3. Update Waiting Count
+            if (btnReturn) {
+                btnReturn.innerText = "Returned to queue";
+                btnReturn.style.display = "inline-block";
+                btnReturn.disabled = true;
+                btnReturn.style.backgroundColor = "#f3f4f6";
+                btnReturn.style.color = "#9ca3af";
+                btnReturn.style.cursor = "default";
+                btnReturn.onclick = null;
+            }
             if (payload.waiting_count !== undefined) {
                 document.getElementById('waiting-count-display').innerText = payload.waiting_count;
             }

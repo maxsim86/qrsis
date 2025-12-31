@@ -29,6 +29,27 @@ def send_socket_update(slug, event_type, extra_data=None):
         }
     )
     
+def update_queue_settings(request, slug):
+    queue = get_object_or_404(Queue, slug=slug)
+    
+    if request.method == "POST":
+        # ... field lain ...
+        queue.name = request.POST.get('name')
+        queue.allow_join = request.POST.get('allow_join') == 'on'
+        
+        # Update Ask Input & Label
+        queue.ask_input = request.POST.get('ask_input') == 'on'
+        queue.input_label = request.POST.get('input_label') # <--- TAMBAH BARIS INI
+        
+        # ... field lain ...
+        queue.capacity = request.POST.get('capacity')
+        queue.wait_time_display = request.POST.get('wait_time_display')
+        queue.status_language = request.POST.get('status_language')
+        
+        queue.save()
+        messages.success(request, "Queue settings updated!")
+        
+    return redirect('admin_interface', slug=slug)
 
 
 
@@ -73,11 +94,17 @@ def poster_view(request, slug):
     
     return render(request, 'queues/poster.html', {'queue': queue, 'qr_code': img_str, 'join_url': join_url})
 
-# 1. Page Masukkan Nama (Join)
 def visitor_join(request, slug):
     queue = get_object_or_404(Queue, slug=slug)
     
+    # --- LOGIK BARU: SEMAK STATUS SELF-SIGN-IN ---
+    if not queue.allow_join:
+        # Jika Disabled, terus tunjuk page disabled
+        return render(request, 'queues/disabled.html')
+    # ---------------------------------------------
+    
     if request.method == "POST":
+        # ... (kod lama untuk create visitor kekal sama) ...
         last_visitor = Visitor.objects.filter(queue=queue).aggregate(Max('number'))
         next_number = (last_visitor['number__max'] or 0) + 1
         
@@ -93,8 +120,6 @@ def visitor_join(request, slug):
             status='WAITING'
         )
 
-        # --- TAMBAH SIGNAL DI SINI ---
-        # Supaya Admin Page & TV Display tahu ada orang baru masuk (Update Counter)
         send_socket_update(slug, 'new_visitor', {
             'visitor_id': new_visitor.id,
             'number': f"{new_visitor.number:03d}",
@@ -174,20 +199,32 @@ def admin_interface(request, slug):
 
 def add_manual_visitor(request, slug):
     queue = get_object_or_404(Queue, slug=slug)
+    
+    # Kira nombor seterusnya
     last_visitor = Visitor.objects.filter(queue=queue).aggregate(Max('number'))
     next_number = (last_visitor['number__max'] or 0) + 1
     
+    # LOGIK BARU: Cek jika ada nama dihantar dari form
+    custom_name = request.POST.get('custom_name')
+    
+    if custom_name:
+        # Jika admin isi nama, guna nama tu
+        visitor_name = custom_name
+    else:
+        # Jika tak isi (atau setting OFF), guna nama default
+        visitor_name = f"Visitor #{next_number}"
+    
+    # Create Visitor
     new_visitor = Visitor.objects.create(
         queue=queue,
-        name=f"Visitor #{next_number}",
+        name=visitor_name,
         number=next_number,
         status='WAITING'
     )
     
-    messages.success(request, f"Added visitor with number {next_number:03d}")
+    messages.success(request, f"Added {visitor_name} (#{next_number:03d})")
     
-    # --- TAMBAH SIGNAL DI SINI ---
-    # Sama seperti visitor_join, beritahu sistem ada orang baru
+    # Hantar Signal WebSocket
     send_socket_update(slug, 'new_visitor', {
         'visitor_id': new_visitor.id,
         'number': f"{new_visitor.number:03d}",
@@ -216,9 +253,8 @@ def return_to_queue(request, visitor_id):
     # Kita hantar 'current_number': '000' untuk reset display
     send_socket_update(slug, 'return_queue', {
         'visitor_id': visitor.id,
-        'current_number': '000',    # INI KUNCI UTAMA
-        'current_name': '',         # Kosongkan nama
-        'is_serving': False         # Flag untuk tahu tiada orang dilayan
+        'returned_number': f"{visitor.number:03d}",
+        'returned_name': visitor.name
     })
     
     return redirect('admin_interface', slug=slug)
@@ -230,6 +266,20 @@ def remove_visitors(request, slug):
         Visitor.objects.filter(queue=queue).delete()
         # Beritahu TV display untuk reset ke 000
         send_socket_update(slug, 'queue_reset', {})
+    return redirect('admin_interface', slug=slug)
+
+def remove_specific_visitor(request, visitor_id):
+    visitor = get_object_or_404(Visitor, id=visitor_id)
+    slug = visitor.queue.slug
+    
+    # 1. Padam Visitor
+    visitor.delete()
+    
+    # 2. Hantar Signal WebSocket (Update List & Counter)
+    # Kita guna signal 'queue_reset' atau 'visitor_quit' pun boleh, 
+    # asalkan frontend refresh list.
+    send_socket_update(slug, 'visitor_quit', {})
+    
     return redirect('admin_interface', slug=slug)
 
 def call_next(request, slug):
