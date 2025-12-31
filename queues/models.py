@@ -27,6 +27,7 @@ class Visitor(models.Model):
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='WAITING')
     is_returned = models.BooleanField(default=False)
+    is_invited = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.name} - {self.number}"

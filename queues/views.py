@@ -5,35 +5,49 @@ import qrcode
 from io import BytesIO
 import base64
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib import messages
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+
+
+def send_socket_update(slug, event_type, extra_data=None):
+    channel_layer = get_channel_layer()
+    
+    # Kita automatik ambil data queue terkini setiap kali signal dihantar
+    queue = Queue.objects.get(slug=slug)
+    realtime_data = get_realtime_data(queue)
+    
+    # Gabungkan data manual (contoh: info orang yg dipanggil) dengan data realtime
+    final_data = {**realtime_data, **(extra_data or {})}
+
+    async_to_sync(channel_layer.group_send)(
+        f'queue_{slug}',
+        {
+            'type': 'queue_update',
+            'message': event_type,
+            'data': final_data
+        }
+    )
+    
+
 
 
 def create_queue(request):
     if request.method == "POST":
         name = request.POST.get('name')
-        
-        # Semak status Toggle (checkbox)
-        # HTML checkbox hantar 'on' jika dicentang, atau None jika tidak.
         ask_input = request.POST.get('ask_input') 
-        
         if ask_input == 'on':
-            # Jika Toggle ON, ambil input label user, atau guna default
             label = request.POST.get('label') or "Masukkan nama anda"
         else:
-            # Jika Toggle OFF, set label jadi Kosong String
             label = "" 
-
         new_queue = Queue.objects.create(name=name, input_label=label)
         return redirect('dashboard', slug=new_queue.slug)
-        
     return render(request, 'queues/create.html')
 
 # 2. Page Dashboard lepas create (Screenshot 2)
 def dashboard(request, slug):
     queue = get_object_or_404(Queue, slug=slug)
-    
-    # Bina URL penuh menggunakan request.build_absolute_uri
     base_url = f"{request.scheme}://{request.get_host()}"
-    
     context = {
         'queue': queue,
         'visitor_url': f"{base_url}/q/{slug}/join/",
@@ -46,16 +60,13 @@ def dashboard(request, slug):
 # 3. Page untuk Print QR Poster (Screenshot 3)
 def poster_view(request, slug):
     queue = get_object_or_404(Queue, slug=slug)
-    # Generate Link
     join_url = f"http://{request.get_host()}/q/{slug}/join/"
     
-    # Generate QR Image
     qr = qrcode.QRCode(box_size=10, border=4)
     qr.add_data(join_url)
     qr.make(fit=True)
     img = qr.make_image(fill='black', back_color='white')
     
-    # Convert image ke base64 string untuk display di HTML
     buffer = BytesIO()
     img.save(buffer)
     img_str = base64.b64encode(buffer.getvalue()).decode()
@@ -67,16 +78,12 @@ def visitor_join(request, slug):
     queue = get_object_or_404(Queue, slug=slug)
     
     if request.method == "POST":
-        # Logic nombor giliran (Kekal sama)
         last_visitor = Visitor.objects.filter(queue=queue).aggregate(Max('number'))
         next_number = (last_visitor['number__max'] or 0) + 1
         
-        # LOGIC BARU: Tentukan Nama
         if queue.input_label:
-            # Jika ada label, maksudnya user kena isi nama
             name = request.POST.get('name')
         else:
-            # Jika tiada label (Toggle OFF), kita bagi nama automatik
             name = f"Visitor #{next_number}"
         
         new_visitor = Visitor.objects.create(
@@ -85,6 +92,15 @@ def visitor_join(request, slug):
             number=next_number,
             status='WAITING'
         )
+
+        # --- TAMBAH SIGNAL DI SINI ---
+        # Supaya Admin Page & TV Display tahu ada orang baru masuk (Update Counter)
+        send_socket_update(slug, 'new_visitor', {
+            'visitor_id': new_visitor.id,
+            'number': f"{new_visitor.number:03d}",
+            'name': new_visitor.name
+        })
+        
         return redirect('visitor_status', visitor_id=new_visitor.id)
         
     return render(request, 'queues/join.html', {'queue': queue})
@@ -96,18 +112,17 @@ def visitor_status(request, visitor_id):
         visitor = Visitor.objects.get(id=visitor_id)
     except Visitor.DoesNotExist:   
         return render(request, 'queues/session_ended.html')
+    
     queue = visitor.queue
     
-    # Logic: Kira berapa orang 'WAITING' yang join SEBELUM visitor ini
     if visitor.status == 'WAITING':
         people_ahead = Visitor.objects.filter(
             queue=queue, 
             status='WAITING', 
-            id__lt=visitor.id # id less than current visitor
+            id__lt=visitor.id
         ).count()
-        position = people_ahead + 1 # +1 sebab diri sendiri
+        position = people_ahead + 1
         
-        # Tentukan suffix (1st, 2nd, 3rd, 4th)
         if 10 <= position % 100 <= 20: suffix = 'th'
         else: suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(position % 10, 'th')
         
@@ -126,69 +141,125 @@ def visitor_status(request, visitor_id):
 def visitor_quit(request, visitor_id):
     visitor = get_object_or_404(Visitor, id=visitor_id)
     queue_slug = visitor.queue.slug
-    
-    # Delete visitor dari database
     visitor.delete()
     
-    # Redirect balik ke page join
+    # --- TAMBAH SIGNAL DI SINI ---
+    # Supaya Admin tahu ada orang keluar queue (Update Counter tolak 1)
+    send_socket_update(queue_slug, 'visitor_quit', {})
+
     return redirect('visitor_join', slug=queue_slug)
 
 def admin_interface(request, slug):
     queue = get_object_or_404(Queue, slug=slug)
-    
-    # Dapatkan visitor yang sedang dilayan (SERVING)
     current_serving = Visitor.objects.filter(queue=queue, status='SERVING').first()
     
-    # Kira berapa orang menunggu
-    waiting_count = Visitor.objects.filter(queue=queue, status='WAITING').count()
+    # Kita ambil SEMUA waiting visitor untuk dipaparkan dalam MODAL "Choose Visitor"
+    all_waiting_visitors = Visitor.objects.filter(queue=queue, status='WAITING').order_by('id')
+    
+    waiting_count = all_waiting_visitors.count()
+    next_visitor = all_waiting_visitors.first()
+    
+    last_visitor = Visitor.objects.filter(queue=queue).aggregate(Max('number'))
+    next_new_number = (last_visitor['number__max'] or 0) + 1
     
     return render(request, 'queues/admin.html', {
         'queue': queue,
         'current_serving': current_serving,
-        'waiting_count': waiting_count
+        'waiting_count': waiting_count,
+        'next_visitor': next_visitor,
+        'all_waiting_visitors': all_waiting_visitors, # PASS KE TEMPLATE UNTUK MODAL
+        'next_new_number': next_new_number,
     })
     
+
+def add_manual_visitor(request, slug):
+    queue = get_object_or_404(Queue, slug=slug)
+    last_visitor = Visitor.objects.filter(queue=queue).aggregate(Max('number'))
+    next_number = (last_visitor['number__max'] or 0) + 1
+    
+    new_visitor = Visitor.objects.create(
+        queue=queue,
+        name=f"Visitor #{next_number}",
+        number=next_number,
+        status='WAITING'
+    )
+    
+    messages.success(request, f"Added visitor with number {next_number:03d}")
+    
+    # --- TAMBAH SIGNAL DI SINI ---
+    # Sama seperti visitor_join, beritahu sistem ada orang baru
+    send_socket_update(slug, 'new_visitor', {
+        'visitor_id': new_visitor.id,
+        'number': f"{new_visitor.number:03d}",
+        'name': new_visitor.name
+    })
+
+    return redirect('admin_interface', slug=slug)
+
     
 def acknowledge_return(request, visitor_id):
     visitor = get_object_or_404(Visitor, id=visitor_id)
-    
-    # User dah tekan "Good", so kita padam flag return
     visitor.is_returned = False 
     visitor.save()
-    
     return redirect('visitor_status', visitor_id=visitor.id)
     
 def return_to_queue(request, visitor_id):
     visitor = get_object_or_404(Visitor, id=visitor_id)
+    slug = visitor.queue.slug
+    
+    # 1. Update Database
     visitor.status = 'WAITING'
-    visitor.is_returned = True  # Setkan flag ini jadi True
+    visitor.is_returned = True
     visitor.save()
-    return redirect('admin_interface', slug=visitor.queue.slug)
+    
+    # 2. HANTAR SIGNAL WEBSOCKET
+    # Kita hantar 'current_number': '000' untuk reset display
+    send_socket_update(slug, 'return_queue', {
+        'visitor_id': visitor.id,
+        'current_number': '000',    # INI KUNCI UTAMA
+        'current_name': '',         # Kosongkan nama
+        'is_serving': False         # Flag untuk tahu tiada orang dilayan
+    })
+    
+    return redirect('admin_interface', slug=slug)
 
 def remove_visitors(request, slug):
     # Fungsi: Kosongkan semua visitor dalam queue ini (Reset)
     queue = get_object_or_404(Queue, slug=slug)
     if request.method == "POST":
         Visitor.objects.filter(queue=queue).delete()
+        # Beritahu TV display untuk reset ke 000
+        send_socket_update(slug, 'queue_reset', {})
     return redirect('admin_interface', slug=slug)
 
-# Logic Button "Invite Next"
 def call_next(request, slug):
     queue = get_object_or_404(Queue, slug=slug)
-    
-    # Set current serving kepada COMPLETED
     current = Visitor.objects.filter(queue=queue, status='SERVING').first()
     if current:
         current.status = 'COMPLETED'
         current.save()
         
-    # Ambil next waiting visitor
     next_visitor = Visitor.objects.filter(queue=queue, status='WAITING').order_by('id').first()
     if next_visitor:
         next_visitor.status = 'SERVING'
+        next_visitor.is_invited = True
         next_visitor.save()
         
+        # SIGNAL SEDIA ADA (BETUL)
+        send_socket_update(slug, 'invite_next', {
+            'visitor_id': next_visitor.id,
+            'number': f"{next_visitor.number:03d}",
+            'name': next_visitor.name
+        })
+        
     return redirect('admin_interface', slug=slug)
+
+
+def acknowledge_invite(request, visitor_id):
+    visitor = get_object_or_404(Visitor, id=visitor_id)
+    visitor.is_invited = False
+    visitor.save()
+    return redirect('visitor_status', visitor_id=visitor.id)
 
 # 6. Page Status Display TV (Screenshot 1 - Display)
 def status_display(request, slug):
@@ -199,3 +270,44 @@ def status_display(request, slug):
         'queue': queue,
         'current_serving': current_serving
     })
+    
+#Dapatkan Data Real-time
+def get_realtime_data(queue):
+    """
+    Helper untuk ambil data terkini queue supaya boleh dihantar ke WebSocket
+    """
+    waiting_visitors = Visitor.objects.filter(queue=queue, status='WAITING').order_by('id')
+    waiting_count = waiting_visitors.count()
+    
+    # Ambil 3 orang seterusnya untuk dipaparkan di TV
+    next_3_visitors = [f"{v.number:03d}" for v in waiting_visitors[:3]]
+    
+    return {
+        'waiting_count': waiting_count,
+        'next_visitors': next_3_visitors
+    }
+    
+def invite_specific_visitor(request, visitor_id):
+    visitor = get_object_or_404(Visitor, id=visitor_id)
+    queue = visitor.queue
+    slug = queue.slug
+
+    # 1. Selesaikan orang semasa (jika ada)
+    current = Visitor.objects.filter(queue=queue, status='SERVING').first()
+    if current:
+        current.status = 'COMPLETED'
+        current.save()
+
+    # 2. Set pelawat yang DIPILIH sebagai serving
+    visitor.status = 'SERVING'
+    visitor.is_invited = True
+    visitor.save()
+
+    # 3. Hantar Signal (Logic ini automatik update list next visitors di TV)
+    send_socket_update(slug, 'invite_next', {
+        'visitor_id': visitor.id,
+        'number': f"{visitor.number:03d}",
+        'name': visitor.name
+    })
+
+    return redirect('admin_interface', slug=slug)

@@ -1,20 +1,140 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="text-center mt-5">
-    <h2>Current Visitor Number</h2>
+
+<style>
+    /* CSS Khas untuk TV Display */
+    body { background-color: #f8f9fa; overflow: hidden; }
+    .display-container { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
     
-    {% if current_serving %}
-        <div class="big-number" style="font-size: 15rem;">{{ current_serving.number }}</div>
-        <h3>Serving: {{ current_serving.name }}</h3>
-    {% else %}
-        <div class="big-number" style="font-size: 15rem;">000</div>
-        <h3>There is no one in the queue</h3>
-    {% endif %}
+    /* Nombor Giliran Besar */
+    .big-number { font-size: 18rem; font-weight: 800; line-height: 1; color: #000; letter-spacing: -5px; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .pop-in { transform: scale(1.2); }
+
+    .visitor-name { font-size: 3rem; color: #3b82f6; font-weight: 600; margin-top: 20px; }
+    .queue-title { position: absolute; top: 30px; font-size: 1.5rem; color: #6c757d; letter-spacing: 2px; text-transform: uppercase; }
+
+    /* Next Visitors Section */
+    .next-visitors-section { margin-top: 40px; }
+    .next-label { font-size: 1.5rem; font-weight: 700; color: #000; margin-bottom: 10px; }
+    .next-list { display: flex; gap: 20px; justify-content: center; }
+    .next-number { font-size: 5rem; font-weight: 700; color: #000; }
+    
+    .waiting-info { margin-top: 30px; font-size: 1.2rem; color: #6c757d; }
+    
+    /* Empty State */
+    .empty-state { display: none; } /* Default hidden */
+</style>
+
+<div class="display-container">
+    <div class="queue-title">{{ queue.name }}</div>
+
+    <div id="active-container" style="display: {% if current_serving %}block{% else %}block{% endif %};">
+        <div class="text-muted fs-4 fw-bold text-uppercase">Current visitor number</div>
+        
+        <div id="number-text" class="big-number">
+            {% if current_serving %}{{ current_serving.number|stringformat:"03d" }}{% else %}000{% endif %}
+        </div>
+        
+        <div id="name-text" class="visitor-name">
+            {% if current_serving %}"{{ current_serving.name }}"{% endif %}
+        </div>
+    </div>
+
+    <div id="empty-container" class="empty-state">
+        <h1 class="fw-bold">Waiting for visitors</h1>
+        <p class="fs-4">There is no one in the queue</p>
+    </div>
+
+    <div class="next-visitors-section">
+        <div class="next-label">Next visitors:</div>
+        <div id="next-list-container" class="next-list">
+            <span class="next-number">-</span>
+            <span class="next-number">-</span>
+            <span class="next-number">-</span>
+        </div>
+    </div>
+
+    <div class="waiting-info">
+        There are <strong id="total-waiting">0</strong> visitors waiting
+    </div>
+
 </div>
+<audio id="notify-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
 
 <script>
-    setTimeout(function(){
-       location.reload();
-    }, 2000); 
+    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    const queueSlug = "{{ queue.slug }}"; 
+    const socket = new WebSocket(protocol + window.location.host + '/ws/queue/' + queueSlug + '/');
+
+    socket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        const eventType = data.message;
+        const payload = data.data;
+
+        // 1. UPDATE NOMBOR (Invite Next)
+        if (eventType === 'invite_next' && payload.number) {
+            document.getElementById('number-text').innerText = payload.number;
+            document.getElementById('name-text').innerText = `"${payload.name}"`;
+            document.getElementById('number-text').classList.add('pop-in');
+            setTimeout(() => document.getElementById('number-text').classList.remove('pop-in'), 300);
+            playAudio();
+            
+            // Pastikan active container visible
+            document.getElementById('empty-container').style.display = 'none';
+            document.getElementById('active-container').style.display = 'block';
+        }
+
+        // 2. RETURN TO QUEUE (Jadi 000)
+        if (eventType === 'return_queue') {
+            // Tukar Nombor jadi 000
+            document.getElementById('number-text').innerText = "000"; 
+            document.getElementById('name-text').innerText = ""; 
+            
+            // Kita masih tunjuk active container (tapi 000), atau boleh tunjuk empty container
+            document.getElementById('empty-container').style.display = 'none';
+            document.getElementById('active-container').style.display = 'block';
+        }
+
+        // 3. QUEUE RESET
+        if (eventType === 'queue_reset') {
+            document.getElementById('number-text').innerText = "000";
+            document.getElementById('name-text').innerText = ""; 
+            document.getElementById('total-waiting').innerText = "0";
+            updateNextList([]);
+        }
+        
+        // 4. Update List Next Visitors (Berlaku untuk semua event)
+        if (payload.next_visitors) {
+            updateNextList(payload.next_visitors);
+        }
+        if (payload.waiting_count !== undefined) {
+            document.getElementById('total-waiting').innerText = payload.waiting_count;
+        }
+    };
+
+    socket.onclose = function(e) { setTimeout(function() { location.reload(); }, 3000); };
+
+    function playAudio() {
+        const audio = document.getElementById('notify-sound');
+        if(audio) audio.play().catch(e => console.log(e));
+    }
+
+    function updateNextList(visitorsArray) {
+        const container = document.getElementById('next-list-container');
+        container.innerHTML = ""; 
+
+        if (!visitorsArray || visitorsArray.length === 0) {
+            container.innerHTML = '<span class="text-muted fs-3">--</span>';
+            return;
+        }
+
+        visitorsArray.forEach(num => {
+            const span = document.createElement('span');
+            span.className = 'next-number';
+            span.innerText = num;
+            container.appendChild(span);
+        });
+    }
 </script>
+
 {% endblock %}

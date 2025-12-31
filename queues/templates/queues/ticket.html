@@ -2,139 +2,61 @@
 {% block content %}
 
 <style>
-    /* 1. Container Utama */
-    .ticket-container {
-        min-height: 90vh; /* Hampir penuh skrin */
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        padding: 20px;
-    }
-
-    /* 2. Rekaan "Blobs" (Latar belakang abstrak biru cair) */
-    .blob-wrapper {
-        position: relative;
-        width: 350px;
-        height: 350px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-bottom: 40px;
-    }
-
-    .blob {
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(10px);
-        opacity: 0.6;
-        z-index: 0;
-        animation: float 6s ease-in-out infinite;
-    }
-
-    .blob-1 {
-        width: 110%;
-        height: 110%;
-        background-color: #e0f2fe; /* Biru sangat cair */
-        top: -5%;
-        left: -5%;
-        border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
-    }
-
-    .blob-2 {
-        width: 105%;
-        height: 105%;
-        background-color: #dbeafe; /* Biru cair */
-        bottom: -5%;
-        right: -10%;
-        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-        animation-delay: 2s;
-    }
-
-    /* 3. Bulatan Utama (Status Circle) */
-    .status-circle {
-        position: relative;
-        z-index: 10; /* Duduk atas blobs */
-        width: 320px;
-        height: 320px;
-        background-color: white;
-        border: 18px solid #3b82f6; /* Warna Biru Utama */
-        border-radius: 50%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        box-shadow: 0 10px 30px rgba(59, 130, 246, 0.1); /* Bayang lembut */
-    }
-
-    /* 4. Tipografi dalam bulatan */
-    .text-top {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #1f2937;
-        margin-bottom: 5px;
-    }
+    /* CSS Ticket Asas */
+    .ticket-container { min-height: 90vh; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 20px; }
     
-    .text-main {
-        font-size: 3rem; /* Saiz besar */
-        font-weight: 800; /* Lebih tebal */
-        line-height: 1.1;
-        color: #000;
-        margin: 10px 0;
-    }
+    /* Blobs */
+    .blob-wrapper { position: relative; width: 350px; height: 350px; display: flex; justify-content: center; align-items: center; margin-bottom: 40px; }
+    .blob { position: absolute; border-radius: 50%; filter: blur(10px); opacity: 0.6; z-index: 0; animation: float 6s ease-in-out infinite; }
+    .blob-1 { width: 110%; height: 110%; background-color: #e0f2fe; top: -5%; left: -5%; border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
+    .blob-2 { width: 105%; height: 105%; background-color: #dbeafe; bottom: -5%; right: -10%; border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; animation-delay: 2s; }
+    @keyframes float { 0% { transform: translate(0, 0) rotate(0deg); } 33% { transform: translate(5px, -10px) rotate(5deg); } 66% { transform: translate(-5px, 5px) rotate(-5deg); } 100% { transform: translate(0, 0) rotate(0deg); } }
 
-    .text-bottom {
-        font-size: 1.2rem;
-        color: #4b5563;
-        margin-top: 5px;
-    }
+    /* Bulatan Status */
+    .status-circle { position: relative; z-index: 10; width: 320px; height: 320px; background-color: white; border: 18px solid #3b82f6; border-radius: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; box-shadow: 0 10px 30px rgba(59, 130, 246, 0.1); }
+    .text-top { font-size: 1.1rem; font-weight: 600; color: #1f2937; margin-bottom: 5px; }
+    .text-main { font-size: 3rem; font-weight: 800; line-height: 1.1; color: #000; margin: 10px 0; }
+    .text-bottom { font-size: 1.2rem; color: #4b5563; margin-top: 5px; }
 
-    /* 5. Butang */
-    .btn-container {
-        width: 100%;
-        max-width: 380px;
-        z-index: 10;
-    }
+    /* Butang */
+    .btn-container { width: 100%; max-width: 380px; z-index: 10; }
+    .btn-notif { background-color: #3b82f6; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: 600; width: 100%; margin-bottom: 12px; transition: background-color 0.2s; }
+    .btn-notif:hover { background-color: #2563eb; }
+    .btn-quit { background-color: #f3f4f6; color: #3b82f6; border: none; padding: 15px; border-radius: 10px; font-weight: 600; width: 100%; transition: background-color 0.2s; }
+    .btn-quit:hover { background-color: #e5e7eb; }
 
-    .btn-notif {
-        background-color: #3b82f6;
-        color: white;
-        border: none;
-        padding: 15px;
-        border-radius: 10px;
-        font-weight: 600;
-        width: 100%;
-        margin-bottom: 12px;
-        transition: background-color 0.2s;
-    }
-    .btn-notif:hover {
-        background-color: #2563eb;
-    }
-
-    .btn-quit {
-        background-color: #f3f4f6; /* Kelabu cair */
-        color: #3b82f6; /* Text biru */
-        border: none;
-        padding: 15px;
-        border-radius: 10px;
-        font-weight: 600;
-        width: 100%;
-        transition: background-color 0.2s;
-    }
-    .btn-quit:hover {
-        background-color: #e5e7eb;
-    }
-
-    /* Animasi lembut untuk blobs */
-    @keyframes float {
-        0% { transform: translate(0, 0) rotate(0deg); }
-        33% { transform: translate(5px, -10px) rotate(5deg); }
-        66% { transform: translate(-5px, 5px) rotate(-5deg); }
-        100% { transform: translate(0, 0) rotate(0deg); }
+    /* --- CSS MODAL (PENTING: Di sini) --- */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); z-index: 9999; display: flex; justify-content: center; align-items: flex-end; }
+    .modal-card { background-color: white; width: 100%; max-width: 400px; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 30px; text-align: center; position: relative; margin-bottom: 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); }
+    .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; color: #aaa; text-decoration: none; cursor: pointer; }
+    .fade-in-up { animation: fadeInUp 0.3s ease-out forwards; }
+    @keyframes fadeInUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    
+    @media (min-width: 768px) {
+        .modal-overlay { align-items: center; } 
+        .modal-card { border-radius: 20px; margin-bottom: 0; }
     }
 </style>
+
+
+{% if visitor.is_invited %}
+<div class="modal-overlay">
+    <div class="modal-card fade-in-up">
+        <a href="{% url 'acknowledge_invite' visitor.id %}" class="close-btn">&times;</a>
+        
+        <div class="mb-3">
+           <span style="font-size: 4rem;">🎉</span>
+        </div>
+
+        <h3 class="fw-bold mb-2">It’s your turn!</h3>
+        <p class="text-muted mb-4">You were invited</p>
+
+        <a href="{% url 'acknowledge_invite' visitor.id %}" class="btn btn-primary w-100 py-2 rounded-3 fw-bold">
+            Good
+        </a>
+    </div>
+</div>
+{% endif %}
 
 
 {% if visitor.is_returned %}
@@ -156,59 +78,6 @@
         </a>
     </div>
 </div>
-
-<style>
-    .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.4); /* Gelap belakang */
-        z-index: 9999;
-        display: flex;
-        justify-content: center;
-        align-items: flex-end; /* Mula dari bawah (mobile style) */
-    }
-
-    .modal-card {
-        background-color: white;
-        width: 100%;
-        max-width: 400px;
-        border-top-left-radius: 20px;
-        border-top-right-radius: 20px;
-        padding: 30px;
-        text-align: center;
-        position: relative;
-        margin-bottom: 0; /* Rapat bawah untuk mobile */
-        box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
-    }
-    
-    @media (min-width: 768px) {
-        .modal-overlay { align-items: center; } /* Tengah untuk desktop */
-        .modal-card { border-radius: 20px; margin-bottom: 0; }
-    }
-
-    .close-btn {
-        position: absolute;
-        top: 15px;
-        right: 20px;
-        font-size: 1.5rem;
-        color: #aaa;
-        text-decoration: none;
-        cursor: pointer;
-    }
-
-    /* Animasi naik ke atas */
-    .fade-in-up {
-        animation: fadeInUp 0.3s ease-out forwards;
-    }
-
-    @keyframes fadeInUp {
-        from { transform: translateY(100%); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
-    }
-</style>
 {% endif %}
 
 
@@ -244,37 +113,112 @@
     </div>
 
     <div class="btn-container">
-        <button onclick="enableNotif()" class="btn-notif shadow-sm">
-            Enable notifications
-        </button>
+        <button onclick="enableNotif()" class="btn-notif shadow-sm">Enable notifications</button>
         
         <form action="{% url 'visitor_quit' visitor.id %}" method="POST" onsubmit="return stopReload();">
-    {% csrf_token %}
-    <button type="submit" class="btn-quit">
-        Quit the queue
-    </button>
-</form>
+            {% csrf_token %}
+            <button type="submit" class="btn-quit">Quit the queue</button>
+        </form>
     </div>
 
 </div>
 
 <script>
-    // Simpan timer dalam variable
-    let reloadTimer = setTimeout(function(){
-       if("{{ visitor.status }}" === "WAITING") {
-           location.reload();
-       }
-    }, 3000);
+    // 1. Setup WebSocket
+    // Tukar 'ws://' jika guna http, atau 'wss://' jika https
+    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    const queueSlug = "{{ queue.slug }}"; 
+    const visitorId = parseInt("{{ visitor.id }}");
+    
+    const socket = new WebSocket(protocol + window.location.host + '/ws/queue/' + queueSlug + '/');
 
-    // Function Notification
-    function enableNotif() {
-        alert("Simulasi: Notification enabled!");
+    socket.onopen = function(e) {
+        console.log("Real-time connection established");
+    };
+
+    socket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        const eventType = data.message;
+        const payload = data.data;
+
+        console.log("Received:", eventType, payload);
+
+        // --- SCENARIO 1: ADMIN TEKAN INVITE NEXT ---
+        if (eventType === 'invite_next') {
+            // Check jika pelawat yang dipanggil adalah SAYA
+            if (payload.visitor_id === visitorId) {
+                // Tunjuk Modal "It's your turn" TANPA refresh
+                showInviteModal();
+                
+                // Update UI Bulatan
+                updateStatusToServing();
+            } else {
+                // Jika orang lain dipanggil, giliran saya makin dekat
+                // Refresh nombor giliran (atau reload page untuk update posisi)
+                location.reload(); 
+            }
+        }
+
+        // --- SCENARIO 2: ADMIN TEKAN RETURN TO QUEUE ---
+        if (eventType === 'return_queue') {
+            if (payload.visitor_id === visitorId) {
+                showReturnModal();
+            } else {
+                 location.reload();
+            }
+        }
+    };
+
+    socket.onclose = function(e) {
+        console.error('Socket closed. Reconnecting in 5s...');
+        setTimeout(function() {
+            location.reload(); // Fallback kalau internet putus
+        }, 5000);
+    };
+
+    // --- HELPER FUNCTIONS UNTUK UPDATE UI TANPA RELOAD ---
+    
+    function showInviteModal() {
+        // Bina HTML Modal secara manual atau Unhide jika dah ada dalam HTML (hidden)
+        // Cara paling mudah: Reload page ke URL yang trigger modal, 
+        // TAPI sebab nak 'tanpa refresh', kita manipulate DOM:
+        
+        let modalHtml = `
+        <div class="modal-overlay">
+            <div class="modal-card fade-in-up">
+                <a href="/visitor/${visitorId}/ack-invite/" class="close-btn">&times;</a>
+                <div class="mb-3"><span style="font-size: 4rem;">🎉</span></div>
+                <h3 class="fw-bold mb-2">It’s your turn!</h3>
+                <p class="text-muted mb-4">You were invited</p>
+                <a href="/visitor/${visitorId}/ack-invite/" class="btn btn-primary w-100 py-2 rounded-3 fw-bold">Good</a>
+            </div>
+        </div>`;
+        
+        // Append ke body
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
     }
 
-    // Function Stop Timer bila user tekan Quit
-    function stopReload() {
-        clearTimeout(reloadTimer);
-        return confirm('Are you sure you want to quit?');
+    function showReturnModal() {
+        let modalHtml = `
+        <div class="modal-overlay">
+            <div class="modal-card fade-in-up">
+                <a href="/visitor/${visitorId}/ack/" class="close-btn">&times;</a>
+                <div class="mb-3">
+                    <svg width="60" height="60" fill="#d97706" class="bi bi-hourglass-split" viewBox="0 0 16 16"><path d="M2.5 15a.5.5 0 1 1 0-1h1v-1a4.5 4.5 0 0 1 2.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5 4.5 0 0 1 3.5 3V2h-1a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-1v1a4.5 4.5 0 0 1-2.557 4.06c-.29.139-.443.377-.443.59v.7c0 .213.154.451.443.59A4.5 4.5 0 0 1 12.5 12v1h1a.5.5 0 1 1 0 1h-11zm2-13v1c0 .537.12 1.045.337 1.5h6.326c.216-.455.337-.963.337-1.5V2h-7zm3 6.35c0 .701-.478 1.236-1.011 1.492A3.5 3.5 0 0 0 4.5 13s.866-1.299 3-1.48V8.35zm1 0v3.17c2.134.181 3 1.48 3 1.48a3.5 3.5 0 0 0-1.989-3.158C8.978 9.586 8.5 9.052 8.5 8.351z"/></svg>
+                </div>
+                <h3 class="fw-bold mb-2">You were moved to queue</h3>
+                <p class="text-muted mb-4">Please, wait for your turn</p>
+                <a href="/visitor/${visitorId}/ack/" class="btn btn-primary w-100 py-2 rounded-3 fw-bold">Good</a>
+            </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+
+    function updateStatusToServing() {
+        // Cari elemen dan tukar teks
+        document.querySelector('.text-main').innerHTML = '<span style="color: #3b82f6;">It\'s Your Turn!</span>';
+        document.querySelector('.text-bottom').innerText = 'Please proceed to counter.';
+        document.querySelector('.text-top').style.display = 'none';
     }
 </script>
 
