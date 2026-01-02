@@ -154,31 +154,35 @@
 
 
 <div class="ticket-container">
+    {% if queue.logo %}
+        <img src="{{ queue.logo.url }}" style="max-height: 60px; margin-bottom: 20px;">
+    {% endif %}
     
     <div class="loader-wrapper">
         <div class="spinner-ring" style="{% if visitor.status == 'SERVING' %}border-color: #3b82f6; border-left-color: transparent; border-top-color: transparent; animation: none; border-width: 15px;{% endif %}"></div>
 
         <div class="ticket-content">
-            {% if visitor.status == 'WAITING' %}
-                <div class="text-top">
-                    Your number is <strong class="text-number">#{{ visitor.number|stringformat:"03d" }}</strong>
-                </div>
-
-                <div class="text-main">
-                    It is your<br>turn now!
-                </div>
-                <div class="text-sub">— you are in queue</div>
-            
-            {% elif visitor.status == 'SERVING' %}
-                <div class="text-top">Number #{{ visitor.number|stringformat:"03d" }}</div>
-                <div class="text-main" style="color: #3b82f6;">Please<br>Proceed</div>
-                <div class="text-sub">to the counter</div>
-            
-            {% else %}
-                <div class="text-main">Completed</div>
-                <div class="text-sub">Thank you!</div>
-            {% endif %}
+    {% if visitor.status == 'WAITING' %}
+        <div class="text-top">
+            Your number is <strong class="text-number">#{{ visitor.number|stringformat:"03d" }}</strong>
         </div>
+
+        <div class="text-main">
+            You are in<br>the queue
+        </div>
+        <div class="text-sub">— please wait for your turn</div>
+    
+    {% elif visitor.status == 'SERVING' %}
+        <div class="text-top">Number #{{ visitor.number|stringformat:"03d" }}</div>
+        
+        <div class="text-main" style="color: #3b82f6;">It is Your<br>Turn Now!</div>
+        <div class="text-sub">Please proceed to {{ visitor.served_by|default:"Counter" }}</div>
+    
+    {% else %}
+        <div class="text-main">Completed</div>
+        <div class="text-sub">Thank you!</div>
+    {% endif %}
+</div>
     </div>
 
     <div class="btn-container">

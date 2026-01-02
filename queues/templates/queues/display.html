@@ -160,20 +160,23 @@
 <div class="display-container">
     
     <div class="queue-header">
-        <span class="queue-badge">Counter</span>
+        {% if queue.logo %}
+            <img src="{{ queue.logo.url }}" style="height: 60px; margin-right: 20px;">
+        {% else %}
+            <span class="queue-badge">Counter</span>
+        {% endif %}
+        
         <div class="queue-title">{{ queue.name }}</div>
-    </div>
-
+    </div>    
     <div id="active-container" class="active-section">
-    <div class="label-current">Now Serving</div>
-    
-    <div id="number-text" class="big-number">000</div>
-    
-    <div id="counter-text" class="counter-display" style="font-size: 4rem; color: #ef4444; font-weight: 800; margin-top: 10px;">
-        </div>
+        <div class="label-current">Now Serving</div>
+        
+        <div id="number-text" class="big-number">000</div>
+        
+        <div id="counter-text" class="counter-display"></div>
 
-    <div id="name-text" class="visitor-name"></div>
-</div>
+        <div id="name-text" class="visitor-name"></div>
+    </div>
 
     <div class="footer-section">
         <div class="next-label">Coming Up Next</div>
@@ -189,9 +192,7 @@
         </div>
     </div>
 
-</div>
-
-<audio id="notify-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
+</div> <audio id="notify-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
 
 <script>
     const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
@@ -207,7 +208,7 @@
         }
     }
 
-    // Function Audio Text-to-Speech (Sangat membantu untuk multi-counter)
+    // Function Audio Text-to-Speech
     function playAnnouncement(ticket, counter) {
         // Bunyi Ding Dong dulu
         const chime = document.getElementById('notify-sound');
@@ -218,9 +219,8 @@
         
         // Tunggu 1 saat, kemudian cakap
         setTimeout(() => {
-            // Cth: "Number 001, Counter 1"
             let msg = new SpeechSynthesisUtterance(`Number ${ticket}, please proceed to ${counter}`);
-            msg.lang = 'en-US'; // atau 'ms-MY' jika browser support
+            msg.lang = 'en-US'; 
             window.speechSynthesis.speak(msg);
         }, 1000);
     }
@@ -258,29 +258,27 @@
         const payload = data.data;
 
         // 1. UPDATE NOMBOR (Invite Next)
-        // Gunakan payload.ticket (A001) atau payload.number (001) ikut kesesuaian backend anda.
-        // Di sini saya assume 'ticket' dihantar untuk display penuh.
         if (eventType === 'invite_next') {
             const numEl = document.getElementById('number-text');
             const nameEl = document.getElementById('name-text');
             const counterEl = document.getElementById('counter-text');
 
-            // Set Data
+            // 1. Update Nombor & Nama
             numEl.innerText = payload.ticket || payload.number; 
             nameEl.innerText = `"${payload.name}"`;
-            counterEl.innerText = `PLEASE GO TO ${payload.counter.toUpperCase()}`;
             
-            if(payload.counter) {
-                counterEl.innerText = `GO TO ${payload.counter}`;
+            // 2. Update Kaunter
+            if (payload.counter) {
+                counterEl.innerText = `PLEASE GO TO ${payload.counter.toUpperCase()}`;
             } else {
-                counterEl.innerText = "";
+                counterEl.innerText = "PLEASE PROCEED";
             }
 
-            // Animasi Pop
+            // 3. Animasi
             numEl.classList.add('pop-in');
             setTimeout(() => numEl.classList.remove('pop-in'), 300);
             
-            // Panggil Suara
+            // 4. Audio
             playAnnouncement(payload.ticket || payload.number, payload.counter);
         }
 
@@ -300,7 +298,7 @@
             updateNextList([]);
         }
         
-        // 4. Update List & Waiting Count (Sentiasa update jika ada payload)
+        // 4. Update List & Waiting Count
         if (payload.next_visitors) {
             updateNextList(payload.next_visitors);
         }

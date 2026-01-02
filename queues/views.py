@@ -109,6 +109,9 @@ def update_queue_settings(request, slug):
         cap = request.POST.get('capacity')
         if cap:
             queue.capacity = int(cap)
+
+        if request.POST.get('remove_logo') == 'on':
+            queue.logo = None
         
         queue.save()
         messages.success(request, "Queue settings updated!")
