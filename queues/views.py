@@ -8,6 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from django.db import transaction
 
 
 def send_socket_update(slug, event_type, extra_data=None):
@@ -29,22 +30,38 @@ def send_socket_update(slug, event_type, extra_data=None):
         }
     )
     
+    
+def set_counter(request, slug):
+    queue = get_object_or_404(Queue, slug=slug)
+    
+    if request.method == "POST":
+        # Ambil nama dari input (cth: "Kaunter 1" atau "Bilik Rawatan 2")
+        counter_name = request.POST.get('counter_name')
+        
+        # Simpan dalam session browser ini sahaja
+        request.session['counter_name'] = counter_name
+        
+        return redirect('admin_interface', slug=slug)
+        
+    return render(request, 'queues/set_counter.html', {'queue': queue})
+
+
 def update_queue_settings(request, slug):
     queue = get_object_or_404(Queue, slug=slug)
     
     if request.method == "POST":
-        # ... field lain ...
         queue.name = request.POST.get('name')
         queue.allow_join = request.POST.get('allow_join') == 'on'
-        
         # Update Ask Input & Label
         queue.ask_input = request.POST.get('ask_input') == 'on'
-        queue.input_label = request.POST.get('input_label') # <--- TAMBAH BARIS INI
-        
-        # ... field lain ...
+        queue.input_label = request.POST.get('input_label')
         queue.capacity = request.POST.get('capacity')
         queue.wait_time_display = request.POST.get('wait_time_display')
         queue.status_language = request.POST.get('status_language')
+        # Ambil nilai dari form, jika kosong set default 1000
+        cap = request.POST.get('capacity')
+        if cap:
+            queue.capacity = int(cap)
         
         queue.save()
         messages.success(request, "Queue settings updated!")
@@ -101,7 +118,13 @@ def visitor_join(request, slug):
     if not queue.allow_join:
         # Jika Disabled, terus tunjuk page disabled
         return render(request, 'queues/disabled.html')
-    # ---------------------------------------------
+    
+    current_waiting = Visitor.objects.filter(queue=queue, status='WAITING').count()
+    
+    if current_waiting >= queue.capacity:
+        # Jika dah penuh, tunjuk page 'Full'
+        return render(request, 'queues/full.html')
+    
     
     if request.method == "POST":
         # ... (kod lama untuk create visitor kekal sama) ...
@@ -175,7 +198,11 @@ def visitor_quit(request, visitor_id):
     return redirect('visitor_join', slug=queue_slug)
 
 def admin_interface(request, slug):
+    # 1. Check dulu ada tak counter name dalam session?
+    if 'counter_name' not in request.session:
+        return redirect('set_counter', slug=slug) # Kalau tak ada, paksa set nama dulu
     queue = get_object_or_404(Queue, slug=slug)
+    current_counter_name = request.session['counter_name']
     current_serving = Visitor.objects.filter(queue=queue, status='SERVING').first()
     
     # Kita ambil SEMUA waiting visitor untuk dipaparkan dalam MODAL "Choose Visitor"
@@ -183,7 +210,6 @@ def admin_interface(request, slug):
     
     waiting_count = all_waiting_visitors.count()
     next_visitor = all_waiting_visitors.first()
-    
     last_visitor = Visitor.objects.filter(queue=queue).aggregate(Max('number'))
     next_new_number = (last_visitor['number__max'] or 0) + 1
     
@@ -194,6 +220,7 @@ def admin_interface(request, slug):
         'next_visitor': next_visitor,
         'all_waiting_visitors': all_waiting_visitors, # PASS KE TEMPLATE UNTUK MODAL
         'next_new_number': next_new_number,
+        'current_counter_name': current_counter_name,
     })
     
 
@@ -284,14 +311,19 @@ def remove_specific_visitor(request, visitor_id):
 
 def call_next(request, slug):
     queue = get_object_or_404(Queue, slug=slug)
+    counter_name = request.session.get('counter_name', 'General Counter')
     current = Visitor.objects.filter(queue=queue, status='SERVING').first()
     if current:
         current.status = 'COMPLETED'
         current.save()
         
-    next_visitor = Visitor.objects.filter(queue=queue, status='WAITING').order_by('id').first()
+    #next_visitor = Visitor.objects.filter(queue=queue, status='WAITING').order_by('id').first()
+    with transaction.atomic():
+        next_visitor = Visitor.objects.filter(queue=queue, status='WAITING').select_for_update().order_by('id').first()
+        
     if next_visitor:
         next_visitor.status = 'SERVING'
+        next_visitor.served_by = counter_name
         next_visitor.is_invited = True
         next_visitor.save()
         
@@ -299,7 +331,8 @@ def call_next(request, slug):
         send_socket_update(slug, 'invite_next', {
             'visitor_id': next_visitor.id,
             'number': f"{next_visitor.number:03d}",
-            'name': next_visitor.name
+            'name': next_visitor.name,
+            'counter': counter_name,
         })
         
     return redirect('admin_interface', slug=slug)

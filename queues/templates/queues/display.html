@@ -2,63 +2,195 @@
 {% block content %}
 
 <style>
-    /* CSS Khas untuk TV Display */
-    body { background-color: #f8f9fa; overflow: hidden; }
-    .display-container { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
-    
-    /* Nombor Giliran Besar */
-    .big-number { font-size: 18rem; font-weight: 800; line-height: 1; color: #000; letter-spacing: -5px; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-    .pop-in { transform: scale(1.2); }
+    /* --- GLOBAL & RESET --- */
+    body { 
+        background-color: #ffffff; 
+        margin: 0; 
+        padding: 0; 
+        overflow: hidden; /* Hilangkan scrollbar di TV */
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
 
-    .visitor-name { font-size: 3rem; color: #3b82f6; font-weight: 600; margin-top: 20px; }
-    .queue-title { position: absolute; top: 30px; font-size: 1.5rem; color: #6c757d; letter-spacing: 2px; text-transform: uppercase; }
+    /* Bekas Utama: Penuhkan Skrin */
+    .display-container { 
+        height: 100vh; 
+        width: 100vw;
+        display: flex; 
+        flex-direction: column; 
+        justify-content: space-between; /* Agihkan ruang: Atas, Tengah, Bawah */
+        align-items: center; 
+        padding: 4vh 0; /* Padding atas bawah */
+        box-sizing: border-box;
+    }
 
-    /* Next Visitors Section */
-    .next-visitors-section { margin-top: 40px; }
-    .next-label { font-size: 1.5rem; font-weight: 700; color: #000; margin-bottom: 10px; }
-    .next-list { display: flex; gap: 20px; justify-content: center; }
-    .next-number { font-size: 5rem; font-weight: 700; color: #000; }
+    /* --- BAHAGIAN ATAS (HEADER) --- */
+    .queue-header {
+        width: 90%;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        border-bottom: 2px solid #f3f4f6;
+        padding-bottom: 20px;
+    }
+    .queue-title { 
+        font-size: 2.5rem; 
+        font-weight: 700; 
+        color: #111827; 
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .queue-badge {
+        background-color: #3b82f6;
+        color: white;
+        padding: 5px 15px;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        margin-right: 15px;
+        text-transform: uppercase;
+    }
+
+    /* --- BAHAGIAN TENGAH (NOMBOR SEMASA) --- */
+    .active-section {
+        flex-grow: 1; /* Ambil semua ruang kosong di tengah */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .label-current {
+        font-size: 2rem; 
+        font-weight: 600; 
+        color: #6b7280; /* Kelabu */
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: -10px;
+    }
+
+    .big-number { 
+        font-size: 22rem; /* Saiz Gergasi */
+        font-weight: 900; 
+        line-height: 1; 
+        color: #000; 
+        letter-spacing: -10px; 
+        font-variant-numeric: tabular-nums; 
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s; 
+    }
     
-    .waiting-info { margin-top: 30px; font-size: 1.2rem; color: #6c757d; }
+    /* Animasi Pop: Membesar & Tukar Biru */
+    .pop-in { 
+        transform: scale(1.1); 
+        color: #3b82f6; 
+    }
+
+    .visitor-name { 
+        font-size: 3rem; 
+        color: #3b82f6; 
+        font-weight: 700; 
+        margin-top: 10px;
+        max-width: 90vw;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
     
-    /* Empty State */
-    .empty-state { display: none; } /* Default hidden */
+    .counter-display {
+        font-size: 4rem; 
+        color: #ef4444; 
+        font-weight: 800; 
+        margin-top: 20px;
+        text-transform: uppercase;
+    }
+
+    /* --- BAHAGIAN BAWAH (NEXT & FOOTER) --- */
+    .footer-section {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: linear-gradient(to top, #ffffff 80%, rgba(255,255,255,0));
+        padding-bottom: 2vh;
+    }
+
+    .next-label { 
+        font-size: 1.5rem; 
+        font-weight: 700; 
+        color: #374151; 
+        margin-bottom: 15px; 
+        text-transform: uppercase;
+    }
+
+    .next-list { 
+        display: flex; 
+        gap: 30px; 
+        justify-content: center; 
+        margin-bottom: 30px;
+    }
+
+    /* Kotak untuk nombor seterusnya */
+    .next-card {
+        background-color: #f3f4f6;
+        padding: 15px 40px;
+        border-radius: 20px;
+        min-width: 120px;
+        text-align: center;
+    }
+
+    .next-number { 
+        font-size: 4rem; 
+        font-weight: 800; 
+        color: #1f2937; 
+        line-height: 1;
+    }
+
+    .waiting-info { 
+        font-size: 1.5rem; 
+        color: #9ca3af; 
+        font-weight: 500;
+        border-top: 1px solid #f3f4f6;
+        padding-top: 15px;
+        width: 60%;
+        text-align: center;
+    }
+    .waiting-info strong { color: #000; }
+
 </style>
 
 <div class="display-container">
-    <div class="queue-title">{{ queue.name }}</div>
-
-    <div id="active-container" style="display: {% if current_serving %}block{% else %}block{% endif %};">
-        <div class="text-muted fs-4 fw-bold text-uppercase">Current visitor number</div>
-        
-        <div id="number-text" class="big-number">
-            {% if current_serving %}{{ current_serving.number|stringformat:"03d" }}{% else %}000{% endif %}
-        </div>
-        
-        <div id="name-text" class="visitor-name">
-            {% if current_serving %}"{{ current_serving.name }}"{% endif %}
-        </div>
+    
+    <div class="queue-header">
+        <span class="queue-badge">Counter</span>
+        <div class="queue-title">{{ queue.name }}</div>
     </div>
 
-    <div id="empty-container" class="empty-state">
-        <h1 class="fw-bold">Waiting for visitors</h1>
-        <p class="fs-4">There is no one in the queue</p>
-    </div>
+    <div id="active-container" class="active-section">
+    <div class="label-current">Now Serving</div>
+    
+    <div id="number-text" class="big-number">000</div>
+    
+    <div id="counter-text" class="counter-display" style="font-size: 4rem; color: #ef4444; font-weight: 800; margin-top: 10px;">
+        </div>
 
-    <div class="next-visitors-section">
-        <div class="next-label">Next visitors:</div>
+    <div id="name-text" class="visitor-name"></div>
+</div>
+
+    <div class="footer-section">
+        <div class="next-label">Coming Up Next</div>
+        
         <div id="next-list-container" class="next-list">
-            <span class="next-number">-</span>
-            <span class="next-number">-</span>
-            <span class="next-number">-</span>
+            <div class="next-card"><span class="next-number">-</span></div>
+            <div class="next-card"><span class="next-number">-</span></div>
+            <div class="next-card"><span class="next-number">-</span></div>
         </div>
-    </div>
 
-    <div class="waiting-info">
-        There are <strong id="total-waiting">0</strong> visitors waiting
+        <div class="waiting-info">
+            Total waiting: <strong id="total-waiting">0</strong> visitors
+        </div>
     </div>
 
 </div>
+
 <audio id="notify-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
 
 <script>
@@ -66,43 +198,109 @@
     const queueSlug = "{{ queue.slug }}"; 
     const socket = new WebSocket(protocol + window.location.host + '/ws/queue/' + queueSlug + '/');
 
+    // Fungsi Bunyi (Chime)
+    function playAudio() {
+        const audio = document.getElementById('notify-sound');
+        if(audio) {
+            audio.currentTime = 0;
+            audio.play().catch(e => console.log("Audio play failed:", e));
+        }
+    }
+
+    // Function Audio Text-to-Speech (Sangat membantu untuk multi-counter)
+    function playAnnouncement(ticket, counter) {
+        // Bunyi Ding Dong dulu
+        const chime = document.getElementById('notify-sound');
+        if(chime) {
+            chime.currentTime = 0;
+            chime.play();
+        }
+        
+        // Tunggu 1 saat, kemudian cakap
+        setTimeout(() => {
+            // Cth: "Number 001, Counter 1"
+            let msg = new SpeechSynthesisUtterance(`Number ${ticket}, please proceed to ${counter}`);
+            msg.lang = 'en-US'; // atau 'ms-MY' jika browser support
+            window.speechSynthesis.speak(msg);
+        }, 1000);
+    }
+
+    // Update senarai next visitors
+    function updateNextList(visitorsArray) {
+        const container = document.getElementById('next-list-container');
+        container.innerHTML = ""; 
+
+        if (!visitorsArray || visitorsArray.length === 0) {
+            container.innerHTML = `
+                <div class="next-card"><span class="next-number" style="color:#ccc">-</span></div>
+                <div class="next-card"><span class="next-number" style="color:#ccc">-</span></div>
+                <div class="next-card"><span class="next-number" style="color:#ccc">-</span></div>
+            `;
+            return;
+        }
+
+        visitorsArray.forEach(num => {
+            const card = document.createElement('div');
+            card.className = 'next-card';
+            
+            const span = document.createElement('span');
+            span.className = 'next-number';
+            span.innerText = num;
+            
+            card.appendChild(span);
+            container.appendChild(card);
+        });
+    }
+
     socket.onmessage = function(e) {
         const data = JSON.parse(e.data);
         const eventType = data.message;
         const payload = data.data;
 
         // 1. UPDATE NOMBOR (Invite Next)
-        if (eventType === 'invite_next' && payload.number) {
-            document.getElementById('number-text').innerText = payload.number;
-            document.getElementById('name-text').innerText = `"${payload.name}"`;
-            document.getElementById('number-text').classList.add('pop-in');
-            setTimeout(() => document.getElementById('number-text').classList.remove('pop-in'), 300);
-            playAudio();
+        // Gunakan payload.ticket (A001) atau payload.number (001) ikut kesesuaian backend anda.
+        // Di sini saya assume 'ticket' dihantar untuk display penuh.
+        if (eventType === 'invite_next') {
+            const numEl = document.getElementById('number-text');
+            const nameEl = document.getElementById('name-text');
+            const counterEl = document.getElementById('counter-text');
+
+            // Set Data
+            numEl.innerText = payload.ticket || payload.number; 
+            nameEl.innerText = `"${payload.name}"`;
+            counterEl.innerText = `PLEASE GO TO ${payload.counter.toUpperCase()}`;
             
-            // Pastikan active container visible
-            document.getElementById('empty-container').style.display = 'none';
-            document.getElementById('active-container').style.display = 'block';
+            if(payload.counter) {
+                counterEl.innerText = `GO TO ${payload.counter}`;
+            } else {
+                counterEl.innerText = "";
+            }
+
+            // Animasi Pop
+            numEl.classList.add('pop-in');
+            setTimeout(() => numEl.classList.remove('pop-in'), 300);
+            
+            // Panggil Suara
+            playAnnouncement(payload.ticket || payload.number, payload.counter);
         }
 
-        // --- LOGIC: RETURN TO QUEUE (TV SAHAJA) ---
-    if (eventType === 'return_queue') {
-        // 1. PAKSA NOMBOR JADI 000 (Seperti yang anda mahu)
-        document.getElementById('number-text').innerText = "000"; 
-        
-        // 2. Update list orang menunggu & Total
-        if (payload.next_visitors) updateNextList(payload.next_visitors);
-        if (payload.waiting_count !== undefined) document.getElementById('total-waiting').innerText = payload.waiting_count;
-    }
+        // 2. RETURN TO QUEUE
+        if (eventType === 'return_queue') {
+            document.getElementById('number-text').innerText = "000"; 
+            document.getElementById('name-text').innerText = "";
+            document.getElementById('counter-text').innerText = "";
+        }
 
         // 3. QUEUE RESET
         if (eventType === 'queue_reset') {
             document.getElementById('number-text').innerText = "000";
             document.getElementById('name-text').innerText = ""; 
+            document.getElementById('counter-text').innerText = "";
             document.getElementById('total-waiting').innerText = "0";
             updateNextList([]);
         }
         
-        // 4. Update List Next Visitors (Berlaku untuk semua event)
+        // 4. Update List & Waiting Count (Sentiasa update jika ada payload)
         if (payload.next_visitors) {
             updateNextList(payload.next_visitors);
         }
@@ -111,29 +309,11 @@
         }
     };
 
-    socket.onclose = function(e) { setTimeout(function() { location.reload(); }, 3000); };
+    socket.onclose = function(e) { 
+        console.log("Socket closed. Reloading in 3s...");
+        setTimeout(function() { location.reload(); }, 3000); 
+    };
 
-    function playAudio() {
-        const audio = document.getElementById('notify-sound');
-        if(audio) audio.play().catch(e => console.log(e));
-    }
-
-    function updateNextList(visitorsArray) {
-        const container = document.getElementById('next-list-container');
-        container.innerHTML = ""; 
-
-        if (!visitorsArray || visitorsArray.length === 0) {
-            container.innerHTML = '<span class="text-muted fs-3">--</span>';
-            return;
-        }
-
-        visitorsArray.forEach(num => {
-            const span = document.createElement('span');
-            span.className = 'next-number';
-            span.innerText = num;
-            container.appendChild(span);
-        });
-    }
 </script>
 
 {% endblock %}
