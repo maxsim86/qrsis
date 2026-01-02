@@ -22,5 +22,5 @@ urlpatterns = [
     path('visitor/<int:visitor_id>/invite/', views.invite_specific_visitor, name='invite_specific_visitor'),
     path('q/<slug:slug>/update_settings/', views.update_queue_settings, name='update_queue_settings'),
     path('q/<slug:slug>/set-counter/', views.set_counter, name='set_counter'),
-    
+    path('q/<slug:slug>/kiosk/', views.kiosk_join, name='kiosk_join'),
 ]

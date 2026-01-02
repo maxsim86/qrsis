@@ -11,6 +11,53 @@ from asgiref.sync import async_to_sync
 from django.db import transaction
 
 
+
+def kiosk_join(request, slug):
+    queue = get_object_or_404(Queue, slug=slug)
+    
+    # Jika queue tutup/penuh
+    if not queue.allow_join:
+        return render(request, 'queues/disabled.html')
+    
+    # Logic POST (Bila user tekan 'Get Ticket')
+    if request.method == "POST":
+        last_visitor = Visitor.objects.filter(queue=queue).aggregate(Max('number'))
+        next_number = (last_visitor['number__max'] or 0) + 1
+        
+        # Ambil nama dari input atau guna default
+        custom_name = request.POST.get('name')
+        
+        # Jika setting "Ask Input" OFF, kita set nama default
+        if not queue.ask_input:
+             visitor_name = f"Visitor #{next_number}"
+        else:
+             visitor_name = custom_name if custom_name else f"Visitor #{next_number}"
+        
+        new_visitor = Visitor.objects.create(
+            queue=queue, 
+            name=visitor_name, 
+            number=next_number,
+            status='WAITING'
+        )
+
+        # Hantar Signal ke TV/Admin
+        send_socket_update(slug, 'new_visitor', {
+            'visitor_id': new_visitor.id,
+            'number': f"{new_visitor.number:03d}",
+            'name': new_visitor.name
+        })
+        
+        # PENTING: Jangan redirect ke 'visitor_status'.
+        # Render semula page kiosk tapi dengan data tiket baru.
+        return render(request, 'queues/kiosk.html', {
+            'queue': queue,
+            'new_ticket': new_visitor, # Data untuk popup sukses
+            'success_mode': True
+        })
+        
+    return render(request, 'queues/kiosk.html', {'queue': queue})
+
+
 def send_socket_update(slug, event_type, extra_data=None):
     channel_layer = get_channel_layer()
     
