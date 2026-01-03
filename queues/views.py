@@ -24,14 +24,15 @@ def kiosk_join(request, slug):
         last_visitor = Visitor.objects.filter(queue=queue).aggregate(Max('number'))
         next_number = (last_visitor['number__max'] or 0) + 1
         
-        # Ambil nama dari input atau guna default
-        custom_name = request.POST.get('name')
-        
-        # Jika setting "Ask Input" OFF, kita set nama default
-        if not queue.ask_input:
-             visitor_name = f"Visitor #{next_number}"
+        # --- LOGIK INPUT NAMA ---
+        if queue.ask_input:
+            # Jika setting ON: Ambil nama dari form
+            custom_name = request.POST.get('name')
+            visitor_name = custom_name if custom_name else f"Visitor #{next_number}"
         else:
-             visitor_name = custom_name if custom_name else f"Visitor #{next_number}"
+            # Jika setting OFF: Auto-generate nama
+            visitor_name = f"Visitor #{next_number}"
+        # ------------------------
         
         new_visitor = Visitor.objects.create(
             queue=queue, 
@@ -40,18 +41,15 @@ def kiosk_join(request, slug):
             status='WAITING'
         )
 
-        # Hantar Signal ke TV/Admin
         send_socket_update(slug, 'new_visitor', {
             'visitor_id': new_visitor.id,
             'number': f"{new_visitor.number:03d}",
             'name': new_visitor.name
         })
         
-        # PENTING: Jangan redirect ke 'visitor_status'.
-        # Render semula page kiosk tapi dengan data tiket baru.
         return render(request, 'queues/kiosk.html', {
             'queue': queue,
-            'new_ticket': new_visitor, # Data untuk popup sukses
+            'new_ticket': new_visitor,
             'success_mode': True
         })
         
@@ -97,19 +95,32 @@ def update_queue_settings(request, slug):
     queue = get_object_or_404(Queue, slug=slug)
     
     if request.method == "POST":
+        # 1. Update Text Fields
         queue.name = request.POST.get('name')
         queue.allow_join = request.POST.get('allow_join') == 'on'
-        # Update Ask Input & Label
         queue.ask_input = request.POST.get('ask_input') == 'on'
         queue.input_label = request.POST.get('input_label')
-        queue.capacity = request.POST.get('capacity')
-        queue.wait_time_display = request.POST.get('wait_time_display')
-        queue.status_language = request.POST.get('status_language')
-        # Ambil nilai dari form, jika kosong set default 1000
+        
+        # 2. Update Dropdowns (Default ke AUTO jika kosong)
+        queue.wait_time_display = request.POST.get('wait_time_display') or 'AUTO'
+        queue.status_language = request.POST.get('status_language') or 'AUTO'
+
+        # 3. Update Capacity (Safety Check)
         cap = request.POST.get('capacity')
         if cap:
-            queue.capacity = int(cap)
+            try:
+                queue.capacity = int(cap)
+            except ValueError:
+                queue.capacity = 50 
+        else:
+            queue.capacity = 50
 
+        # 4. HANDLE LOGO UPLOAD (INI YANG ANDA TERTINGGAL)
+        # Kita mesti cek request.FILES untuk ambil gambar
+        if request.FILES.get('logo'):
+            queue.logo = request.FILES['logo']
+
+        # 5. Remove Logo Checkbox
         if request.POST.get('remove_logo') == 'on':
             queue.logo = None
         
@@ -424,7 +435,7 @@ def invite_specific_visitor(request, visitor_id):
     visitor = get_object_or_404(Visitor, id=visitor_id)
     queue = visitor.queue
     slug = queue.slug
-
+    counter_name = request.session.get('counter_name', 'General Counter')
     # 1. Selesaikan orang semasa (jika ada)
     current = Visitor.objects.filter(queue=queue, status='SERVING').first()
     if current:
@@ -433,6 +444,7 @@ def invite_specific_visitor(request, visitor_id):
 
     # 2. Set pelawat yang DIPILIH sebagai serving
     visitor.status = 'SERVING'
+    visitor.served_by = counter_name
     visitor.is_invited = True
     visitor.save()
 
@@ -440,7 +452,8 @@ def invite_specific_visitor(request, visitor_id):
     send_socket_update(slug, 'invite_next', {
         'visitor_id': visitor.id,
         'number': f"{visitor.number:03d}",
-        'name': visitor.name
+        'name': visitor.name,
+        'counter': counter_name,
     })
 
     return redirect('admin_interface', slug=slug)

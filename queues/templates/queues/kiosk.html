@@ -140,8 +140,16 @@
         <div class="attract-sub">Touch anywhere to get a ticket</div>
     </div>
 
-    <div id="form-box" class="form-screen">
-        <div class="form-title">Enter Your Details</div>
+    
+<div id="form-box" class="form-screen">
+        
+        <div class="form-title">
+            {% if queue.ask_input %}
+                Enter Your Details
+            {% else %}
+                Get Your Ticket
+            {% endif %}
+        </div>
         
         <form method="POST">
             {% csrf_token %}
@@ -151,13 +159,17 @@
                        placeholder="{{ queue.input_label|default:'Enter your name' }}" 
                        required autocomplete="off" id="nameInput">
             {% else %}
-                <p class="text-muted mb-4 fs-4">Please press the button below to get your number.</p>
+                <div style="margin-bottom: 30px; color: #6b7280; font-size: 1.2rem;">
+                    Please press the button below to get your queue number.
+                </div>
             {% endif %}
 
             <button type="submit" class="btn-kiosk">Print Ticket</button>
             <button type="button" class="btn-cancel" onclick="resetKiosk()">Cancel</button>
         </form>
     </div>
+
+
 
     {% if success_mode and new_ticket %}
     <div class="success-overlay">
@@ -198,17 +210,25 @@
         document.getElementById('attract').style.display = 'none';
         document.getElementById('form-box').style.display = 'block';
         
-        // Auto focus input jika ada (tunggu sekejap transition)
-        setTimeout(() => {
-            const input = document.getElementById('nameInput');
-            if(input) input.focus();
-        }, 100);
+        // Cek jika elemen input wujud (bermakna setting ON)
+        const input = document.getElementById('nameInput');
+        
+        // Hanya fokus jika input wujud
+        if(input) {
+            setTimeout(() => {
+                input.focus();
+            }, 100);
+        }
     }
 
     // Logic: Cancel -> Balik ke Attract
     function resetKiosk() {
         document.getElementById('form-box').style.display = 'none';
         document.getElementById('attract').style.display = 'flex';
+        
+        // Reset nilai input jika ada (supaya orang seterusnya tak nampak nama lama jika cancel)
+        const input = document.getElementById('nameInput');
+        if(input) input.value = '';
     }
 </script>
 

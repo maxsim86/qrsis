@@ -15,6 +15,15 @@
         overflow: hidden;
     }
 
+
+    .ticket-logo {
+        max-height: 120px; /* Ubah dari 60px ke 120px. */
+        width: auto;       /* Kekalkan aspect ratio */
+        max-width: 85%;    /* PENTING: Pastikan logo tak lebih lebar dari skrin telefon */
+        margin-bottom: 30px; /* Jarak bawah logo */
+        object-fit: contain;
+    }
+
     /* --- 2. ANIMASI LOADING (The Ring) --- */
     .loader-wrapper {
         position: relative;
@@ -155,7 +164,7 @@
 
 <div class="ticket-container">
     {% if queue.logo %}
-        <img src="{{ queue.logo.url }}" style="max-height: 60px; margin-bottom: 20px;">
+        <img src="{{ queue.logo.url }}" class="ticket-logo" alt="Queue Logo">
     {% endif %}
     
     <div class="loader-wrapper">

@@ -15,7 +15,7 @@ urlpatterns = [
     path('visitor/<int:visitor_id>/quit/', views.visitor_quit, name='visitor_quit'), # Function Quit
     path('visitor/<int:visitor_id>/return/', views.return_to_queue, name='return_to_queue'),
     path('q/<slug:slug>/remove_all/', views.remove_visitors, name='remove_visitors'),
-    path('visitor/<int:visitor_id>/remove/', views.remove_specific_visitor, name='remove_specific_visitor'),
+    #path('visitor/<int:visitor_id>/remove/', views.remove_specific_visitor, name='remove_specific_visitor'),
     path('visitor/<int:visitor_id>/ack/', views.acknowledge_return, name='acknowledge_return'),
     path('visitor/<int:visitor_id>/ack-invite/', views.acknowledge_invite, name='acknowledge_invite'),
     path('q/<slug:slug>/add-manual/', views.add_manual_visitor, name='add_manual_visitor'),
@@ -23,4 +23,6 @@ urlpatterns = [
     path('q/<slug:slug>/update_settings/', views.update_queue_settings, name='update_queue_settings'),
     path('q/<slug:slug>/set-counter/', views.set_counter, name='set_counter'),
     path('q/<slug:slug>/kiosk/', views.kiosk_join, name='kiosk_join'),
+    path('visitor/<int:visitor_id>/remove/', views.remove_specific_visitor, name='remove_specific_visitor'),
+    path('visitor/<int:visitor_id>/invite/', views.invite_specific_visitor, name='invite_specific_visitor'),
 ]

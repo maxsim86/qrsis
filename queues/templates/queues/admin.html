@@ -2,527 +2,360 @@
 {% block content %}
 
 <style>
-    /* --- CSS GLOBAL --- */
-    body { background-color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    .top-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; margin-bottom: 40px; color: #6c757d; font-size: 0.9rem; }
+    /* --- MOBILE APP CSS (Kekal Sama) --- */
+    body { background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; min-height: 100vh; }
+    .mobile-app-container { max-width: 480px; margin: 0 auto; min-height: 100vh; background-color: #ffffff; box-shadow: 0 0 30px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between; padding: 20px; box-sizing: border-box; }
+    .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .queue-name { font-size: 1.1rem; font-weight: 700; color: #1f2937; }
     
-    /* --- SERVING CARD --- */
-    .serving-card { background-color: #f8f9fa; border-radius: 20px; padding: 40px 20px; text-align: center; max-width: 400px; margin: 0 auto 50px auto; }
-    .serving-title { font-weight: 700; font-size: 1rem; margin-bottom: 10px; color: #000; }
-    .serving-number { font-size: 5rem; font-weight: 800; line-height: 1; color: #000; letter-spacing: -2px; }
-    .serving-name { color: #6c757d; font-size: 1.1rem; margin-bottom: 20px; }
-    
-    /* --- BUTTONS --- */
-    .btn-return { background-color: #e9ecef; color: #000; border: none; border-radius: 8px; padding: 8px 20px; font-size: 0.9rem; font-weight: 500; text-decoration: none; display: inline-block; }
-    .btn-return:hover { background-color: #dee2e6; color: black; }
-    
-    .action-buttons { max-width: 400px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
-    .btn-invite-next { background-color: #93c5fd; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; width: 100%; }
-    .btn-invite-next:hover { background-color: #60a5fa; }
-    .btn-invite-next:disabled { background-color: #e5e7eb; cursor: not-allowed; }
-    
-    .btn-invite-num { background-color: #f8f9fa; color: #93c5fd; border: none; padding: 12px; border-radius: 8px; font-weight: 500; width: 100%; }
-    .btn-add-outline { background-color: white; color: #2563eb; border: 1px solid #2563eb; padding: 12px; border-radius: 8px; font-weight: 500; width: 100%; }
-    .btn-remove-outline { background-color: white; color: #ef4444; border: 1px solid #fca5a5; padding: 12px; border-radius: 8px; font-weight: 400; width: 100%; }
-    
+    /* Settings Button */
+    .btn-settings-app { width: 48px; height: 48px; background-color: #e0f2fe; color: #0284c7; border: none; border-radius: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.1s; }
+    .btn-settings-app:active { transform: scale(0.95); }
+
+    /* Status Card */
+    .status-card { background-color: #1f2937; color: white; border-radius: 25px; padding: 40px 20px; text-align: center; box-shadow: 0 15px 30px rgba(0,0,0,0.2); margin-bottom: auto; margin-top: 20px; }
+    .status-label { text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1.5px; opacity: 0.7; font-weight: 600; }
+    .status-number { font-size: 7rem; font-weight: 800; line-height: 1.1; margin: 10px 0; letter-spacing: -3px; }
+    .status-sub { font-size: 1rem; color: #9ca3af; }
+    .status-sub strong { color: #fff; }
+
+    /* Controls */
+    .controls-area { display: flex; flex-direction: column; gap: 12px; margin-top: 30px; margin-bottom: 20px; }
+    .btn-app { width: 100%; padding: 16px; border: none; border-radius: 16px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: transform 0.1s; text-decoration: none; display: flex; justify-content: center; align-items: center; }
+    .btn-app:active { transform: scale(0.97); }
+    .btn-primary-app { background-color: #3b82f6; color: white; box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4); font-size: 1.1rem; padding: 18px; }
+    .btn-secondary-app { background-color: #f8f9fa; color: #374151; border: 1px solid #e9ecef; }
+    .btn-danger-app { background-color: #fee2e2; color: #ef4444; border: 1px solid #fecaca; }
+    .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
     /* --- MODAL CSS --- */
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px); z-index: 9999; display: flex; justify-content: center; align-items: center; }
-    .modal-card { background-color: white; width: 90%; max-width: 400px; border-radius: 15px; padding: 30px; text-align: center; position: relative; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); }
-    .close-btn { position: absolute; top: 10px; right: 15px; font-size: 1.5rem; color: #ccc; cursor: pointer; }
-    .fade-in { animation: fadeInScale 0.2s ease-out forwards; }
-    @keyframes fadeInScale { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-    
-    /* --- PILL BUTTONS --- */
-    .btn-number-pill { background-color: #f3f4f6; border: none; border-radius: 50px; padding: 10px 25px; font-size: 1.5rem; font-weight: 700; color: #000; min-width: 100px; }
-    .btn-number-pill:hover { background-color: #e5e7eb; }
-    .btn-number-pill.selected { background-color: #3b82f6; color: white; }
-    .btn-number-pill.selected-red { background-color: #ef4444; color: white; border: 1px solid #ef4444; }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; display: none; align-items: flex-end; justify-content: center; }
+    .modal-sheet { background: white; width: 100%; max-width: 480px; border-top-left-radius: 25px; border-top-right-radius: 25px; padding: 25px; animation: slideUp 0.3s ease-out; max-height: 85vh; overflow-y: auto; display: flex; flex-direction: column; }
+    @keyframes slideUp { from {transform: translateY(100%);} to {transform: translateY(0);} }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-title { font-size: 1.4rem; font-weight: 800; color: #212529; }
 
-    /* --- SETTINGS STYLES --- */
-    .btn-settings { background-color: #e0f2fe; color: #3b82f6; border: none; border-radius: 12px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s; }
-    .btn-settings:hover { background-color: #dbeafe; }
+    /* VISITOR GRID & SELECTION */
+    .visitor-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding-bottom: 20px; }
+    .btn-num { 
+        background: #f8f9fa; border: 2px solid #e9ecef; padding: 15px 0; border-radius: 12px; 
+        font-weight: 700; color: #1f2937; cursor: pointer; text-align: center;
+    }
+    /* State bila dipilih */
+    .btn-num.selected { 
+        background-color: #e0f2fe; border-color: #3b82f6; color: #0284c7; 
+        box-shadow: 0 0 0 2px #3b82f6; 
+    }
 
-    .form-group { margin-bottom: 20px; }
-    .form-label { font-size: 0.9rem; color: #6b7280; margin-bottom: 5px; display: block; }
-    .form-control-custom { width: 100%; padding: 10px 15px; border: 1px solid #e5e7eb; border-radius: 8px; background-color: #f9fafb; font-size: 1rem; color: #1f2937; }
-    .link-box { display: flex; justify-content: space-between; align-items: center; color: #3b82f6; font-weight: 500; word-break: break-all; }
-    .btn-copy { background: none; border: none; color: #3b82f6; cursor: pointer; }
+    /* ACTION BAR (Muncul bila pilih nombor) */
+    .selection-actions {
+        display: none; /* Hidden by default */
+        flex-direction: column; gap: 10px;
+        margin-top: 10px; padding-top: 20px; border-top: 1px solid #eee;
+    }
+    .selection-info { text-align: center; font-size: 0.9rem; color: #6b7280; margin-bottom: 5px; }
+    .selection-info strong { color: #000; font-size: 1.1rem; }
 
-    /* --- TOGGLE SWITCH --- */
-    .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
-    .switch input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-    .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-    input:checked + .slider { background-color: #3b82f6; }
-    input:checked + .slider:before { transform: translateX(24px); }
 </style>
 
-<div class="container" style="max-width: 800px;">
+<div class="mobile-app-container">
     
-    <div id="notification-area">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-success alert-dismissible fade show text-center mb-4" role="alert">
-                    <strong>Success!</strong> {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
+    <div class="app-header">
+        <div class="queue-name">{{ queue.name|truncatechars:20 }}</div>
+        <button onclick="openSettingsModal()" class="btn-settings-app shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3h9.05zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8h2.05zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1h9.05z"/></svg>
+        </button>
     </div>
 
-    <div class="top-header">
-        <span class="text-muted fw-bold">{{ queue.name }}</span>
-        <div class="d-flex align-items-center">
-            <button onclick="openSettingsModal()" class="btn-settings">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-sliders" viewBox="0 0 16 16">
-                  <path fill-rule="evenodd" d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3h9.05zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8h2.05zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1h9.05z"/>
-                </svg>
+    <div class="status-card">
+        <div class="status-label">Last called visitor</div>
+        <div class="status-number" id="display-number">
+            {% if current_serving %}
+                {{ current_serving.number|stringformat:"03d" }}
+            {% else %}
+                --
+            {% endif %}
+        </div>
+        <div class="status-sub">
+            Waiting: <strong id="waiting-count-display">{{ waiting_count }}</strong>
+        </div>
+    </div>
+
+    <div class="controls-area">
+        {% if next_visitor %}
+            <a href="{% url 'call_next' queue.slug %}" class="btn-app btn-primary-app" id="btn-call-next">
+                Call Next Visitor
+            </a>
+        {% else %}
+            <a href="#" class="btn-app btn-primary-app disabled" id="btn-call-next" style="background-color: #d1d5db; box-shadow: none; pointer-events: none;">
+                No Visitors
+            </a>
+        {% endif %}
+
+        <div class="action-grid">
+            <button onclick="openNumberModal()" class="btn-app btn-secondary-app">List</button>
+            <button onclick="openAddModal()" class="btn-app btn-secondary-app">+ Add</button>
+        </div>
+        
+        {% if current_serving %}
+        <button onclick="showConfirmModal('{{ current_serving.id }}', '{{ current_serving.number|stringformat:'03d' }}')" class="btn-app btn-secondary-app text-danger border-danger">
+            Return to Queue
+        </button>
+        {% endif %}
+        
+        <div class="text-center mt-2">
+            <button onclick="openRemoveModal()" style="background:none; border:none; color:#9ca3af; font-size:0.85rem; cursor:pointer;">
+                Clear entire queue
             </button>
         </div>
     </div>
 
-    <div class="text-center mb-4 text-muted">
-        <span id="waiting-count-display">
-            {% if waiting_count > 0 %}{{ waiting_count }}{% else %}0{% endif %}
-        </span> 
-        people waiting in queue
-    </div>
+</div>
 
-    <div class="serving-card">
-        <div class="serving-title">Currently serving</div>
-        <div id="current-serving-block">
-            {% if current_serving %}
-                <div class="serving-number" id="admin-serving-num">{{ current_serving.number|stringformat:"03d" }}</div>
-                <div class="serving-name" id="admin-serving-name">"{{ current_serving.name }}"</div>
-                <button id="btn-return-queue" onclick="showConfirmModal('{{ current_serving.id }}', '{{ current_serving.number|stringformat:'03d' }}')" class="btn-return" style="cursor: pointer;">
-                    Return to queue
-                </button>
-            {% else %}
-                <div class="serving-number" id="admin-serving-num" style="color: #000;">000</div>
-                <div class="serving-name" id="admin-serving-name" class="text-muted">Waiting to serve</div>
-                <button id="btn-return-queue" class="btn-return" style="display: none;">Return to queue</button>
-            {% endif %}
-        </div>
-    </div>
-
-    <div class="action-buttons">
-        <div id="invite-btn-container">
-            {% if next_visitor %}
-                <button onclick="showInviteModal('{{ next_visitor.number|stringformat:'03d' }}')" class="btn btn-invite-next text-center w-100 mb-2">Invite next</button>
-            {% else %}
-                <button class="btn btn-invite-next text-center w-100 mb-2" disabled style="opacity: 0.6; cursor: not-allowed;">Invite next</button>
-            {% endif %}
+<div id="numberModal" class="modal-overlay">
+    <div class="modal-sheet">
+        <div class="modal-header border-bottom pb-3">
+            <h5 class="modal-title m-0 fw-bold">Choose Visitor</h5>
+            <button onclick="closeModals()" class="btn-close"></button>
         </div>
         
-        <button onclick="showNumberModal()" class="btn btn-invite-num w-100">Invite by number</button>
-        <button onclick="showAddModal('{{ next_new_number|stringformat:'03d' }}')" class="btn btn-add-outline text-center w-100">Add</button>
-        <button onclick="showRemoveModal()" class="btn btn-remove-outline w-100">Remove visitors</button>
-    </div>
-    
-    <div class="footer-link"><a href="#">Report a problem</a></div>
-</div>
+        <div class="visitor-grid pt-3" id="visitor-list-grid">
+            {% for v in all_waiting_visitors %}
+                <button onclick="selectVisitor(this, '{{ v.id }}', '{{ v.number|stringformat:"03d" }}')" class="btn-num">
+                    {{ v.number|stringformat:"03d" }}
+                </button>
+            {% empty %}
+                <div class="text-center text-muted w-100 py-4" style="grid-column: span 4;">
+                    Queue is empty
+                </div>
+            {% endfor %}
+        </div>
 
-<div id="confirmModal" class="modal-overlay" style="display: none;">
-    <div class="modal-card fade-in">
-        <span onclick="closeConfirmModal()" class="close-btn">&times;</span>
-        <h3 class="fw-bold mb-2">Are you sure?</h3>
-        <p class="text-muted mb-4">The visitor with number <strong id="modalVisitorNum">000</strong> will be appended back to queue.</p>
-        <a id="confirmYesBtn" href="#" class="btn btn-primary w-100 py-2 rounded-3 fw-bold mb-2">Yes</a>
-        <button onclick="closeConfirmModal()" class="btn btn-light w-100 py-2 rounded-3 fw-bold text-muted border">No</button>
-    </div>
-</div>
-
-<div id="inviteModal" class="modal-overlay" style="display: none;">
-    <div class="modal-card fade-in">
-        <span onclick="closeInviteModal()" class="close-btn">&times;</span>
-        <h3 class="fw-bold mb-2">Are you sure?</h3>
-        <p class="text-muted mb-4">Next visitor number is <strong id="inviteNum">000</strong>. Do you want to invite next visitor?</p>
-        <a href="{% url 'call_next' queue.slug %}" class="btn btn-primary w-100 py-2 rounded-3 fw-bold mb-2">Yes</a>
-        <button onclick="closeInviteModal()" class="btn btn-light w-100 py-2 rounded-3 fw-bold text-muted border">No</button>
-    </div>
-</div>
-
-<div id="addModal" class="modal-overlay" style="display: none;">
-    <div class="modal-card fade-in">
-        <span onclick="closeAddModal()" class="close-btn">&times;</span>
-        <h3 class="fw-bold mb-2">Add Visitor?</h3>
-        <p class="text-muted mb-4">Are you sure you want to add a new visitor manually?<br>Next number will be <strong id="addNum">000</strong>.</p>
-        <a href="{% url 'add_manual_visitor' queue.slug %}" class="btn btn-primary w-100 py-2 rounded-3 fw-bold mb-2">Yes</a>
-        <button onclick="closeAddModal()" class="btn btn-light w-100 py-2 rounded-3 fw-bold text-muted border">No</button>
-    </div>
-</div>
-
-<div id="addInputModal" class="modal-overlay" style="display: none;">
-    <div class="modal-card fade-in" style="max-width: 450px; text-align: center;">
-        <span onclick="closeAddInputModal()" class="close-btn">&times;</span>
-
-        <h4 class="fw-bold mb-1">Add Visitor</h4>
-        <p class="text-muted small mb-4">Enter visitor information</p>
-
-        <form action="{% url 'add_manual_visitor' queue.slug %}" method="POST">
-            {% csrf_token %}
+        <div id="selection-actions" class="selection-actions">
+            <div class="selection-info">
+                Selected: <strong id="selected-number-display">--</strong>
+            </div>
             
-            <div class="mb-4">
-                <input type="text" name="custom_name" class="form-control form-control-lg" 
-                       placeholder="{{ queue.input_label|default:'Enter name' }}" required>
+            <div class="d-flex gap-2 flex-column">
+                <a href="#" id="btn-call-selected" class="btn-app btn-primary-app py-3">
+                    Call Visitor
+                </a>
+                
+                <a href="#" id="btn-remove-selected" class="btn-app btn-danger-app py-3 fw-bold">
+                    Remove from queue
+                </a>
             </div>
+        </div>
 
-            <div class="d-flex gap-2">
-                <button type="button" onclick="closeAddInputModal()" class="btn btn-light w-50 py-2 rounded-3 fw-bold border">
-                    Cancel
-                </button>
-                <button type="submit" class="btn btn-primary w-50 py-2 rounded-3 fw-bold">
-                    Add
-                </button>
+    </div>
+</div>
+
+<div id="addModal" class="modal-overlay">
+    <div class="modal-sheet">
+        <div class="modal-header border-bottom pb-3">
+            <h5 class="modal-title m-0 fw-bold">Add Manual</h5>
+            <button onclick="closeModals()" class="btn-close"></button>
+        </div>
+        <form action="{% url 'add_manual_visitor' queue.slug %}" method="POST" class="py-3">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label fw-bold">Visitor Name (Optional)</label>
+                <input type="text" name="custom_name" class="form-control form-control-lg bg-light" 
+                       placeholder="{{ queue.input_label|default:'Enter name' }}">
             </div>
+            <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold">Add Ticket</button>
         </form>
     </div>
 </div>
 
-<div id="numberModal" class="modal-overlay" style="display: none;">
-    <div class="modal-card fade-in" style="max-width: 500px;">
-        <span onclick="closeNumberModal()" class="close-btn">&times;</span>
-        <h4 class="fw-bold mb-4">Choose visitor</h4>
-        
-        <div class="d-flex flex-wrap justify-content-center gap-2 mb-4" style="max-height: 300px; overflow-y: auto;">
-            {% for v in all_waiting_visitors %}
-                <button onclick="selectVisitor(this, '{{ v.id }}')" class="btn btn-number-pill">
-                    {{ v.number|stringformat:"03d" }}
-                </button>
-            {% empty %}
-                <p class="text-muted">No visitors in queue.</p>
-            {% endfor %}
-        </div>
-        <div class="d-flex justify-content-between align-items-center">
-            <a href="#" id="inviteLink" class="text-primary text-decoration-none fw-bold" style="visibility: hidden;">Invite</a>
-            <button onclick="closeNumberModal()" class="btn btn-light rounded-3 fw-bold text-muted border px-4">Close</button>
-        </div>
-    </div>
-</div>
-
-<div id="removeModal" class="modal-overlay" style="display: none;">
-    <div class="modal-card fade-in" style="max-width: 500px;">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="fw-bold mb-0">Choose visitors</h4>
-            <a href="javascript:void(0)" onclick="closeRemoveModal()" class="text-primary text-decoration-none small fw-bold">Close</a>
-        </div>
-        <div class="d-flex flex-wrap justify-content-center gap-2 mb-4" style="max-height: 300px; overflow-y: auto;">
-            {% for v in all_waiting_visitors %}
-                <button onclick="selectVisitorToRemove(this, '{{ v.id }}')" class="btn btn-number-pill remove-pill">
-                    {{ v.number|stringformat:"03d" }}
-                </button>
-            {% empty %}
-                <p class="text-muted">No visitors to remove.</p>
-            {% endfor %}
-        </div>
-        <div class="d-flex justify-content-center align-items-center">
-            <a href="#" id="removeLink" class="btn btn-danger w-100 py-2 rounded-3 fw-bold" style="display: none;">
-                Remove Selected
-            </a>
-        </div>
-    </div>
-</div>
-
-<div id="settingsModal" class="modal-overlay" style="display: none;">
-    <div class="modal-card fade-in text-start" style="max-width: 600px; padding: 0; overflow: hidden;">
-        
+<div id="settingsModal" class="modal-overlay">
+    <div class="modal-sheet">
         <form action="{% url 'update_queue_settings' queue.slug %}" method="POST" enctype="multipart/form-data">
             {% csrf_token %}
             
-            <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-white">
-                <span onclick="closeSettingsModal()" style="cursor: pointer; font-size: 1.5rem; color: #9ca3af;">&times;</span>
-                <h5 class="m-0 fw-bold">Queue Settings</h5>
-                <button type="submit" class="btn text-primary fs-4 p-0 border-0 bg-transparent">
-                    &#10003;
-                </button>
+            <div class="modal-header border-bottom pb-3 mb-3">
+                <h5 class="modal-title m-0 fw-bold">Settings</h5>
+                <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3">Save</button>
             </div>
 
-            <div class="p-4" style="max-height: 70vh; overflow-y: auto;">
-                
-                <h6 class="text-uppercase text-muted small fw-bold mb-3">Queue Info</h6>
-                <div class="form-group">
-                    <label class="form-label">Sign-in link</label>
-                    <div class="link-box">
-                        <a href="{{ request.scheme }}://{{ request.get_host }}/q/{{ queue.slug }}/join/" target="_blank" id="signInLink">
-                            {{ request.scheme }}://{{ request.get_host }}/q/{{ queue.slug }}/join/
-                        </a>
-                        <button type="button" class="btn-copy" onclick="copyToClipboard('signInLink')">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-files" viewBox="0 0 16 16"><path d="M13 0H6a2 2 0 0 0-2 2 2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2 9a9 0 0 0 0-18zm-5 2h5a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1 1 1 0 0 1 1-1zm4 12H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h1v1H2v10h10v-1h1v1a1 1 0 0 1-1 1z"/></svg>
-                        </button>
+            <div class="py-2">
+                <div class="mb-3">
+                    <label class="form-label fw-bold small text-muted">QUEUE NAME</label>
+                    <input type="text" name="name" class="form-control bg-light border-0" value="{{ queue.name }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small text-muted">KIOSK LINK</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bg-light border-0" value="{{ request.scheme }}://{{ request.get_host }}/q/{{ queue.slug }}/join/" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('{{ request.scheme }}://{{ request.get_host }}/q/{{ queue.slug }}/join/')">Copy</button>
                     </div>
                 </div>
-
-                <div class="form-group">
-                    <label class="form-label">Status screen link</label>
-                    <div class="link-box">
-                        <a href="{{ request.scheme }}://{{ request.get_host }}/q/{{ queue.slug }}/display/" target="_blank" id="statusLink">
-                            {{ request.scheme }}://{{ request.get_host }}/q/{{ queue.slug }}/display/
-                        </a>
-                        <button type="button" class="btn-copy" onclick="copyToClipboard('statusLink')">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-files" viewBox="0 0 16 16"><path d="M13 0H6a2 2 0 0 0-2 2 2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2 9a9 0 0 0 0-18zm-5 2h5a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1 1 1 0 0 1 1-1zm4 12H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h1v1H2v10h10v-1h1v1a1 1 0 0 1-1 1z"/></svg>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="form-group mt-4">
-                    <label class="form-label">Queue name</label>
-                    <input type="text" name="name" class="form-control-custom" value="{{ queue.name }}">
-                </div>
-
-                <hr class="my-4">
-
-                <h6 class="text-uppercase text-muted small fw-bold mb-3">Sign-in Settings</h6>
-
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div>
-                        <div class="fw-bold">Visitor self-sign-in</div>
-                        <small class="text-muted">Allow or disallow new visitors to join the queue</small>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" name="allow_join" {% if queue.allow_join %}checked{% endif %}>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div>
-                        <div class="fw-bold">Ask for visitor input</div>
-                        <small class="text-muted">Ask visitors to input name/info when joining</small>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="askInputToggle" name="ask_input" {% if queue.ask_input %}checked{% endif %} onchange="toggleInputPrompt()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <div id="inputPromptContainer" class="form-group bg-light p-3 rounded border" style="display: {% if queue.ask_input %}block{% else %}none{% endif %};">
-                    <label class="form-label text-muted small fw-bold">Visitor input prompt</label>
-                    <input type="text" name="input_label" class="form-control-custom bg-white" 
-                           value="{{ queue.input_label|default:'Enter your name' }}" 
-                           placeholder="e.g. Enter your name">
-                </div>
-
-                <div class="form-group mt-3">
-                    <label class="form-label">Queue capacity</label>
-                    <input type="number" name="capacity" class="form-control-custom" value="{{ queue.capacity }}" min="1">
-                    <small class="text-muted">Maximum amount of visitors that can be waiting in the queue at a time</small>
-                </div>
-
-                <hr class="my-4">
-
-                <h6 class="text-uppercase text-muted small fw-bold mb-3">Appearance</h6>
-                
-                <div class="mb-4">
-                    <label class="form-label fw-bold">Custom Branding Logo</label>
-                    
-                    {% if queue.logo %}
-                        <div class="mb-2 p-2 border rounded text-center">
-                            <img src="{{ queue.logo.url }}" style="height: 50px; object-fit: contain;">
-                            <div class="form-check mt-2 d-inline-block">
-                                <input class="form-check-input" type="checkbox" name="remove_logo" id="rmLogo">
-                                <label class="form-check-label text-danger small" for="rmLogo">Remove current logo</label>
-                            </div>
+                <div class="card bg-light border-0 mb-3">
+                    <div class="card-body d-flex justify-content-between align-items-center py-3">
+                        <span class="fw-bold text-dark">Allow Join</span>
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input fs-5" type="checkbox" name="allow_join" {% if queue.allow_join %}checked{% endif %}>
                         </div>
-                    {% endif %}
-                    
-                    <input type="file" name="logo" class="form-control" accept="image/*">
-                    <small class="text-muted">Upload PNG or JPG (Max height: 100px recommended)</small>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Display estimated waiting time</label>
-                    <select name="wait_time_display" class="form-control-custom">
-                        <option value="AUTO" {% if queue.wait_time_display == 'AUTO' %}selected{% endif %}>Automatically calculated</option>
-                        <option value="HIDDEN" {% if queue.wait_time_display == 'HIDDEN' %}selected{% endif %}>Hidden</option>
-                    </select>
+                <div class="card bg-light border-0 mb-3">
+                    <div class="card-body d-flex justify-content-between align-items-center py-3">
+                        <span class="fw-bold text-dark">Ask Visitor Name</span>
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input fs-5" type="checkbox" id="askInputToggle" name="ask_input" {% if queue.ask_input %}checked{% endif %} onchange="toggleInputPrompt()">
+                        </div>
+                    </div>
                 </div>
-
-                <div class="form-group">
-                    <label class="form-label">Status screen language</label>
-                    <select name="status_language" class="form-control-custom">
-                        <option value="AUTO" {% if queue.status_language == 'AUTO' %}selected{% endif %}>Auto</option>
-                        <option value="EN" {% if queue.status_language == 'EN' %}selected{% endif %}>English</option>
-                        <option value="MS" {% if queue.status_language == 'MS' %}selected{% endif %}>Malay</option>
-                    </select>
+                <div id="inputPromptContainer" class="mb-3 ps-2" style="display: {% if queue.ask_input %}block{% else %}none{% endif %};">
+                    <input type="text" name="input_label" class="form-control" value="{{ queue.input_label|default:'Enter your name' }}">
                 </div>
-
-                <hr class="my-4">
-
-                <h6 class="text-uppercase text-muted small fw-bold mb-3">Reset Queue</h6>
-                
-                <button type="button" class="btn btn-danger w-100 fw-bold py-2" onclick="triggerReset()">
-                    Reset
-                </button>
-                <small class="text-muted d-block mt-2" style="font-size: 0.8rem;">
-                    Resetting queue empties the waiting list and resets the ticket numbering
-                </small>
-
+                <div class="mb-3">
+                    <label class="form-label fw-bold small text-muted">LOGO</label>
+                    <input type="file" name="logo" class="form-control">
+                </div>
                 <div class="mb-5"></div>
             </div>
         </form>
     </div>
 </div>
 
-<form id="resetQueueForm" action="{% url 'remove_visitors' queue.slug %}" method="POST" style="display: none;">
-    {% csrf_token %}
-</form>
+<div id="removeModal" class="modal-overlay">
+    <div class="modal-sheet text-center">
+        <div class="py-4">
+            <h3 class="fw-bold text-danger mb-3">Clear Queue?</h3>
+            <p class="text-muted mb-4 px-3">This will remove <strong>ALL</strong> waiting visitors permanently.</p>
+            <form action="{% url 'remove_visitors' queue.slug %}" method="POST" class="d-grid gap-2">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-lg rounded-pill">Yes, Clear All</button>
+                <button type="button" onclick="closeModals()" class="btn btn-light btn-lg rounded-pill">Cancel</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="confirmModal" class="modal-overlay">
+    <div class="modal-sheet text-center">
+         <div class="py-4">
+            <h3 class="fw-bold mb-3">Return to Queue?</h3>
+            <p class="text-muted mb-4">Send visitor <strong id="returnNum">000</strong> back to waiting list?</p>
+            <div class="d-grid gap-2">
+                <a id="confirmYesBtn" href="#" class="btn btn-primary btn-lg rounded-pill">Yes, Return</a>
+                <button type="button" onclick="closeModals()" class="btn btn-light btn-lg rounded-pill">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
-    // --- SETTINGS LOGIC (TOGGLE INPUT) ---
+    // --- UI LOGIC ---
+    function closeModals() {
+        document.querySelectorAll('.modal-overlay').forEach(el => el.style.display = 'none');
+        // Reset selection bila modal tutup
+        resetSelection();
+    }
+    function openNumberModal() { document.getElementById('numberModal').style.display = 'flex'; }
+    function openAddModal() { document.getElementById('addModal').style.display = 'flex'; }
+    function openSettingsModal() { 
+        document.getElementById('settingsModal').style.display = 'flex'; 
+        toggleInputPrompt();
+    }
+    function openRemoveModal() { 
+        closeModals(); 
+        document.getElementById('removeModal').style.display = 'flex'; 
+    }
+    
+    function showConfirmModal(id, num) {
+        document.getElementById('returnNum').innerText = num;
+        document.getElementById('confirmYesBtn').href = "/visitor/" + id + "/return/";
+        document.getElementById('confirmModal').style.display = 'flex';
+    }
+
+    // --- LOGIK PEMILIHAN NOMBOR (PENTING) ---
+    function selectVisitor(btnElement, id, number) {
+        // 1. Buang class 'selected' dari semua butang
+        document.querySelectorAll('.btn-num').forEach(el => el.classList.remove('selected'));
+        
+        // 2. Tambah class 'selected' ke butang yang ditekan
+        btnElement.classList.add('selected');
+        
+        // 3. Tunjuk panel action di bawah
+        const actionPanel = document.getElementById('selection-actions');
+        actionPanel.style.display = 'flex';
+        
+        // 4. Update info dan link butang
+        document.getElementById('selected-number-display').innerText = number;
+        
+        // Set Link untuk CALL
+        document.getElementById('btn-call-selected').href = "/visitor/" + id + "/invite/";
+        
+        // Set Link untuk REMOVE
+        document.getElementById('btn-remove-selected').href = "/visitor/" + id + "/remove/";
+    }
+
+    function resetSelection() {
+        document.querySelectorAll('.btn-num').forEach(el => el.classList.remove('selected'));
+        document.getElementById('selection-actions').style.display = 'none';
+    }
+
     function toggleInputPrompt() {
         const toggle = document.getElementById('askInputToggle');
         const container = document.getElementById('inputPromptContainer');
-        
-        if (toggle.checked) {
-            container.style.display = 'block';
-        } else {
-            container.style.display = 'none';
-        }
+        if(toggle && container) container.style.display = toggle.checked ? 'block' : 'none';
     }
 
-    // --- RESET TRIGGER ---
-    function triggerReset() {
-        if(confirm('Are you sure you want to RESET the queue? This will remove all visitors.')) {
-            document.getElementById('resetQueueForm').submit();
-        }
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => { alert("Link copied!"); });
     }
 
-    // --- MODAL & BUTTON FUNCTIONS ---
-    function openSettingsModal() { 
-        document.getElementById('settingsModal').style.display = 'flex';
-        // Check state bila modal buka
-        toggleInputPrompt(); 
-    }
-    function closeSettingsModal() { document.getElementById('settingsModal').style.display = 'none'; }
-
-    function copyToClipboard(elementId) {
-        var copyText = document.getElementById(elementId).href;
-        navigator.clipboard.writeText(copyText).then(function() {
-            alert("Copied to clipboard!");
-        }, function(err) { console.error('Could not copy text: ', err); });
-    }
-
-    function showRemoveModal() { document.getElementById('removeModal').style.display = 'flex'; }
-    function closeRemoveModal() {
-        document.getElementById('removeModal').style.display = 'none';
-        document.querySelectorAll('.remove-pill').forEach(el => el.classList.remove('selected-red'));
-        document.getElementById('removeLink').style.display = 'none';
-    }
-    function selectVisitorToRemove(btnElement, visitorId) {
-        document.querySelectorAll('.remove-pill').forEach(el => el.classList.remove('selected-red'));
-        btnElement.classList.add('selected-red');
-        const removeLink = document.getElementById('removeLink');
-        removeLink.href = "/visitor/" + visitorId + "/remove/";
-        removeLink.style.display = 'block';
-    }
-
-    function showConfirmModal(visitorId, visitorNumber) {
-        document.getElementById('modalVisitorNum').innerText = visitorNumber;
-        document.getElementById('confirmYesBtn').href = "/visitor/" + visitorId + "/return/";
-        document.getElementById('confirmModal').style.display = 'flex';
-    }
-    function closeConfirmModal() { document.getElementById('confirmModal').style.display = 'none'; }
-
-    function showInviteModal(nextNumber) {
-        document.getElementById('inviteNum').innerText = nextNumber;
-        document.getElementById('inviteModal').style.display = 'flex';
-    }
-    function closeInviteModal() { document.getElementById('inviteModal').style.display = 'none'; }
-
-    // Ambil status setting dari Database
-    const isAskInputEnabled = "{{ queue.ask_input|yesno:'true,false' }}" === "true";
-
-    function showAddModal(nextNewNumber) {
-        if (isAskInputEnabled) {
-            document.getElementById('addInputModal').style.display = 'flex';
-            document.querySelector('#addInputModal input').focus();
-        } else {
-            document.getElementById('addNum').innerText = nextNewNumber;
-            document.getElementById('addModal').style.display = 'flex';
-        }
-    }
-    function closeAddModal() { document.getElementById('addModal').style.display = 'none'; }
-    function closeAddInputModal() { document.getElementById('addInputModal').style.display = 'none'; }
-    
-    function showNumberModal() { document.getElementById('numberModal').style.display = 'flex'; }
-    function closeNumberModal() { 
-        document.getElementById('numberModal').style.display = 'none';
-        document.querySelectorAll('.btn-number-pill').forEach(el => el.classList.remove('selected'));
-        document.getElementById('inviteLink').style.visibility = 'hidden';
-    }
-    function selectVisitor(btnElement, visitorId) {
-        document.querySelectorAll('.btn-number-pill').forEach(el => el.classList.remove('selected'));
-        btnElement.classList.add('selected');
-        const inviteLink = document.getElementById('inviteLink');
-        inviteLink.href = "/visitor/" + visitorId + "/invite/";
-        inviteLink.style.visibility = 'visible';
-        inviteLink.innerText = "Invite Visitor";
-    }
-
-    window.onclick = function(event) {
-        if (event.target == document.getElementById('inviteModal')) closeInviteModal();
-        if (event.target == document.getElementById('confirmModal')) closeConfirmModal();
-        if (event.target == document.getElementById('addModal')) closeAddModal();
-        if (event.target == document.getElementById('numberModal')) closeNumberModal();
-        if (event.target == document.getElementById('removeModal')) closeRemoveModal();
-        if (event.target == document.getElementById('settingsModal')) closeSettingsModal();
-    }
-
-    // --- WEBSOCKET SETUP ---
+    // --- WEBSOCKET ---
     const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
     const queueSlug = "{{ queue.slug }}"; 
     const socket = new WebSocket(protocol + window.location.host + '/ws/queue/' + queueSlug + '/');
-
-    socket.onopen = function(e) { console.log("Admin Connected"); };
 
     socket.onmessage = function(e) {
         const data = JSON.parse(e.data);
         const eventType = data.message;
         const payload = data.data;
 
-        if (eventType === 'new_visitor') {
-            updateWaitingCount(1);
-            addVisitorToModalList(payload.visitor_id, payload.number);
-            const countSpan = document.getElementById('waiting-count-display');
-            if (countSpan && parseInt(countSpan.innerText) === 1) {
-                location.reload(); 
+        if (payload.waiting_count !== undefined) {
+            document.getElementById('waiting-count-display').innerText = payload.waiting_count;
+            const btnNext = document.getElementById('btn-call-next');
+            if (payload.waiting_count > 0) {
+                btnNext.classList.remove('disabled');
+                btnNext.style.backgroundColor = ""; btnNext.style.boxShadow = ""; btnNext.style.pointerEvents = "auto";
+                btnNext.innerText = "Call Next Visitor";
+                btnNext.href = "{% url 'call_next' queue.slug %}";
+            } else {
+                btnNext.classList.add('disabled');
+                btnNext.style.backgroundColor = "#d1d5db"; btnNext.style.boxShadow = "none"; btnNext.style.pointerEvents = "none";
+                btnNext.innerText = "No Visitors";
+                btnNext.removeAttribute('href');
             }
-        } 
-        else if (eventType === 'visitor_quit') {
-            updateWaitingCount(-1);
-            setTimeout(() => location.reload(), 500); 
         }
-        else if (eventType === 'invite_next' || eventType === 'queue_reset' || eventType === 'visitor_completed') {
-            location.reload();
+
+        if (eventType === 'invite_next') {
+            document.getElementById('display-number').innerText = payload.number;
+            setTimeout(() => location.reload(), 500);
         }
-        else if (eventType === 'return_queue') {
+
+        if (eventType === 'new_visitor') {
+            const grid = document.getElementById('visitor-list-grid');
+            if(grid.innerText.includes("Queue is empty")) grid.innerHTML = "";
+            
+            // Create button element dynamically
+            const btn = document.createElement('button');
+            btn.className = "btn-num";
+            btn.innerText = payload.number;
+            btn.onclick = function() { selectVisitor(this, payload.visitor_id, payload.number) };
+            
+            grid.appendChild(btn);
+        }
+        
+        // Refresh jika ada remove/reset
+        if (eventType === 'queue_reset' || eventType === 'visitor_quit' || eventType === 'return_queue') {
             location.reload();
         }
     };
-
-    function updateWaitingCount(amount) {
-        const countSpan = document.getElementById('waiting-count-display');
-        if (countSpan) {
-            let currentCount = parseInt(countSpan.innerText);
-            let newCount = currentCount + amount;
-            if (newCount < 0) newCount = 0;
-            countSpan.innerText = newCount;
-        }
-    }
-
-    function addVisitorToModalList(visitorId, visitorNumber) {
-        const listContainer = document.querySelector('#numberModal .d-flex');
-        if (listContainer) {
-            const emptyText = listContainer.querySelector('p.text-muted');
-            if (emptyText) emptyText.remove();
-            const newBtn = document.createElement('button');
-            newBtn.className = 'btn btn-number-pill';
-            newBtn.innerText = visitorNumber;
-            newBtn.onclick = function() { 
-                selectVisitor(this, visitorId); 
-            };
-            listContainer.appendChild(newBtn);
-        }
-    }
 </script>
 
 {% endblock %}
