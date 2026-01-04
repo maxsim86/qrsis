@@ -1,60 +1,24 @@
 {% extends 'base.html' %}
 {% block content %}
 
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
 <style>
-    /* --- 1. LAYOUT UTAMA --- */
+    /* --- CSS ANDA (KEKAL SAMA) --- */
     .ticket-container { 
-        min-height: 100vh; 
-        display: flex; 
-        flex-direction: column; 
-        align-items: center; 
-        justify-content: center; 
+        min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; 
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-        background-color: #f8fafc; 
-        padding: 20px; 
-        overflow: hidden;
+        background-color: #f8fafc; padding: 20px; overflow: hidden;
     }
+    .ticket-logo { max-height: 80px; width: auto; max-width: 80%; margin-bottom: 40px; object-fit: contain; }
 
-    .ticket-logo {
-        max-height: 80px; 
-        width: auto;       
-        max-width: 80%;    
-        margin-bottom: 40px; /* Jarak lebih besar dari bulatan */
-        object-fit: contain;
-    }
-
-    /* --- 2. BULATAN BESAR (The Ring) --- */
+    /* BULATAN */
     .loader-wrapper {
-        position: relative;
-        /* --- PERUBAHAN UTAMA: SAIZ DIBESARKAN --- */
-        width: 420px;  /* Dibesarkan dari 350px */
-        height: 420px; /* Dibesarkan dari 350px */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-bottom: 50px;
-        background: white;
-        border-radius: 50%;
-        box-shadow: 0 15px 40px rgba(0,0,0,0.05); 
-        z-index: 2;
+        position: relative; width: 420px; height: 420px; display: flex; justify-content: center; align-items: center;
+        margin-bottom: 50px; background: white; border-radius: 50%; box-shadow: 0 15px 40px rgba(0,0,0,0.05); z-index: 2;
     }
-
-    /* --- ANIMASI PULSE DI LUAR --- */
-    .pulse-bg {
-        position: absolute;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        width: 100%; height: 100%;
-        border-radius: 50%;
-        background-color: rgba(74, 222, 128, 0.3); 
-        z-index: 1; 
-        opacity: 0;
-    }
-
-    .loader-wrapper.active-pulse .pulse-bg {
-        animation: pulse-wave 2.5s infinite ease-out;
-    }
-    
+    .pulse-bg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; border-radius: 50%; background-color: rgba(74, 222, 128, 0.3); z-index: 1; opacity: 0; }
+    .loader-wrapper.active-pulse .pulse-bg { animation: pulse-wave 2.5s infinite ease-out; }
     .loader-wrapper.active-pulse .pulse-bg:nth-child(1) { animation-delay: 0s; }
     .loader-wrapper.active-pulse .pulse-bg:nth-child(2) { animation-delay: 0.8s; }
 
@@ -63,106 +27,27 @@
         100% { transform: translate(-50%, -50%) scale(1.35); opacity: 0; }
     }
 
-    /* --- CINCIN PROGRESS --- */
-    .spinner-ring {
-        position: absolute;
-        width: 100%; height: 100%;
-        border-radius: 50%;
-        border: 28px solid #f1f5f9; /* Border sedikit tebal */
-        box-sizing: border-box;
-        z-index: 3;
-    }
+    .spinner-ring { position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 28px solid #f1f5f9; box-sizing: border-box; z-index: 3; }
+    .spinner-ring.waiting { border-top-color: #4ade80; border-left-color: #86efac; border-right-color: #f1f5f9; border-bottom-color: #f1f5f9; animation: spin 1.5s linear infinite; }
+    .spinner-ring.serving { border-color: #4ade80; box-shadow: inset 0 0 30px rgba(74, 222, 128, 0.2); animation: none; }
+    .spinner-ring.completed { border: 28px solid #cbd5e1; animation: none; }
 
-    /* STYLE WAITING */
-    .spinner-ring.waiting {
-        border-top-color: #4ade80;  
-        border-left-color: #86efac; 
-        border-right-color: #f1f5f9; 
-        border-bottom-color: #f1f5f9;
-        animation: spin 1.5s linear infinite;
-    }
+    .ticket-content { z-index: 4; text-align: center; padding: 55px; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; gap: 15px; }
 
-    /* STYLE SERVING (HIJAU TERANG) */
-    .spinner-ring.serving {
-        border-color: #4ade80; 
-        box-shadow: inset 0 0 30px rgba(74, 222, 128, 0.2); /* Glow dalam */
-        animation: none; 
-    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* STYLE COMPLETED */
-    .spinner-ring.completed {
-        border: 28px solid #cbd5e1; 
-        animation: none;
-    }
+    .text-top { font-size: 1.1rem; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin: 0; }
+    .text-number { font-weight: 800; color: #0f172a; }
+    .text-main { font-size: 3.2rem; font-weight: 900; line-height: 1.05; color: #0f172a; margin: 5px 0; }
+    .text-sub { font-size: 1.1rem; color: #64748b; font-weight: 500; line-height: 1.4; max-width: 90%; margin: 0; }
 
-    /* --- ISI TENGAH (TEKS) --- */
-    .ticket-content {
-        z-index: 4;
-        text-align: center;
-        /* Padding dalam lebih besar supaya teks tak kena tepi */
-        padding: 55px; 
-        width: 100%; height: 100%;
-        display: flex; flex-direction: column;
-        justify-content: center; align-items: center;
-        box-sizing: border-box;
-        /* Guna gap untuk jarakkan elemen secara konsisten */
-        gap: 15px;
-    }
-
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    /* Typography yang Dibetulkan */
-    .text-top { 
-        font-size: 1.1rem; 
-        color: #94a3b8; /* Warna lebih lembut */
-        font-weight: 700; 
-        text-transform: uppercase; 
-        letter-spacing: 1.5px;
-        margin: 0; /* Margin diuruskan oleh gap flex */
-    }
-    
-    .text-number { 
-        font-weight: 800; color: #0f172a;
-    }
-
-    .text-main { 
-        /* Saiz dilaraskan supaya muat */
-        font-size: 3.2rem; 
-        font-weight: 900; 
-        line-height: 1.05; 
-        color: #0f172a; 
-        margin: 5px 0; /* Sedikit margin atas bawah */
-    }
-    
-    .text-sub { 
-        font-size: 1.1rem; 
-        color: #64748b; 
-        font-weight: 500; 
-        line-height: 1.4;
-        max-width: 90%;
-        margin: 0;
-    }
-
-    /* --- 3. BUTANG --- */
     .btn-container { width: 100%; max-width: 350px; z-index: 10; text-align: center; display: flex; flex-direction: column; gap: 15px; }
-    
-    .btn-notif { 
-        background-color: white; color: #3b82f6; border: 2px solid #3b82f6; 
-        padding: 15px; border-radius: 50px; font-weight: 700; width: 100%; 
-        font-size: 1rem; cursor: pointer; transition: all 0.2s;
-    }
+    .btn-notif { background-color: white; color: #3b82f6; border: 2px solid #3b82f6; padding: 15px; border-radius: 50px; font-weight: 700; width: 100%; font-size: 1rem; cursor: pointer; transition: all 0.2s; }
     .btn-notif:hover { background-color: #eff6ff; }
-
-    .btn-quit { 
-        background: none; border: none; color: #ef4444; font-weight: 700; 
-        font-size: 1rem; text-decoration: none; cursor: pointer; 
-    }
+    .btn-quit { background: none; border: none; color: #ef4444; font-weight: 700; font-size: 1rem; text-decoration: none; cursor: pointer; }
     .btn-quit:hover { text-decoration: underline; }
 
-    /* --- 4. MODAL (Tiada perubahan) --- */
+    /* MODAL */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); z-index: 9999; display: flex; justify-content: center; align-items: flex-end; }
     .modal-card { background-color: white; width: 100%; max-width: 500px; border-top-left-radius: 25px; border-top-right-radius: 25px; padding: 40px 30px; text-align: center; position: relative; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 -10px 40px rgba(0,0,0,0.2); }
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -174,73 +59,18 @@
     @keyframes pop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 </style>
 
-{% if visitor.is_invited %}
-<div class="modal-overlay">
-    <div class="modal-card">
-        <a href="{% url 'acknowledge_invite' visitor.id %}" class="close-btn">&times;</a>
-        <div class="confetti-icon">🎉</div>
-        <h3 class="modal-title">It’s your turn!</h3>
-        <p class="modal-desc">You were invited</p>
-        <a href="{% url 'acknowledge_invite' visitor.id %}" class="btn-good">Good</a>
-    </div>
-</div>
-{% endif %}
-
-{% if visitor.is_returned %}
-<div class="modal-overlay">
-    <div class="modal-card">
-        <a href="{% url 'acknowledge_return' visitor.id %}" class="close-btn">&times;</a>
-        <div class="confetti-icon">⏳</div> 
-        <h3 class="modal-title">Moved to queue</h3>
-        <p class="modal-desc">You were returned to the waiting list</p>
-        <a href="{% url 'acknowledge_return' visitor.id %}" class="btn-good">Okay</a>
-    </div>
-</div>
-{% endif %}
-
 <div class="ticket-container">
     {% if queue.logo %}
         <img src="{{ queue.logo.url }}" class="ticket-logo" alt="Queue Logo">
     {% endif %}
     
-    <div class="loader-wrapper {% if visitor.status == 'SERVING' or visitor.status == 'WAITING' %}active-pulse{% endif %}">
-        
-        <div class="pulse-bg"></div>
-        <div class="pulse-bg"></div>
-
-        <div class="spinner-ring 
-            {% if visitor.status == 'WAITING' %}waiting{% endif %}
-            {% if visitor.status == 'SERVING' %}serving{% endif %}
-            {% if visitor.status == 'COMPLETED' %}completed{% endif %}
-        "></div>
-
-        <div class="ticket-content">
-            {% if visitor.status == 'WAITING' %}
-                <div class="text-top">
-                    Your Number <span class="text-number">#{{ visitor.number|stringformat:"03d" }}</span>
-                </div>
-                
-                <div class="text-main">In Queue</div>
-                <div class="text-sub">Please wait for your turn</div>
-            
-            {% elif visitor.status == 'SERVING' %}
-                <div class="text-top">
-                    Your Number <span class="text-number">#{{ visitor.number|stringformat:"03d" }}</span>
-                </div>
-                
-                <div class="text-main">
-                    It is your<br>turn now!
-                </div>
-                
-                <div class="text-sub">— you are invited!</div>
-            
-            {% else %}
-                <div class="text-main" style="font-size: 2.8rem;">Completed</div>
-                <div class="text-sub">Thank you!</div>
-            {% endif %}
-        </div>
+    <div id="ticket-dynamic-area"
+         hx-get="{% url 'visitor_status' visitor.id %}"
+         hx-trigger="queue_update from:body"
+         hx-swap="innerHTML">
+         
+         {% include 'queues/partials/ticket_content.html' %}
     </div>
-
     <div class="btn-container">
         <button onclick="requestNotificationPermission()" class="btn-notif">
             Enable notifications
@@ -260,43 +90,44 @@
     const visitorId = parseInt("{{ visitor.id }}");
     const socket = new WebSocket(protocol + window.location.host + '/ws/queue/' + queueSlug + '/');
 
-    socket.onopen = function(e) { console.log("Connected to Queue"); };
+    socket.onopen = function(e) { console.log("Connected to Queue (HTMX Mode)"); };
 
     socket.onmessage = function(e) {
         const data = JSON.parse(e.data);
         const eventType = data.message;
         const payload = data.data;
+        let shouldRefresh = false;
 
+        // 1. Jika User ini Dipanggil
         if (eventType === 'invite_next') {
             if (payload.visitor_id === visitorId) {
-                showInviteModalJS();
+                // Mainkan bunyi dahulu
                 try { new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play(); } catch(e){}
-            } else { location.reload(); }
+                shouldRefresh = true; // Trigger HTMX update
+            } else {
+                // Orang lain dipanggil, position queue mungkin berubah (jika ada indicator)
+                // Selamat untuk refresh
+                shouldRefresh = true;
+            }
         }
 
-        if (eventType === 'return_queue') {
-            if (payload.visitor_id === visitorId) location.reload(); else location.reload();
+        // 2. Jika Status Berubah (Return/Quit/Dll)
+        if (eventType === 'return_queue' || eventType === 'visitor_quit' || eventType === 'queue_update') {
+            shouldRefresh = true;
         }
-        
-        if (eventType === 'visitor_quit') location.reload();
+
+        // --- TRIGGER HTMX TANPA RELOAD BROWSER ---
+        if (shouldRefresh) {
+            // Hantar signal event ke 'body' supaya HTMX di atas menangkapnya
+            document.body.dispatchEvent(new Event('queue_update'));
+            console.log("HTMX Update Triggered");
+        }
     };
 
-    socket.onclose = function(e) { setTimeout(function() { location.reload(); }, 5000); };
-
-    function showInviteModalJS() {
-        if (document.querySelector('.modal-overlay')) return;
-        const modalHtml = `
-        <div class="modal-overlay">
-            <div class="modal-card">
-                <a href="/visitor/${visitorId}/ack-invite/" class="close-btn">&times;</a>
-                <div class="confetti-icon">🎉</div>
-                <h3 class="modal-title">It’s your turn!</h3>
-                <p class="modal-desc">You were invited</p>
-                <a href="/visitor/${visitorId}/ack-invite/" class="btn-good">Good</a>
-            </div>
-        </div>`;
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-    }
+    socket.onclose = function(e) { 
+        // Jika internet putus, cuba reload selepas 5 saat
+        setTimeout(function() { location.reload(); }, 5000); 
+    };
 
     function requestNotificationPermission() {
         if ("Notification" in window) {

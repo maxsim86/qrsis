@@ -216,6 +216,36 @@ def visitor_join(request, slug):
 
 
 # 2. Page Status (Bulatan Biru)
+# def visitor_status(request, visitor_id):
+#     try:
+#         visitor = Visitor.objects.get(id=visitor_id)
+#     except Visitor.DoesNotExist:   
+#         return render(request, 'queues/session_ended.html')
+    
+#     queue = visitor.queue
+    
+#     if visitor.status == 'WAITING':
+#         people_ahead = Visitor.objects.filter(
+#             queue=queue, 
+#             status='WAITING', 
+#             id__lt=visitor.id
+#         ).count()
+#         position = people_ahead + 1
+        
+#         if 10 <= position % 100 <= 20: suffix = 'th'
+#         else: suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(position % 10, 'th')
+       
+#         position_text = f"{position}{suffix}"
+#     else:
+#         position_text = "-"
+
+#     context = {
+#         'visitor': visitor,
+#         'queue': queue,
+#         'position_text': position_text
+#      }
+#     return render(request, 'queues/ticket.html', context)
+
 def visitor_status(request, visitor_id):
     try:
         visitor = Visitor.objects.get(id=visitor_id)
@@ -224,6 +254,7 @@ def visitor_status(request, visitor_id):
     
     queue = visitor.queue
     
+
     if visitor.status == 'WAITING':
         people_ahead = Visitor.objects.filter(
             queue=queue, 
@@ -238,12 +269,19 @@ def visitor_status(request, visitor_id):
         position_text = f"{position}{suffix}"
     else:
         position_text = "-"
-
+    
     context = {
         'visitor': visitor,
         'queue': queue,
-        'position_text': position_text
-     }
+        'position_text': position_text 
+    }
+
+    # LOGIK HTMX:
+    # Jika request datang dari HTMX, pulangkan partial sahaja
+    if request.headers.get('HX-Request'):
+        return render(request, 'queues/partials/ticket_content.html', context)
+    
+    # Jika refresh biasa, pulangkan page penuh
     return render(request, 'queues/ticket.html', context)
 
 

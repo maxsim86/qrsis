@@ -1,0 +1,58 @@
+{% if visitor.is_invited %}
+<div class="modal-overlay">
+    <div class="modal-card">
+        <a href="{% url 'acknowledge_invite' visitor.id %}" class="close-btn">&times;</a>
+        <div class="confetti-icon">🎉</div>
+        <h3 class="modal-title">It’s your turn!</h3>
+        <p class="modal-desc">You were invited</p>
+        <a href="{% url 'acknowledge_invite' visitor.id %}" class="btn-good">Good</a>
+    </div>
+</div>
+{% endif %}
+
+{% if visitor.is_returned %}
+<div class="modal-overlay">
+    <div class="modal-card">
+        <a href="{% url 'acknowledge_return' visitor.id %}" class="close-btn">&times;</a>
+        <div class="confetti-icon">⏳</div> 
+        <h3 class="modal-title">Moved to queue</h3>
+        <p class="modal-desc">You were returned to the waiting list</p>
+        <a href="{% url 'acknowledge_return' visitor.id %}" class="btn-good">Okay</a>
+    </div>
+</div>
+{% endif %}
+
+<div class="loader-wrapper {% if visitor.status == 'SERVING' or visitor.status == 'WAITING' %}active-pulse{% endif %}">
+    
+    <div class="pulse-bg"></div>
+    <div class="pulse-bg"></div>
+
+    <div class="spinner-ring 
+        {% if visitor.status == 'WAITING' %}waiting{% endif %}
+        {% if visitor.status == 'SERVING' %}serving{% endif %}
+        {% if visitor.status == 'COMPLETED' %}completed{% endif %}
+    "></div>
+
+    <div class="ticket-content">
+        {% if visitor.status == 'WAITING' %}
+            <div class="text-top">
+                Your Number <span class="text-number">#{{ visitor.number|stringformat:"03d" }}</span>
+            </div>
+            <div class="text-main">In Queue</div>
+            <div class="text-sub">Please wait for your turn</div>
+        
+        {% elif visitor.status == 'SERVING' %}
+            <div class="text-top">
+                Your Number <span class="text-number">#{{ visitor.number|stringformat:"03d" }}</span>
+            </div>
+            <div class="text-main">
+                It is your<br>turn now!
+            </div>
+            <div class="text-sub">— you are invited!</div>
+        
+        {% else %}
+            <div class="text-main" style="font-size: 2.8rem;">Completed</div>
+            <div class="text-sub">Thank you!</div>
+        {% endif %}
+    </div>
+</div>
