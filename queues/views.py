@@ -234,7 +234,7 @@ def visitor_status(request, visitor_id):
         
         if 10 <= position % 100 <= 20: suffix = 'th'
         else: suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(position % 10, 'th')
-        
+       
         position_text = f"{position}{suffix}"
     else:
         position_text = "-"
@@ -243,8 +243,9 @@ def visitor_status(request, visitor_id):
         'visitor': visitor,
         'queue': queue,
         'position_text': position_text
-    }
+     }
     return render(request, 'queues/ticket.html', context)
+
 
 # 3. Function Quit Queue
 def visitor_quit(request, visitor_id):
