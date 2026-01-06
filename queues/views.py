@@ -4,7 +4,7 @@ from django.db.models import Max
 import qrcode
 from io import BytesIO
 import base64
-from django.core.exceptions import ObjectDoesNotExist
+#from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -254,7 +254,6 @@ def visitor_status(request, visitor_id):
     
     queue = visitor.queue
     
-
     if visitor.status == 'WAITING':
         people_ahead = Visitor.objects.filter(
             queue=queue, 
@@ -262,40 +261,33 @@ def visitor_status(request, visitor_id):
             id__lt=visitor.id
         ).count()
         position = people_ahead + 1
-        
-        if 10 <= position % 100 <= 20: suffix = 'th'
-        else: suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(position % 10, 'th')
-       
-        position_text = f"{position}{suffix}"
     else:
-        position_text = "-"
+        position = 0
     
     context = {
         'visitor': visitor,
         'queue': queue,
-        'position_text': position_text 
+        'position': position
     }
-
-    # LOGIK HTMX:
-    # Jika request datang dari HTMX, pulangkan partial sahaja
     if request.headers.get('HX-Request'):
         return render(request, 'queues/partials/ticket_content.html', context)
-    
-    # Jika refresh biasa, pulangkan page penuh
     return render(request, 'queues/ticket.html', context)
 
 
-# 3. Function Quit Queue
 def visitor_quit(request, visitor_id):
+    # 1. Cari pelawat berdasarkan ID
     visitor = get_object_or_404(Visitor, id=visitor_id)
     queue_slug = visitor.queue.slug
-    visitor.delete()
     
-    # --- TAMBAH SIGNAL DI SINI ---
-    # Supaya Admin tahu ada orang keluar queue (Update Counter tolak 1)
-    send_socket_update(queue_slug, 'visitor_quit', {})
-
+    quit_data = {
+        'visitor_id': visitor.id,
+        'number': f"{visitor.number:03d}",
+        'status': 'quitted'
+    }
+    visitor.delete()
+    send_socket_update(queue_slug, 'visitor_quit', quit_data)
     return redirect('visitor_join', slug=queue_slug)
+
 
 def admin_interface(request, slug):
     # 1. Check dulu ada tak counter name dalam session?

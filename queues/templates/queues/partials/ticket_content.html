@@ -4,55 +4,134 @@
         <a href="{% url 'acknowledge_invite' visitor.id %}" class="close-btn">&times;</a>
         <div class="confetti-icon">🎉</div>
         <h3 class="modal-title">It’s your turn!</h3>
-        <p class="modal-desc">You were invited</p>
-        <a href="{% url 'acknowledge_invite' visitor.id %}" class="btn-good">Good</a>
+        <p class="modal-desc">Sila ke kaunter sekarang</p>
+        <a href="{% url 'acknowledge_invite' visitor.id %}" class="btn-primary-solid">Hadir</a>
     </div>
 </div>
 {% endif %}
 
-{% if visitor.is_returned %}
-<div class="modal-overlay">
-    <div class="modal-card">
-        <a href="{% url 'acknowledge_return' visitor.id %}" class="close-btn">&times;</a>
-        <div class="confetti-icon">⏳</div> 
-        <h3 class="modal-title">Moved to queue</h3>
-        <p class="modal-desc">You were returned to the waiting list</p>
-        <a href="{% url 'acknowledge_return' visitor.id %}" class="btn-good">Okay</a>
-    </div>
-</div>
-{% endif %}
-
-<div class="loader-wrapper {% if visitor.status == 'SERVING' or visitor.status == 'WAITING' %}active-pulse{% endif %}">
+<div class="loader-wrapper large-design">
     
-    <div class="pulse-bg"></div>
-    <div class="pulse-bg"></div>
+    <div class="blob-bg"></div>
 
-    <div class="spinner-ring 
-        {% if visitor.status == 'WAITING' %}waiting{% endif %}
-        {% if visitor.status == 'SERVING' %}serving{% endif %}
-        {% if visitor.status == 'COMPLETED' %}completed{% endif %}
-    "></div>
+    <svg class="progress-ring" width="360" height="360" viewBox="0 0 120 120">
+        <circle 
+            class="progress-ring__circle--bg"
+            stroke="#eff6ff"
+            stroke-width="8"
+            fill="transparent"
+            r="54"
+            cx="60"
+            cy="60"/>
+            
+        <circle 
+            class="progress-ring__circle {% if visitor.status == 'SERVING' %}serving-ring{% endif %}"
+            stroke="{% if visitor.status == 'SERVING' %}#22c55e{% else %}#3b82f6{% endif %}"
+            stroke-width="8"
+            fill="transparent"
+            r="54"
+            cx="60"
+            cy="60"
+            style="--pos: {% if position > 10 %}10{% else %}{{ position }}{% endif %};"
+        />
+    </svg>
 
     <div class="ticket-content">
         {% if visitor.status == 'WAITING' %}
-            <div class="text-top">
-                Your Number <span class="text-number">#{{ visitor.number|stringformat:"03d" }}</span>
+            <div class="top-label">Your number is <strong>#{{ visitor.number|stringformat:"03d" }}</strong></div>
+            
+            <div class="main-status">
+                You are <br>
+                <span class="highlight-number">{{ position }}<span class="ordinal">{% if position == 1 %}st{% elif position == 2 %}nd{% elif position == 3 %}rd{% else %}th{% endif %}</span></span>
+                <br>in the queue
             </div>
-            <div class="text-main">In Queue</div>
-            <div class="text-sub">Please wait for your turn</div>
+            
+            <div class="sub-status">
+                {% if position == 1 %}
+                    — almost there!
+                {% else %}
+                    Waiting time is<br><strong>approx. {{ position|add:position|add:5 }} mins</strong>
+                {% endif %}
+            </div>
         
         {% elif visitor.status == 'SERVING' %}
-            <div class="text-top">
-                Your Number <span class="text-number">#{{ visitor.number|stringformat:"03d" }}</span>
-            </div>
-            <div class="text-main">
+            <div class="top-label">Your number is <strong>#{{ visitor.number|stringformat:"03d" }}</strong></div>
+            
+            <div class="main-status" style="color: #22c55e;">
                 It is your<br>turn now!
             </div>
-            <div class="text-sub">— you are invited!</div>
+            
+            <div class="sub-status" style="color: #22c55e;">
+                — you are invited!
+            </div>
         
         {% else %}
-            <div class="text-main" style="font-size: 2.8rem;">Completed</div>
-            <div class="text-sub">Thank you!</div>
+            <div class="main-status">Completed</div>
         {% endif %}
     </div>
 </div>
+
+<style>
+    /* --- CSS DESIGN BESAR (360px) --- */
+    
+    .loader-wrapper.large-design {
+        position: relative;
+        width: 360px;  /* Lebar Besar */
+        height: 360px; /* Tinggi Besar */
+        display: flex; justify-content: center; align-items: center;
+        margin: 40px auto 50px auto;
+        border-radius: 50%;
+    }
+
+    /* Blob Biru Pudar di Belakang */
+    .blob-bg {
+        position: absolute;
+        width: 110%; height: 110%;
+        background: radial-gradient(circle, rgba(59,130,246,0.05) 0%, rgba(59,130,246,0.01) 70%);
+        border-radius: 50%;
+        z-index: 1;
+        filter: blur(10px);
+    }
+
+    .progress-ring {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        transform: rotate(-90deg); z-index: 5;
+    }
+
+    .progress-ring__circle {
+        stroke-linecap: round;
+        transition: stroke-dashoffset 0.8s ease-in-out, stroke 0.3s;
+        /* Radius 54 => Lilitan = 2 * pi * 54 ≈ 339.3 */
+        stroke-dasharray: 339.3 339.3;
+        stroke-dashoffset: calc(339.3px - (339.3px * var(--pos) / 10));
+    }
+
+    /* Bila status SERVING (Hijau Penuh) */
+    .progress-ring__circle.serving-ring {
+        stroke: #22c55e !important; /* Hijau terang */
+        stroke-dashoffset: 0 !important; /* Penuhkan bulatan */
+        filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.4)); /* Glow hijau */
+    }
+
+    .ticket-content { 
+        z-index: 10; text-align: center; display: flex; flex-direction: column; 
+        justify-content: center; align-items: center; width: 85%;
+    }
+    
+    /* Typography */
+    .top-label { font-size: 1rem; color: #1f2937; font-weight: 600; margin-bottom: 8px; }
+    
+    .main-status { 
+        font-size: 2.2rem; /* Font Besar */
+        font-weight: 800; 
+        line-height: 1.1; 
+        color: #000; 
+        margin-bottom: 15px; 
+    }
+    
+    .highlight-number { font-size: 3.5rem; font-weight: 900; letter-spacing: -2px; }
+    .ordinal { font-size: 1.5rem; vertical-align: super; margin-left: 2px; }
+    
+    .sub-status { font-size: 1.1rem; color: #4b5563; font-weight: 500; }
+
+</style>

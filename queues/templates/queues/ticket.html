@@ -4,7 +4,6 @@
 <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 
 <style>
-    /* --- CSS ANDA (KEKAL SAMA) --- */
     .ticket-container { 
         min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; 
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
@@ -26,7 +25,6 @@
         0% { transform: translate(-50%, -50%) scale(0.95); opacity: 0.5; }
         100% { transform: translate(-50%, -50%) scale(1.35); opacity: 0; }
     }
-
     .spinner-ring { position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 28px solid #f1f5f9; box-sizing: border-box; z-index: 3; }
     .spinner-ring.waiting { border-top-color: #4ade80; border-left-color: #86efac; border-right-color: #f1f5f9; border-bottom-color: #f1f5f9; animation: spin 1.5s linear infinite; }
     .spinner-ring.serving { border-color: #4ade80; box-shadow: inset 0 0 30px rgba(74, 222, 128, 0.2); animation: none; }
@@ -40,12 +38,68 @@
     .text-number { font-weight: 800; color: #0f172a; }
     .text-main { font-size: 3.2rem; font-weight: 900; line-height: 1.05; color: #0f172a; margin: 5px 0; }
     .text-sub { font-size: 1.1rem; color: #64748b; font-weight: 500; line-height: 1.4; max-width: 90%; margin: 0; }
+    .btn-container { max-width: 360px; margin: 0 auto; width: 100%; padding: 0 20px; box-sizing: border-box; }
+    .btn-primary-solid {
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 16px;
+        font-weight: 600;
+        width: 100%;
+        margin-bottom: 12px;
+        cursor: pointer;
+        font-size: 1rem;
+        box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
+        transition: transform 0.1s;
+    }
+    .btn-primary-solid:hover { background-color: #2563eb; transform: translateY(-1px); }
+    .btn-grey-solid {
+        display: block;
+        width: 100%;
+        background-color: #f3f4f6; /* Kelabu Cerah */
+        color: #3b82f6; /* Biru */
+        border: none;
+        padding: 16px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background 0.2s;
+    }
+    .btn-grey-solid:hover {
+        background-color: #e5e7eb;
+        color: #ef4444; /* Merah bila hover (untuk amaran) */
+    }
 
-    .btn-container { width: 100%; max-width: 350px; z-index: 10; text-align: center; display: flex; flex-direction: column; gap: 15px; }
-    .btn-notif { background-color: white; color: #3b82f6; border: 2px solid #3b82f6; padding: 15px; border-radius: 50px; font-weight: 700; width: 100%; font-size: 1rem; cursor: pointer; transition: all 0.2s; }
+
+    .btn-notif {
+    background-color: transparent;
+    color: #3b82f6;
+    border: 2px solid #3b82f6;
+    border-radius: 50px; /* Pill shape */
+    padding: 12px 20px;
+    font-weight: 600;
+    width: 100%;
+    margin-bottom: 10px;
+    transition: all 0.2s;
+}
+
     .btn-notif:hover { background-color: #eff6ff; }
-    .btn-quit { background: none; border: none; color: #ef4444; font-weight: 700; font-size: 1rem; text-decoration: none; cursor: pointer; }
-    .btn-quit:hover { text-decoration: underline; }
+    .btn-quit { 
+    background: none; 
+    border: none; 
+    color: #ef4444; /* Merah */
+    font-weight: 700; 
+    font-size: 1rem; 
+    margin-top: 15px;
+    cursor: pointer; 
+    transition: color 0.2s;
+}
+    .btn-quit:hover { 
+    color: #b91c1c; /* Merah Gelap bila hover */
+    text-decoration: underline; 
+}
 
     /* MODAL */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); z-index: 9999; display: flex; justify-content: center; align-items: flex-end; }
@@ -57,6 +111,22 @@
     .modal-desc { color: #64748b; margin-bottom: 30px; font-size: 1.1rem; }
     .btn-good { background-color: #3b82f6; color: white; border: none; padding: 18px; border-radius: 15px; font-weight: 700; width: 100%; font-size: 1.2rem; display: block; text-decoration: none; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3); }
     @keyframes pop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    .btn-quit-soft {
+    display: block;
+    width: 100%;
+    background-color: #f1f5f9; /* Kelabu cair */
+    color: #3b82f6; /* Teks Biru */
+    border: none;
+    padding: 14px;
+    border-radius: 12px; /* Segi empat bucu bulat sikit */
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+    .btn-quit-soft:hover {
+    background-color: #e2e8f0;
+    color: #ef4444; /* Merah bila hover */
+    }
 </style>
 
 <div class="ticket-container">
@@ -71,16 +141,21 @@
          
          {% include 'queues/partials/ticket_content.html' %}
     </div>
+
     <div class="btn-container">
-        <button onclick="requestNotificationPermission()" class="btn-notif">
-            Enable notifications
+    
+    <button onclick="requestNotificationPermission()" class="btn-primary-solid">
+        Enable notifications
+    </button>
+    
+    <form action="{% url 'visitor_quit' visitor.id %}" method="POST" onsubmit="return confirmQuit()">
+        {% csrf_token %}
+        <button type="submit" class="btn-grey-solid">
+            Quit the queue
         </button>
-        
-        <form action="{% url 'visitor_quit' visitor.id %}" method="POST" onsubmit="return confirm('Are you sure you want to quit?');">
-            {% csrf_token %}
-            <button type="submit" class="btn-quit">Quit the queue</button>
-        </form>
-    </div>
+    </form>
+    
+</div>
 
 </div>
 
@@ -128,6 +203,10 @@
         // Jika internet putus, cuba reload selepas 5 saat
         setTimeout(function() { location.reload(); }, 5000); 
     };
+
+    function confirmQuit() {
+        return confirm("Are you sure you want to quit?\n\nYou will lose your position in the queue.");
+    }
 
     function requestNotificationPermission() {
         if ("Notification" in window) {
