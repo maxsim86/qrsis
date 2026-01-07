@@ -14,11 +14,11 @@
             </div>
         </div>
         
-        <h2 class="fw-bold">Done. Now it’s up to you!</h2>
+        <h2 class="fw-bold">Selesai. Sekarang terpulang kepada anda!</h2>
         <p class="text-muted lead fs-6">
-            Print a sign with a QR code so visitors can easily scan it. 
-            Use the administration link to manage your queue. 
-            <span class="text-danger fw-semibold">Keep the admin link safe and do not share it with visitors.</span>
+            Print kod QR supaya pelawat boleh mengimbasnya dengan mudah. 
+            ​​Gunakan pautan pentadbiran untuk mengurus Q anda.
+            <span class="text-danger fw-semibold">Pastikan pautan pentadbir selamat dan jangan kongsikannya dengan pelawat</span>
         </p>
     </div>
 
@@ -28,39 +28,35 @@
               <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
               <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
             </svg>
-            Copy all
+            Copy semua
         </button>
-        <a href="{% url 'create_queue' %}" class="btn btn-link text-decoration-none fw-semibold p-0">+ Create more queues</a>
+        <a href="{% url 'create_queue' %}" class="btn btn-link text-decoration-none fw-semibold p-0">+ Cipta lebih banyak Q</a>
     </div>
 
     <div class="card bg-light border-0 p-4 rounded-4 mb-5 shadow-sm">
         <h5 class="fw-bold mb-3 text-dark">Queue: {{ queue.name }}</h5>
         
         <div class="mb-3">
-            <span class="fw-bold text-dark">Link for visitors (used in QR code):</span> 
+            <span class="fw-bold text-dark">Pautan untuk pelawat (digunakan dalam kod QR):</span> 
             <a href="{{ visitor_url }}" target="_blank" class="text-break text-primary text-decoration-none">{{ visitor_url }}</a>
         </div>
         
         <div class="mb-3">
-            <span class="fw-bold text-dark">Sign with QR code:</span> 
+            <span class="fw-bold text-dark">Sign dengan QR:</span> 
             <a href="{{ poster_url }}" target="_blank" class="text-break text-primary text-decoration-none">{{ poster_url }}</a>
         </div>
         
         <div class="mb-3">
-            <span class="fw-bold text-dark">Admin interface:</span> 
+            <span class="fw-bold text-dark">Antara muka pentadbir:</span> 
             <a href="{{ admin_url }}" target="_blank" class="text-break text-primary text-decoration-none">{{ admin_url }}</a>
         </div>
         
         <div>
-            <span class="fw-bold text-dark">Status Display:</span> 
+            <span class="fw-bold text-dark">Paparan Status:</span> 
             <a href="{{ display_url }}" target="_blank" class="text-break text-primary text-decoration-none">{{ display_url }}</a>
         </div>
     </div>
-    
-    <div class="d-flex gap-4">
-        <a href="#" class="text-decoration-none text-primary fw-semibold small">How does it work?</a>
-        <a href="#" class="text-decoration-none text-primary fw-semibold small">Chat with support</a>
-    </div>
+  
 </div>
 
 <script>

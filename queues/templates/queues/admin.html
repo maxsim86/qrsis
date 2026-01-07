@@ -68,7 +68,7 @@
     </div>
 
     <div class="status-card">
-        <div class="status-label">Last called visitor</div>
+        <div class="status-label">Pelawat terakhir yang dipanggil</div>
         <div class="status-number" id="display-number">
             {% if current_serving %}
                 {{ current_serving.number|stringformat:"03d" }}
@@ -77,24 +77,24 @@
             {% endif %}
         </div>
         <div class="status-sub">
-            Waiting: <strong id="waiting-count-display">{{ waiting_count }}</strong>
+            Menunggu: <strong id="waiting-count-display">{{ waiting_count }}</strong>
         </div>
     </div>
 
     <div class="controls-area">
         {% if next_visitor %}
             <a href="{% url 'call_next' queue.slug %}" class="btn-app btn-primary-app" id="btn-call-next">
-                Call Next Visitor
+                Pelawat Seterusnya
             </a>
         {% else %}
             <a href="#" class="btn-app btn-primary-app disabled" id="btn-call-next" style="background-color: #d1d5db; box-shadow: none; pointer-events: none;">
-                No Visitors
+                Tiada Pelawat
             </a>
         {% endif %}
 
         <div class="action-grid">
-            <button onclick="openNumberModal()" class="btn-app btn-secondary-app">List</button>
-            <button onclick="openAddModal()" class="btn-app btn-secondary-app">+ Add</button>
+            <button onclick="openNumberModal()" class="btn-app btn-secondary-app">Senarai</button>
+            <button onclick="openAddModal()" class="btn-app btn-secondary-app">+ Tambah</button>
         </div>
         
         {% if current_serving %}
@@ -115,7 +115,7 @@
 <div id="numberModal" class="modal-overlay">
     <div class="modal-sheet">
         <div class="modal-header border-bottom pb-3">
-            <h5 class="modal-title m-0 fw-bold">Choose Visitor</h5>
+            <h5 class="modal-title m-0 fw-bold">Pilih Pelawat</h5>
             <button onclick="closeModals()" class="btn-close"></button>
         </div>
         
@@ -126,7 +126,7 @@
                 </button>
             {% empty %}
                 <div class="text-center text-muted w-100 py-4" style="grid-column: span 4;">
-                    Queue is empty
+                    Q kosong
                 </div>
             {% endfor %}
         </div>
@@ -153,17 +153,17 @@
 <div id="addModal" class="modal-overlay">
     <div class="modal-sheet">
         <div class="modal-header border-bottom pb-3">
-            <h5 class="modal-title m-0 fw-bold">Add Manual</h5>
+            <h5 class="modal-title m-0 fw-bold">Tambah Manual</h5>
             <button onclick="closeModals()" class="btn-close"></button>
         </div>
         <form action="{% url 'add_manual_visitor' queue.slug %}" method="POST" class="py-3">
             {% csrf_token %}
             <div class="mb-3">
-                <label class="form-label fw-bold">Visitor Name (Optional)</label>
+                <label class="form-label fw-bold">Nama Pelawat (Pilihan)</label>
                 <input type="text" name="custom_name" class="form-control form-control-lg bg-light" 
                        placeholder="{{ queue.input_label|default:'Enter name' }}">
             </div>
-            <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold">Add Ticket</button>
+            <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold">Masukkan Tiket</button>
         </form>
     </div>
 </div>

@@ -3,7 +3,7 @@
     <div class="modal-card">
         <a href="{% url 'acknowledge_invite' visitor.id %}" class="close-btn">&times;</a>
         <div class="confetti-icon">🎉</div>
-        <h3 class="modal-title">It’s your turn!</h3>
+        <h3 class="modal-title">Sekarang giliran anda!</h3>
         <p class="modal-desc">Sila ke kaunter sekarang</p>
         <a href="{% url 'acknowledge_invite' visitor.id %}" class="btn-primary-solid">Hadir</a>
     </div>
@@ -38,24 +38,24 @@
 
     <div class="ticket-content">
         {% if visitor.status == 'WAITING' %}
-            <div class="top-label">Your number is <strong>#{{ visitor.number|stringformat:"03d" }}</strong></div>
+            <div class="top-label">Nombor anda ialah <strong>#{{ visitor.number|stringformat:"03d" }}</strong></div>
             
             <div class="main-status">
-                You are <br>
+                Anda <br>
                 <span class="highlight-number">{{ position }}<span class="ordinal">{% if position == 1 %}st{% elif position == 2 %}nd{% elif position == 3 %}rd{% else %}th{% endif %}</span></span>
-                <br>in the queue
+                <br>dalam Q
             </div>
             
             <div class="sub-status">
                 {% if position == 1 %}
-                    — almost there!
+                    — hampir sampai!
                 {% else %}
-                    Waiting time is<br><strong>approx. {{ position|add:position|add:5 }} mins</strong>
+                    Masa menunggu adalah<br><strong>lebih kurang. {{ position|add:position|add:5 }} minit</strong>
                 {% endif %}
             </div>
         
         {% elif visitor.status == 'SERVING' %}
-            <div class="top-label">Your number is <strong>#{{ visitor.number|stringformat:"03d" }}</strong></div>
+            <div class="top-label">Nombor anda ialah <strong>#{{ visitor.number|stringformat:"03d" }}</strong></div>
             
             <div class="main-status" style="color: #22c55e;">
                 It is your<br>turn now!
@@ -66,7 +66,7 @@
             </div>
         
         {% else %}
-            <div class="main-status">Completed</div>
+            <div class="main-status">Selesai</div>
         {% endif %}
     </div>
 </div>
