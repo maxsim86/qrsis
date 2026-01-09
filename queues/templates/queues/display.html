@@ -3,151 +3,176 @@
 
 <style>
     /* --- GLOBAL & RESET --- */
-    body { 
-        background-color: #ffffff; 
-        margin: 0; padding: 0; 
-        overflow: hidden; 
+    html, body {
+        height: 100%; /* Pastikan body ambil 100% tinggi */
+        width: 100%;
+        margin: 0; padding: 0;
+        overflow: hidden; /* Halang scrollbar */
+        background-color: #ffffff;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
     /* CONTAINER UTAMA FLEXBOX */
-    .display-container { 
-        height: 100vh; 
+    .display-container {
+        height: 100vh; /* Tinggi penuh skrin */
         width: 100vw;
-        display: flex; 
-        flex-direction: column; 
-        align-items: center; 
+        display: flex;
+        flex-direction: column; /* Susun Atas ke Bawah */
+        justify-content: space-between; /* Header atas, Footer bawah */
     }
 
-    /* --- 1. HEADER (ATAS) --- */
+    /* --- 1. HEADER (Fixed Height) --- */
     .queue-header {
+        flex: 0 0 auto; /* Jangan membesar atau mengecil */
+        height: 12vh;
+        min-height: 80px; /* Had minimum supaya tak terlalu penyek */
         width: 100%;
-        height: 12vh; /* Tetapkan tinggi tetap */
         display: flex;
-        justify-content: center; /* Logo & Tajuk di tengah */
+        justify-content: center;
         align-items: center;
         background-color: #ffffff;
         border-bottom: 1px solid #e5e7eb;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         z-index: 10;
-        gap: 20px; /* Jarak antara logo dan teks */
+        gap: 20px;
     }
 
-    .queue-logo-img { height: 70px; width: auto; object-fit: contain; }
-
-    .queue-title { 
-        font-size: 2rem; 
-        font-weight: 800; 
-        color: #1f2937; 
+    .queue-logo-img { height: 60%; width: auto; object-fit: contain; }
+    
+    .queue-title {
+        font-size: clamp(1.5rem, 4vw, 2.5rem); /* Responsive font */
+        font-weight: 800;
+        color: #1f2937;
         text-transform: uppercase;
         letter-spacing: 1px;
     }
 
-    /* --- 2. ACTIVE SECTION (TENGAH - CENTERED) --- */
+    /* --- 2. ACTIVE SECTION (Flexible) --- */
+    /* Bahagian ini akan 'tolak' header ke atas dan footer ke bawah */
     .active-section {
-        flex: 1; /* PENTING: Ambil baki ruang skrin */
+        flex: 1 1 auto; /* Grow & Shrink */
         display: flex;
         flex-direction: column;
-        justify-content: center; /* Center Vertikal */
-        align-items: center;     /* Center Horizontal */
+        justify-content: center;
+        align-items: center;
         width: 100%;
-        background-color: #fff;
+        padding: 20px; /* Padding selamat */
+        box-sizing: border-box;
+        overflow: hidden; /* Elak content terkeluar */
     }
 
-    .label-current { 
-        font-size: 2.2rem; 
-        font-weight: 600; 
-        color: #6b7280; 
-        text-transform: uppercase; 
+    .label-current {
+        font-size: clamp(1.2rem, 3vh, 2.2rem);
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
         letter-spacing: 4px;
-        margin-bottom: 10px;
+        margin-bottom: 1vh;
     }
 
-    .big-number { 
-        font-size: 28rem; /* Saiz font sangat besar */
-        font-weight: 900; 
-        line-height: 1; 
-        color: #111827; 
-        letter-spacing: -10px; 
-        font-variant-numeric: tabular-nums; 
-        transition: transform 0.3s ease-out; 
+    .big-number {
+        /* Guna 'clamp' supaya nombor tak terlalu besar pada skrin kecik */
+        font-size: clamp(8rem, 25vh, 20rem); 
+        font-weight: 900;
+        line-height: 1;
+        color: #111827;
+        letter-spacing: -5px;
+        font-variant-numeric: tabular-nums;
+        transition: transform 0.3s ease-out;
     }
     
-    .pop-in { transform: scale(1.15); color: #2563eb; } /* Animasi bila nombor bertukar */
+    .pop-in { transform: scale(1.15); color: #2563eb; }
 
-    .visitor-name { 
-        font-size: 3.5rem; 
-        color: #2563eb; /* Biru */
-        font-weight: 700; 
-        margin-top: 10px;
+    .visitor-name {
+        font-size: clamp(1.5rem, 5vh, 3.5rem);
+        color: #2563eb;
+        font-weight: 700;
+        margin-top: 2vh;
         max-width: 90%;
         text-align: center;
-        white-space: nowrap; 
-        overflow: hidden; 
+        white-space: nowrap;
+        overflow: hidden;
         text-overflow: ellipsis;
     }
     
     .counter-display {
-        font-size: 3.5rem; 
-        color: #ef4444; /* Merah */
-        font-weight: 800; 
-        margin-top: 30px;
+        font-size: clamp(1.5rem, 4vh, 3.5rem);
+        color: #ef4444;
+        font-weight: 800;
+        margin-top: 3vh;
         text-transform: uppercase;
         background: #fef2f2;
         padding: 10px 40px;
         border-radius: 50px;
+        white-space: nowrap;
     }
 
-    /* --- 3. FOOTER (BAWAH) --- */
+    /* --- 3. FOOTER (Fixed Height) --- */
     .footer-section {
+        flex: 0 0 auto; /* Tetap di bawah */
+        height: 25vh;
+        min-height: 150px; /* Minimum tinggi */
         width: 100%;
-        height: 25vh; /* Tetapkan tinggi footer */
-        background-color: #f9fafb; /* Kelabu sangat cair */
+        background-color: #f9fafb;
         border-top: 1px solid #e5e7eb;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        position: relative; /* Untuk waiting info absolute */
     }
 
-    .next-label { 
-        font-size: 1.2rem; 
-        font-weight: 700; 
-        color: #9ca3af; 
-        margin-bottom: 20px; 
+    .next-label {
+        font-size: clamp(0.9rem, 2vh, 1.2rem);
+        font-weight: 700;
+        color: #9ca3af;
+        margin-bottom: 15px;
         text-transform: uppercase;
         letter-spacing: 2px;
     }
 
-    .next-list { 
-        display: flex; 
-        gap: 40px; 
-        justify-content: center; 
+    .next-list {
+        display: flex;
+        gap: 2vw; /* Jarak responsif */
+        justify-content: center;
+        width: 100%;
+        padding: 0 20px;
     }
 
     .next-card {
         background-color: #ffffff;
-        padding: 15px 50px;
-        border-radius: 20px;
-        min-width: 140px;
+        padding: 1vh 3vw;
+        border-radius: 15px;
+        min-width: 100px;
         text-align: center;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         border: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
-    .next-number { 
-        font-size: 3.5rem; 
-        font-weight: 800; 
-        color: #374151; 
+    .next-number {
+        font-size: clamp(2rem, 5vh, 3.5rem);
+        font-weight: 800;
+        color: #374151;
         line-height: 1;
     }
 
     .waiting-info {
         position: absolute;
-        bottom: 20px;
-        right: 30px;
-        font-size: 1rem;
+        bottom: 15px;
+        right: 20px;
+        font-size: 0.9rem;
         color: #9ca3af;
+    }
+
+    /* --- MEDIA QUERY (Untuk Skrin Sangat Kecil / Laptop) --- */
+    @media (max-height: 600px) {
+        .queue-header { height: 15vh; }
+        .footer-section { height: 20vh; min-height: 100px; }
+        .big-number { font-size: 6rem; } /* Kecilkan nombor */
+        .counter-display { margin-top: 10px; padding: 5px 20px; }
     }
 </style>
 
@@ -161,17 +186,17 @@
     </div>    
 
     <div id="active-container" class="active-section">
-        <div class="label-current">Giliran Sekarang</div>
+        <div class="label-current">Now Serving</div>
         
         <div id="number-text" class="big-number">000</div>
         
         <div id="name-text" class="visitor-name"></div>
 
-        <div id="counter-text" class="counter-display"></div>
+        <div id="counter-text" class="counter-display" style="display: none;"></div>
     </div>
 
     <div class="footer-section">
-        <div class="next-label">Nombor akan datang</div>
+        <div class="next-label">Coming Up Next</div>
         
         <div id="next-list-container" class="next-list">
             <div class="next-card"><span class="next-number">-</span></div>
@@ -195,25 +220,39 @@
 
     function playAudio() {
         const audio = document.getElementById('notify-sound');
-        if(audio) { audio.currentTime = 0; audio.play().catch(e => console.log("Audio fail:", e)); }
+        if(audio) { 
+            audio.currentTime = 0; 
+            audio.play().catch(e => console.log("Audio autoplay blocked by browser policy. User interaction needed.")); 
+        }
     }
 
     function playAnnouncement(ticket, counter) {
-        playAudio(); // Bunyi Chime
+        playAudio(); 
         
+        // Guna timeout sedikit supaya chime bunyi dulu baru cakap
         setTimeout(() => {
-            // Text to speech
-            let textToSay = `Number ${ticket}, please proceed to ${counter}`;
-            let msg = new SpeechSynthesisUtterance(textToSay);
-            msg.rate = 0.9; // Cakap perlahan sikit
-            msg.lang = 'en-US'; 
-            window.speechSynthesis.speak(msg);
-        }, 1200);
+            if ('speechSynthesis' in window) {
+                // Bersihkan queue cakap lama
+                window.speechSynthesis.cancel();
+
+                let textToSay = `Number ${ticket}`;
+                if(counter) {
+                    textToSay += `, please proceed to ${counter}`;
+                }
+
+                let msg = new SpeechSynthesisUtterance(textToSay);
+                msg.rate = 0.85; 
+                msg.pitch = 1;
+                msg.lang = 'en-US'; 
+                window.speechSynthesis.speak(msg);
+            }
+        }, 1000);
     }
 
     function updateNextList(visitorsArray) {
         const container = document.getElementById('next-list-container');
         container.innerHTML = ""; 
+        
         if (!visitorsArray || visitorsArray.length === 0) {
             container.innerHTML = `
                 <div class="next-card"><span class="next-number" style="color:#e5e7eb">-</span></div>
@@ -221,10 +260,18 @@
                 <div class="next-card"><span class="next-number" style="color:#e5e7eb">-</span></div>`;
             return;
         }
-        visitorsArray.forEach(num => {
-            const card = document.createElement('div'); card.className = 'next-card';
-            const span = document.createElement('span'); span.className = 'next-number'; span.innerText = num;
-            card.appendChild(span); container.appendChild(card);
+
+        // Paparkan maksimum 3 orang sahaja
+        visitorsArray.slice(0, 3).forEach(num => {
+            const card = document.createElement('div'); 
+            card.className = 'next-card';
+            
+            const span = document.createElement('span'); 
+            span.className = 'next-number'; 
+            span.innerText = num;
+            
+            card.appendChild(span); 
+            container.appendChild(card);
         });
     }
 
@@ -238,10 +285,14 @@
             const nameEl = document.getElementById('name-text');
             const counterEl = document.getElementById('counter-text');
 
-            numEl.innerText = payload.ticket || payload.number; 
+            // Format Nombor (Contoh: 005)
+            let rawNum = payload.ticket || payload.number;
+            // Pastikan format 3 digit jika perlu (optional)
+            // rawNum = String(rawNum).padStart(3, '0');
+
+            numEl.innerText = rawNum; 
             nameEl.innerText = payload.name ? payload.name : "";
             
-            // Format Kaunter
             if (payload.counter) {
                 counterEl.style.display = "block";
                 counterEl.innerText = payload.counter.toUpperCase();
@@ -249,17 +300,18 @@
                 counterEl.style.display = "none";
             }
 
-            // Animasi Pop
+            // Animasi
+            numEl.classList.remove('pop-in');
+            void numEl.offsetWidth; // Trigger reflow untuk restart animasi
             numEl.classList.add('pop-in');
-            setTimeout(() => numEl.classList.remove('pop-in'), 300);
             
-            playAnnouncement(payload.ticket || payload.number, payload.counter);
+            playAnnouncement(rawNum, payload.counter);
         }
 
         if (eventType === 'return_queue' || eventType === 'queue_reset') {
             document.getElementById('number-text').innerText = "000"; 
             document.getElementById('name-text').innerText = "";
-            document.getElementById('counter-text').innerText = "";
+            document.getElementById('counter-text').style.display = "none";
             if(eventType === 'queue_reset') updateNextList([]);
         }
         
@@ -268,6 +320,7 @@
     };
 
     socket.onclose = function(e) { 
+        console.log("Socket closed. Reconnecting...");
         setTimeout(function() { location.reload(); }, 3000); 
     };
 </script>
