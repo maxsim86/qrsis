@@ -4,180 +4,92 @@
 <style>
     /* --- GLOBAL & RESET --- */
     html, body {
-        height: 100%; /* Pastikan body ambil 100% tinggi */
-        width: 100%;
-        margin: 0; padding: 0;
-        overflow: hidden; /* Halang scrollbar */
-        background-color: #ffffff;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        height: 100%; width: 100%; margin: 0; padding: 0;
+        overflow: hidden; background-color: #ffffff;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
     /* CONTAINER UTAMA FLEXBOX */
     .display-container {
-        height: 100vh; /* Tinggi penuh skrin */
-        width: 100vw;
-        display: flex;
-        flex-direction: column; /* Susun Atas ke Bawah */
-        justify-content: space-between; /* Header atas, Footer bawah */
+        height: 100vh; width: 100vw;
+        display: flex; flex-direction: column; justify-content: space-between; 
     }
 
-    /* --- 1. HEADER (Fixed Height) --- */
+    /* --- 1. HEADER --- */
     .queue-header {
-        flex: 0 0 auto; /* Jangan membesar atau mengecil */
-        height: 12vh;
-        min-height: 80px; /* Had minimum supaya tak terlalu penyek */
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: #ffffff;
-        border-bottom: 1px solid #e5e7eb;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        z-index: 10;
-        gap: 20px;
+        flex: 0 0 auto; height: 12vh; min-height: 80px; width: 100%;
+        display: flex; justify-content: center; align-items: center;
+        background-color: #ffffff; border-bottom: 1px solid #e5e7eb;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); z-index: 10; gap: 20px;
     }
-
     .queue-logo-img { height: 60%; width: auto; object-fit: contain; }
-    
     .queue-title {
-        font-size: clamp(1.5rem, 4vw, 2.5rem); /* Responsive font */
-        font-weight: 800;
-        color: #1f2937;
-        text-transform: uppercase;
-        letter-spacing: 1px;
+        font-size: clamp(1.5rem, 4vw, 2.5rem); font-weight: 800;
+        color: #1f2937; text-transform: uppercase; letter-spacing: 1px;
     }
 
-    /* --- 2. ACTIVE SECTION (Flexible) --- */
-    /* Bahagian ini akan 'tolak' header ke atas dan footer ke bawah */
+    /* --- 2. ACTIVE SECTION --- */
     .active-section {
-        flex: 1 1 auto; /* Grow & Shrink */
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-        padding: 20px; /* Padding selamat */
-        box-sizing: border-box;
-        overflow: hidden; /* Elak content terkeluar */
+        flex: 1 1 auto; display: flex; flex-direction: column;
+        justify-content: center; align-items: center; width: 100%;
+        padding: 20px; box-sizing: border-box; overflow: hidden; 
     }
-
     .label-current {
-        font-size: clamp(1.2rem, 3vh, 2.2rem);
-        font-weight: 600;
-        color: #6b7280;
-        text-transform: uppercase;
-        letter-spacing: 4px;
-        margin-bottom: 1vh;
+        font-size: clamp(1.2rem, 3vh, 2.2rem); font-weight: 600;
+        color: #6b7280; text-transform: uppercase; letter-spacing: 4px; margin-bottom: 1vh;
     }
-
     .big-number {
-        /* Guna 'clamp' supaya nombor tak terlalu besar pada skrin kecik */
-        font-size: clamp(8rem, 25vh, 20rem); 
-        font-weight: 900;
-        line-height: 1;
-        color: #111827;
-        letter-spacing: -5px;
-        font-variant-numeric: tabular-nums;
+        font-size: clamp(8rem, 25vh, 20rem); font-weight: 900; line-height: 1;
+        color: #111827; letter-spacing: -5px; font-variant-numeric: tabular-nums;
         transition: transform 0.3s ease-out;
     }
-    
     .pop-in { transform: scale(1.15); color: #2563eb; }
-
     .visitor-name {
-        font-size: clamp(1.5rem, 5vh, 3.5rem);
-        color: #2563eb;
-        font-weight: 700;
-        margin-top: 2vh;
-        max-width: 90%;
-        text-align: center;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        font-size: clamp(1.5rem, 5vh, 3.5rem); color: #2563eb; font-weight: 700;
+        margin-top: 2vh; max-width: 90%; text-align: center;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    
     .counter-display {
-        font-size: clamp(1.5rem, 4vh, 3.5rem);
-        color: #ef4444;
-        font-weight: 800;
-        margin-top: 3vh;
-        text-transform: uppercase;
-        background: #fef2f2;
-        padding: 10px 40px;
-        border-radius: 50px;
-        white-space: nowrap;
+        font-size: clamp(1.5rem, 4vh, 3.5rem); color: #ef4444; font-weight: 800;
+        margin-top: 3vh; text-transform: uppercase; background: #fef2f2;
+        padding: 10px 40px; border-radius: 50px; white-space: nowrap;
     }
 
-    /* --- 3. FOOTER (Fixed Height) --- */
+    /* --- 3. FOOTER --- */
     .footer-section {
-        flex: 0 0 auto; /* Tetap di bawah */
-        height: 25vh;
-        min-height: 150px; /* Minimum tinggi */
-        width: 100%;
-        background-color: #f9fafb;
-        border-top: 1px solid #e5e7eb;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        position: relative; /* Untuk waiting info absolute */
+        flex: 0 0 auto; height: 25vh; min-height: 150px; width: 100%;
+        background-color: #f9fafb; border-top: 1px solid #e5e7eb;
+        display: flex; flex-direction: column; align-items: center;
+        justify-content: center; position: relative; 
     }
-
     .next-label {
-        font-size: clamp(0.9rem, 2vh, 1.2rem);
-        font-weight: 700;
-        color: #9ca3af;
-        margin-bottom: 15px;
-        text-transform: uppercase;
-        letter-spacing: 2px;
+        font-size: clamp(0.9rem, 2vh, 1.2rem); font-weight: 700; color: #9ca3af;
+        margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px;
     }
-
     .next-list {
-        display: flex;
-        gap: 2vw; /* Jarak responsif */
-        justify-content: center;
-        width: 100%;
-        padding: 0 20px;
+        display: flex; gap: 2vw; justify-content: center; width: 100%; padding: 0 20px;
     }
-
     .next-card {
-        background-color: #ffffff;
-        padding: 1vh 3vw;
-        border-radius: 15px;
-        min-width: 100px;
-        text-align: center;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        border: 1px solid #e5e7eb;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        background-color: #ffffff; padding: 1vh 3vw; border-radius: 15px;
+        min-width: 100px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center;
     }
-
     .next-number {
-        font-size: clamp(2rem, 5vh, 3.5rem);
-        font-weight: 800;
-        color: #374151;
-        line-height: 1;
+        font-size: clamp(2rem, 5vh, 3.5rem); font-weight: 800; color: #374151; line-height: 1;
     }
-
     .waiting-info {
-        position: absolute;
-        bottom: 15px;
-        right: 20px;
-        font-size: 0.9rem;
-        color: #9ca3af;
+        position: absolute; bottom: 15px; right: 20px; font-size: 0.9rem; color: #9ca3af;
     }
 
-    /* --- MEDIA QUERY (Untuk Skrin Sangat Kecil / Laptop) --- */
     @media (max-height: 600px) {
         .queue-header { height: 15vh; }
         .footer-section { height: 20vh; min-height: 100px; }
-        .big-number { font-size: 6rem; } /* Kecilkan nombor */
+        .big-number { font-size: 6rem; }
         .counter-display { margin-top: 10px; padding: 5px 20px; }
     }
 </style>
 
 <div class="display-container">
-    
     <div class="queue-header">
         {% if queue.logo %}
             <img src="{{ queue.logo.url }}" class="queue-logo-img" alt="Queue Logo">
@@ -187,66 +99,149 @@
 
     <div id="active-container" class="active-section">
         <div class="label-current">Now Serving</div>
-        
         <div id="number-text" class="big-number">000</div>
-        
         <div id="name-text" class="visitor-name"></div>
-
         <div id="counter-text" class="counter-display" style="display: none;"></div>
     </div>
 
     <div class="footer-section">
         <div class="next-label">Coming Up Next</div>
-        
         <div id="next-list-container" class="next-list">
             <div class="next-card"><span class="next-number">-</span></div>
             <div class="next-card"><span class="next-number">-</span></div>
             <div class="next-card"><span class="next-number">-</span></div>
         </div>
-
         <div class="waiting-info">
             Wait: <strong id="total-waiting" style="color:#000">0</strong>
         </div>
     </div>
-
 </div> 
 
 <audio id="notify-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
 
 <script>
+    // --- KONFIGURASI ---
     const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
     const queueSlug = "{{ queue.slug }}"; 
     const socket = new WebSocket(protocol + window.location.host + '/ws/queue/' + queueSlug + '/');
+    const AUDIO_BASE_PATH = "/static/audio/";
 
-    function playAudio() {
-        const audio = document.getElementById('notify-sound');
-        if(audio) { 
-            audio.currentTime = 0; 
-            audio.play().catch(e => console.log("Audio autoplay blocked by browser policy. User interaction needed.")); 
-        }
-    }
+    // --- AUDIO MANAGER CLASS ---
+    // Menguruskan Queue, Caching, dan Playback Logic
+    const AudioManager = {
+        queue: [],          // Senarai pelawat yang sedang beratur untuk diumumkan
+        isPlaying: false,   // Status adakah sedang bercakap
+        audioCache: {},     // Simpanan audio yang dah load (Cache)
 
-    function playAnnouncement(ticket, counter) {
-        playAudio(); 
-        
-        // Guna timeout sedikit supaya chime bunyi dulu baru cakap
-        setTimeout(() => {
-            if ('speechSynthesis' in window) {
-                // Bersihkan queue cakap lama
-                window.speechSynthesis.cancel();
+        // 1. Fungsi Utama: Masukkan pengumuman ke dalam Q
+        announce: function(ticket, counterName) {
+            this.queue.push({ ticket, counterName });
+            this.processQueue(); // Cuba proses jika idle
+        },
 
-                let textToSay = `Number ${ticket}`;
-                if(counter) {
-                    textToSay += `, please proceed to ${counter}`;
+        // 2. Proses Q: Ambil item seterusnya jika tiada apa2 sedang dimainkan
+        processQueue: function() {
+            if (this.isPlaying || this.queue.length === 0) return;
+
+            this.isPlaying = true;
+            const nextItem = this.queue.shift(); // Ambil item pertama
+            const playlist = this.generatePlaylist(nextItem.ticket, nextItem.counterName);
+            
+            this.playSequence(playlist);
+        },
+
+        // 3. Generate senarai fail MP3
+        generatePlaylist: function(ticket, counterName) {
+            let playlist = [];
+            playlist.push("chime.mp3");
+            playlist.push("intro.mp3");
+
+            // Pecahkan nombor (005 -> 0, 0, 5)
+            let cleanNumber = ticket.toString().replace(/[^0-9]/g, ''); 
+            cleanNumber.split('').forEach(num => {
+                playlist.push(num + ".mp3");
+            });
+
+            if (counterName) {
+                let counterNum = counterName.replace(/[^0-9]/g, '');
+                playlist.push("silake.mp3");
+                playlist.push("sebutan_kaunter.mp3");
+                playlist.push(counterNum + ".mp3");
+            } else {
+                playlist.push("kaunter.mp3");
+            }
+            return playlist;
+        },
+
+        // 4. Mainkan Playlist secara berurutan (Smooth Playback)
+        playSequence: async function(filenames) {
+            for (let filename of filenames) {
+                await this.playOneFile(filename);
+            }
+            // Selesai satu pengumuman, rehat sekejap, kemudian proses seterusnya
+            setTimeout(() => {
+                this.isPlaying = false;
+                this.processQueue();
+            }, 500); 
+        },
+
+        // 5. Mainkan satu fail (dengan Caching & Promise)
+        playOneFile: function(filename) {
+            return new Promise((resolve, reject) => {
+                let audioObj;
+
+                // A. Guna Cache jika ada (Laju, tak perlu download lagi)
+                if (this.audioCache[filename]) {
+                    audioObj = this.audioCache[filename];
+                    audioObj.currentTime = 0; // Reset ke awal
+                } else {
+                    // B. Jika tiada, create baru dan simpan dalam cache
+                    audioObj = new Audio(AUDIO_BASE_PATH + filename);
+                    audioObj.preload = 'auto'; // Preload agresif
+                    this.audioCache[filename] = audioObj;
                 }
 
-                let msg = new SpeechSynthesisUtterance(textToSay);
-                msg.rate = 0.85; 
-                msg.pitch = 1;
-                msg.lang = 'en-US'; 
-                window.speechSynthesis.speak(msg);
-            }
-        }, 1000);
+                // Handle Events
+                audioObj.onended = function() { resolve(); };
+                audioObj.onerror = function() { 
+                    console.warn("Audio missing:", filename); 
+                    resolve(); // Skip error file supaya tak stuck
+                };
+
+                // Cuba mainkan
+                let playPromise = audioObj.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.log("Browser block audio (Autoplay Policy):", error);
+                        resolve(); // Skip jika browser block
+                    });
+                }
+            });
+        }
+    };
+
+    // --- FUNGSI UPDATE VISUAL ---
+    function updateVisuals(payload) {
+        const numEl = document.getElementById('number-text');
+        const nameEl = document.getElementById('name-text');
+        const counterEl = document.getElementById('counter-text');
+
+        let rawNum = payload.ticket || payload.number;
+
+        numEl.innerText = rawNum; 
+        nameEl.innerText = payload.name ? payload.name : "";
+        
+        if (payload.counter) {
+            counterEl.style.display = "block";
+            counterEl.innerText = payload.counter.toUpperCase();
+        } else {
+            counterEl.style.display = "none";
+        }
+
+        // Animasi Pop-in (Restart animasi)
+        numEl.classList.remove('pop-in');
+        void numEl.offsetWidth; // Trigger reflow
+        numEl.classList.add('pop-in');
     }
 
     function updateNextList(visitorsArray) {
@@ -261,51 +256,26 @@
             return;
         }
 
-        // Paparkan maksimum 3 orang sahaja
         visitorsArray.slice(0, 3).forEach(num => {
-            const card = document.createElement('div'); 
-            card.className = 'next-card';
-            
-            const span = document.createElement('span'); 
-            span.className = 'next-number'; 
+            const card = document.createElement('div'); card.className = 'next-card';
+            const span = document.createElement('span'); span.className = 'next-number'; 
             span.innerText = num;
-            
-            card.appendChild(span); 
-            container.appendChild(card);
+            card.appendChild(span); container.appendChild(card);
         });
     }
 
+    // --- WEBSOCKET HANDLERS ---
     socket.onmessage = function(e) {
         const data = JSON.parse(e.data);
         const eventType = data.message;
         const payload = data.data;
 
         if (eventType === 'invite_next') {
-            const numEl = document.getElementById('number-text');
-            const nameEl = document.getElementById('name-text');
-            const counterEl = document.getElementById('counter-text');
-
-            // Format Nombor (Contoh: 005)
-            let rawNum = payload.ticket || payload.number;
-            // Pastikan format 3 digit jika perlu (optional)
-            // rawNum = String(rawNum).padStart(3, '0');
-
-            numEl.innerText = rawNum; 
-            nameEl.innerText = payload.name ? payload.name : "";
+            // 1. Update Skrin Serta-merta
+            updateVisuals(payload);
             
-            if (payload.counter) {
-                counterEl.style.display = "block";
-                counterEl.innerText = payload.counter.toUpperCase();
-            } else {
-                counterEl.style.display = "none";
-            }
-
-            // Animasi
-            numEl.classList.remove('pop-in');
-            void numEl.offsetWidth; // Trigger reflow untuk restart animasi
-            numEl.classList.add('pop-in');
-            
-            playAnnouncement(rawNum, payload.counter);
+            // 2. Masukkan Audio dalam Queue (Takkan bertindih)
+            AudioManager.announce(payload.ticket || payload.number, payload.counter);
         }
 
         if (eventType === 'return_queue' || eventType === 'queue_reset') {
@@ -323,5 +293,17 @@
         console.log("Socket closed. Reconnecting...");
         setTimeout(function() { location.reload(); }, 3000); 
     };
+
+    // Pre-load audio kritikal bila page load
+    window.addEventListener('load', function() {
+        const commonFiles = ["chime.mp3", "intro.mp3", "kaunter.mp3", "silake.mp3", "sebutan_kaunter.mp3"];
+        // Senyap-senyap load file ini ke dalam cache
+        commonFiles.forEach(f => {
+            let a = new Audio(AUDIO_BASE_PATH + f);
+            a.preload = 'auto';
+            AudioManager.audioCache[f] = a;
+        });
+    });
+
 </script>
 {% endblock %}
