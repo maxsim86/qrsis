@@ -1,0 +1,41 @@
+<div class="success-overlay d-flex flex-column justify-content-center align-items-center w-100 h-100">
+    <div class="ticket-card animate-pop">
+        <div style="font-size: 5rem;">🎉</div>
+        <h2 class="fw-bold mt-3 mb-0">Pendaftaran Berjaya!</h2>
+        
+        <div class="ticket-info mt-4">Nombor giliran anda</div>
+        <div class="ticket-number">#{{ new_ticket.number|stringformat:"03d" }}</div>
+        <div class="ticket-info">Sila tunggu giliran anda</div>
+
+        <div class="w-100 bg-light rounded-pill mt-4 overflow-hidden">
+            <div id="progress-bar" class="auto-close-bar" style="width: 100%; height: 8px; background: #3b82f6; transition: width 5s linear;"></div>
+        </div>
+        
+        <button 
+            hx-get="." 
+            hx-target="#kiosk-container" 
+            class="btn btn-light mt-4 rounded-pill px-4 text-muted">
+            Skrin akan tutup dalam 5 saat...
+        </button>
+    </div>
+</div>
+
+<script>
+    // Animasi Progress Bar
+    setTimeout(() => {
+        const bar = document.getElementById('progress-bar');
+        if(bar) bar.style.width = "0%";
+    }, 100);
+
+    // Auto Reset selepas 5 saat guna HTMX
+    setTimeout(function() {
+        // Cari butang hx-get di atas dan klik secara manual
+        const resetBtn = document.querySelector('button[hx-get="."]');
+        if(resetBtn) htmx.trigger(resetBtn, 'click');
+    }, 5000);
+</script>
+
+<style>
+    .animate-pop { animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    @keyframes popUp { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+</style>

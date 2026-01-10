@@ -1,18 +1,18 @@
 {% extends 'base.html' %}
 {% block content %}
 
+
 <style>
-    /* --- MOBILE APP CSS (Kekal Sama) --- */
+    /* --- CSS (Sama seperti design asal) --- */
     body { background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; min-height: 100vh; }
     .mobile-app-container { max-width: 480px; margin: 0 auto; min-height: 100vh; background-color: #ffffff; box-shadow: 0 0 30px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between; padding: 20px; box-sizing: border-box; }
     .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .queue-name { font-size: 1.1rem; font-weight: 700; color: #1f2937; }
     
-    /* Settings Button */
     .btn-settings-app { width: 48px; height: 48px; background-color: #e0f2fe; color: #0284c7; border: none; border-radius: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.1s; }
     .btn-settings-app:active { transform: scale(0.95); }
 
-    /* Status Card */
+    /* Placeholder Status Card */
     .status-card { background-color: #1f2937; color: white; border-radius: 25px; padding: 40px 20px; text-align: center; box-shadow: 0 15px 30px rgba(0,0,0,0.2); margin-bottom: auto; margin-top: 20px; }
     .status-label { text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1.5px; opacity: 0.7; font-weight: 600; }
     .status-number { font-size: 7rem; font-weight: 800; line-height: 1.1; margin: 10px 0; letter-spacing: -3px; }
@@ -28,35 +28,28 @@
     .btn-danger-app { background-color: #fee2e2; color: #ef4444; border: 1px solid #fecaca; }
     .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-    /* --- MODAL CSS --- */
+    /* Modal CSS */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; display: none; align-items: flex-end; justify-content: center; }
     .modal-sheet { background: white; width: 100%; max-width: 480px; border-top-left-radius: 25px; border-top-right-radius: 25px; padding: 25px; animation: slideUp 0.3s ease-out; max-height: 85vh; overflow-y: auto; display: flex; flex-direction: column; }
     @keyframes slideUp { from {transform: translateY(100%);} to {transform: translateY(0);} }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .modal-title { font-size: 1.4rem; font-weight: 800; color: #212529; }
 
-    /* VISITOR GRID & SELECTION */
+    /* Visitor Grid */
     .visitor-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding-bottom: 20px; }
-    .btn-num { 
-        background: #f8f9fa; border: 2px solid #e9ecef; padding: 15px 0; border-radius: 12px; 
-        font-weight: 700; color: #1f2937; cursor: pointer; text-align: center;
-    }
-    /* State bila dipilih */
-    .btn-num.selected { 
-        background-color: #e0f2fe; border-color: #3b82f6; color: #0284c7; 
-        box-shadow: 0 0 0 2px #3b82f6; 
-    }
-
-    /* ACTION BAR (Muncul bila pilih nombor) */
-    .selection-actions {
-        display: none; /* Hidden by default */
-        flex-direction: column; gap: 10px;
-        margin-top: 10px; padding-top: 20px; border-top: 1px solid #eee;
-    }
+    .btn-num { background: #f8f9fa; border: 2px solid #e9ecef; padding: 15px 0; border-radius: 12px; font-weight: 700; color: #1f2937; cursor: pointer; text-align: center; }
+    .btn-num.selected { background-color: #e0f2fe; border-color: #3b82f6; color: #0284c7; box-shadow: 0 0 0 2px #3b82f6; }
+    
+    .selection-actions { display: none; flex-direction: column; gap: 10px; margin-top: 10px; padding-top: 20px; border-top: 1px solid #eee; }
     .selection-info { text-align: center; font-size: 0.9rem; color: #6b7280; margin-bottom: 5px; }
-    .selection-info strong { color: #000; font-size: 1.1rem; }
-
+    
+    /* HTMX Indicator */
+    .htmx-indicator { display:none; }
+    .htmx-request .htmx-indicator { display:inline; }
 </style>
+
+
+
 
 <div class="mobile-app-container">
     
@@ -67,47 +60,20 @@
         </button>
     </div>
 
-    <div class="status-card">
-        <div class="status-label">Pelawat terakhir yang dipanggil</div>
-        <div class="status-number" id="display-number">
-            {% if current_serving %}
-                {{ current_serving.number|stringformat:"03d" }}
-            {% else %}
-                --
-            {% endif %}
-        </div>
-        <div class="status-sub">
-            Menunggu: <strong id="waiting-count-display">{{ waiting_count }}</strong>
-        </div>
+    <div id="htmx-controller"
+         hx-get="{% url 'get_admin_updates' queue.slug %}"
+         hx-trigger="queue_update from:body, load">
     </div>
 
-    <div class="controls-area">
-        {% if next_visitor %}
-            <a href="{% url 'call_next' queue.slug %}" class="btn-app btn-primary-app" id="btn-call-next">
-                Pelawat Seterusnya
-            </a>
-        {% else %}
-            <a href="#" class="btn-app btn-primary-app disabled" id="btn-call-next" style="background-color: #d1d5db; box-shadow: none; pointer-events: none;">
-                Tiada Pelawat
-            </a>
-        {% endif %}
+    <div id="status-card-area" class="status-card">
+        <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3 text-white-50 small">Syncing Data...</p>
+    </div>
 
-        <div class="action-grid">
-            <button onclick="openNumberModal()" class="btn-app btn-secondary-app">Senarai</button>
-            <button onclick="openAddModal()" class="btn-app btn-secondary-app">+ Tambah</button>
-        </div>
-        
-        {% if current_serving %}
-        <button onclick="showConfirmModal('{{ current_serving.id }}', '{{ current_serving.number|stringformat:'03d' }}')" class="btn-app btn-secondary-app text-danger border-danger">
-            Return to Queue
-        </button>
-        {% endif %}
-        
-        <div class="text-center mt-2">
-            <button onclick="openRemoveModal()" style="background:none; border:none; color:#9ca3af; font-size:0.85rem; cursor:pointer;">
-                Clear entire queue
-            </button>
-        </div>
+    <div id="controls-area" class="controls-area text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
     </div>
 
 </div>
@@ -119,34 +85,24 @@
             <button onclick="closeModals()" class="btn-close"></button>
         </div>
         
+        <div class="px-2 pb-2">
+            <input type="text" 
+                   class="form-control bg-light border-0" 
+                   placeholder="Cari nombor tiket..." 
+                   onkeyup="filterVisitors(this.value)">
+        </div>
+
         <div class="visitor-grid pt-3" id="visitor-list-grid">
-            {% for v in all_waiting_visitors %}
-                <button onclick="selectVisitor(this, '{{ v.id }}', '{{ v.number|stringformat:"03d" }}')" class="btn-num">
-                    {{ v.number|stringformat:"03d" }}
-                </button>
-            {% empty %}
-                <div class="text-center text-muted w-100 py-4" style="grid-column: span 4;">
-                    Q kosong
-                </div>
-            {% endfor %}
+            <div class="text-center w-100 text-muted">Loading list...</div>
         </div>
 
         <div id="selection-actions" class="selection-actions">
-            <div class="selection-info">
-                Selected: <strong id="selected-number-display">--</strong>
-            </div>
-            
+            <div class="selection-info">Selected: <strong id="selected-number-display">--</strong></div>
             <div class="d-flex gap-2 flex-column">
-                <a href="#" id="btn-call-selected" class="btn-app btn-primary-app py-3">
-                    Call Visitor
-                </a>
-                
-                <a href="#" id="btn-remove-selected" class="btn-app btn-danger-app py-3 fw-bold">
-                    Remove from queue
-                </a>
+                <a href="#" id="btn-call-selected" class="btn-app btn-primary-app py-3">Call Visitor</a>
+                <a href="#" id="btn-remove-selected" class="btn-app btn-danger-app py-3 fw-bold">Remove from queue</a>
             </div>
         </div>
-
     </div>
 </div>
 
@@ -156,7 +112,7 @@
             <h5 class="modal-title m-0 fw-bold">Tambah Manual</h5>
             <button onclick="closeModals()" class="btn-close"></button>
         </div>
-        <form action="{% url 'add_manual_visitor' queue.slug %}" method="POST" class="py-3">
+        <form hx-post="{% url 'add_manual_visitor' queue.slug %}" hx-swap="none" onsubmit="closeModals()" class="py-3">
             {% csrf_token %}
             <div class="mb-3">
                 <label class="form-label fw-bold">Nama Pelawat (Pilihan)</label>
@@ -170,14 +126,16 @@
 
 <div id="settingsModal" class="modal-overlay">
     <div class="modal-sheet">
-        <form action="{% url 'update_queue_settings' queue.slug %}" method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
+        <div class="modal-header border-bottom pb-3 mb-3">
+            <h5 class="modal-title m-0 fw-bold">Settings</h5>
+            <button type="button" onclick="closeModals()" class="btn-close"></button>
+        </div>
+        
+        {% include 'queues/partials/settings_form.html' %}
+        
+    </div>
+</div>
             
-            <div class="modal-header border-bottom pb-3 mb-3">
-                <h5 class="modal-title m-0 fw-bold">Settings</h5>
-                <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3">Save</button>
-            </div>
-
             <div class="py-2">
                 <div class="mb-3">
                     <label class="form-label fw-bold small text-muted">QUEUE NAME</label>
@@ -197,21 +155,6 @@
                             <input class="form-check-input fs-5" type="checkbox" name="allow_join" {% if queue.allow_join %}checked{% endif %}>
                         </div>
                     </div>
-                </div>
-                <div class="card bg-light border-0 mb-3">
-                    <div class="card-body d-flex justify-content-between align-items-center py-3">
-                        <span class="fw-bold text-dark">Ask Visitor Name</span>
-                        <div class="form-check form-switch m-0">
-                            <input class="form-check-input fs-5" type="checkbox" id="askInputToggle" name="ask_input" {% if queue.ask_input %}checked{% endif %} onchange="toggleInputPrompt()">
-                        </div>
-                    </div>
-                </div>
-                <div id="inputPromptContainer" class="mb-3 ps-2" style="display: {% if queue.ask_input %}block{% else %}none{% endif %};">
-                    <input type="text" name="input_label" class="form-control" value="{{ queue.input_label|default:'Enter your name' }}">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-bold small text-muted">LOGO</label>
-                    <input type="file" name="logo" class="form-control">
                 </div>
                 <div class="mb-5"></div>
             </div>
@@ -250,46 +193,26 @@
     // --- UI LOGIC ---
     function closeModals() {
         document.querySelectorAll('.modal-overlay').forEach(el => el.style.display = 'none');
-        // Reset selection bila modal tutup
         resetSelection();
     }
     function openNumberModal() { document.getElementById('numberModal').style.display = 'flex'; }
     function openAddModal() { document.getElementById('addModal').style.display = 'flex'; }
-    function openSettingsModal() { 
-        document.getElementById('settingsModal').style.display = 'flex'; 
-        toggleInputPrompt();
-    }
-    function openRemoveModal() { 
-        closeModals(); 
-        document.getElementById('removeModal').style.display = 'flex'; 
-    }
+    function openSettingsModal() { document.getElementById('settingsModal').style.display = 'flex'; }
+    function openRemoveModal() { closeModals(); document.getElementById('removeModal').style.display = 'flex'; }
     
     function showConfirmModal(id, num) {
         document.getElementById('returnNum').innerText = num;
-        document.getElementById('confirmYesBtn').href = "/visitor/" + id + "/return/";
+        document.getElementById('confirmYesBtn').href = "/q/visitor/" + id + "/return/";
         document.getElementById('confirmModal').style.display = 'flex';
     }
 
-    // --- LOGIK PEMILIHAN NOMBOR (PENTING) ---
     function selectVisitor(btnElement, id, number) {
-        // 1. Buang class 'selected' dari semua butang
         document.querySelectorAll('.btn-num').forEach(el => el.classList.remove('selected'));
-        
-        // 2. Tambah class 'selected' ke butang yang ditekan
         btnElement.classList.add('selected');
-        
-        // 3. Tunjuk panel action di bawah
-        const actionPanel = document.getElementById('selection-actions');
-        actionPanel.style.display = 'flex';
-        
-        // 4. Update info dan link butang
+        document.getElementById('selection-actions').style.display = 'flex';
         document.getElementById('selected-number-display').innerText = number;
-        
-        // Set Link untuk CALL
-        document.getElementById('btn-call-selected').href = "/visitor/" + id + "/invite/";
-        
-        // Set Link untuk REMOVE
-        document.getElementById('btn-remove-selected').href = "/visitor/" + id + "/remove/";
+        document.getElementById('btn-call-selected').href = "/q/visitor/" + id + "/invite/";
+        document.getElementById('btn-remove-selected').href = "/q/visitor/" + id + "/remove/";
     }
 
     function resetSelection() {
@@ -297,14 +220,22 @@
         document.getElementById('selection-actions').style.display = 'none';
     }
 
-    function toggleInputPrompt() {
-        const toggle = document.getElementById('askInputToggle');
-        const container = document.getElementById('inputPromptContainer');
-        if(toggle && container) container.style.display = toggle.checked ? 'block' : 'none';
-    }
-
     function copyToClipboard(text) {
         navigator.clipboard.writeText(text).then(() => { alert("Link copied!"); });
+    }
+
+    // Fungsi Filter Pelawat Manual (Tanpa Request Server)
+    function filterVisitors(query) {
+        const btns = document.querySelectorAll('.btn-num');
+        const lowerQuery = query.toLowerCase();
+        btns.forEach(btn => {
+            const num = btn.innerText.toLowerCase();
+            if(num.includes(lowerQuery)) {
+                btn.style.display = 'block';
+            } else {
+                btn.style.display = 'none';
+            }
+        });
     }
 
     // --- WEBSOCKET ---
@@ -313,48 +244,13 @@
     const socket = new WebSocket(protocol + window.location.host + '/ws/queue/' + queueSlug + '/');
 
     socket.onmessage = function(e) {
-        const data = JSON.parse(e.data);
-        const eventType = data.message;
-        const payload = data.data;
+        // Trigger HTMX refresh
+        document.body.dispatchEvent(new Event('queue_update'));
+    };
 
-        if (payload.waiting_count !== undefined) {
-            document.getElementById('waiting-count-display').innerText = payload.waiting_count;
-            const btnNext = document.getElementById('btn-call-next');
-            if (payload.waiting_count > 0) {
-                btnNext.classList.remove('disabled');
-                btnNext.style.backgroundColor = ""; btnNext.style.boxShadow = ""; btnNext.style.pointerEvents = "auto";
-                btnNext.innerText = "Call Next Visitor";
-                btnNext.href = "{% url 'call_next' queue.slug %}";
-            } else {
-                btnNext.classList.add('disabled');
-                btnNext.style.backgroundColor = "#d1d5db"; btnNext.style.boxShadow = "none"; btnNext.style.pointerEvents = "none";
-                btnNext.innerText = "No Visitors";
-                btnNext.removeAttribute('href');
-            }
-        }
-
-        if (eventType === 'invite_next') {
-            document.getElementById('display-number').innerText = payload.number;
-            setTimeout(() => location.reload(), 500);
-        }
-
-        if (eventType === 'new_visitor') {
-            const grid = document.getElementById('visitor-list-grid');
-            if(grid.innerText.includes("Queue is empty")) grid.innerHTML = "";
-            
-            // Create button element dynamically
-            const btn = document.createElement('button');
-            btn.className = "btn-num";
-            btn.innerText = payload.number;
-            btn.onclick = function() { selectVisitor(this, payload.visitor_id, payload.number) };
-            
-            grid.appendChild(btn);
-        }
-        
-        // Refresh jika ada remove/reset
-        if (eventType === 'queue_reset' || eventType === 'visitor_quit' || eventType === 'return_queue') {
-            location.reload();
-        }
+    socket.onclose = function(e) { 
+        console.log("Socket putus. Reconnecting...");
+        setTimeout(() => location.reload(), 3000); 
     };
 </script>
 

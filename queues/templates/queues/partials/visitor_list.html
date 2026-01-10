@@ -1,0 +1,20 @@
+<div class="visitor-grid pt-3" id="visitor-list-grid" hx-swap-oob="true">
+    
+    {% for v in all_waiting_visitors %}
+        <button 
+            type="button"
+            onclick="selectVisitor(this, '{{ v.id }}', '{{ v.number|stringformat:"03d" }}')" 
+            class="btn-num">
+            
+            {{ v.number|stringformat:"03d" }}
+            
+        </button>
+    
+    {% empty %}
+        <div class="text-center text-muted w-100 py-4" style="grid-column: span 4;">
+            <i class="mb-2" style="opacity: 0.5;">(Tiada Pelawat)</i><br>
+            <span class="small">Queue is empty</span>
+        </div>
+    {% endfor %}
+
+</div>

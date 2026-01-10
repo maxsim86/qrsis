@@ -1,0 +1,50 @@
+<div class="status-wrapper">
+    <div class="blob-bg"></div>
+    
+    <div class="circle-card {% if visitor.status == 'SERVING' %}serving{% endif %}">
+        
+        {% if visitor.status == 'WAITING' %}
+            <div class="text-top">Your number is <strong>#{{ visitor.number|stringformat:"03d" }}</strong></div>
+            
+            <div class="text-main">
+                {% if position == 1 %}
+                    You are 1st
+                {% elif position == 2 %}
+                    You are 2nd
+                {% elif position == 3 %}
+                    You are 3rd
+                {% else %}
+                    You are {{ position }}th
+                {% endif %}
+                <br>in the queue
+            </div>
+            
+            <div class="text-sub">
+                <span class="divider-line"></span>
+                {% if position <= 2 %}
+                    almost there!
+                {% else %}
+                    wait a bit more
+                {% endif %}
+            </div>
+
+        {% elif visitor.status == 'SERVING' %}
+            <div class="text-top">Number <strong>#{{ visitor.number|stringformat:"03d" }}</strong></div>
+            <div class="text-main" style="color: #22c55e;">It's your<br>turn now!</div>
+            <div class="text-sub">
+                <span class="divider-line"></span>
+                you are invited!
+            </div>
+
+        {% else %}
+            <div class="text-main">Done</div>
+            <div class="text-sub">Thanks for visiting</div>
+        {% endif %}
+        
+    </div>
+</div>
+
+{% if visitor.status == 'WAITING' %}
+    <button class="btn-action btn-blue" onclick="alert('Notifications enabled!')">Enable notifications</button>
+    <a href="{% url 'visitor_quit' visitor.id %}" class="btn-action btn-gray">Quit the queue</a>
+{% endif %}

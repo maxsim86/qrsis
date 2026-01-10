@@ -1,0 +1,57 @@
+<div id="status-card-area" class="status-card" hx-swap-oob="true">
+    <div class="status-label">Pelawat terakhir yang dipanggil</div>
+    <div class="status-number" id="display-number">
+        {% if current_serving %}
+            {{ current_serving.number|stringformat:"03d" }}
+        {% else %}
+            --
+        {% endif %}
+    </div>
+    <div class="status-sub">
+        Menunggu: <strong>{{ waiting_count }}</strong>
+    </div>
+</div>
+
+<div id="controls-area" class="controls-area" hx-swap-oob="true">
+    {% if next_visitor %}
+        <button 
+    hx-get="{% url 'call_next' queue.slug %}" 
+    hx-swap="none"
+    class="btn-app btn-primary-app">
+    Pelawat Seterusnya
+</button>
+    {% else %}
+        <a href="#" class="btn-app btn-primary-app disabled" style="background-color: #d1d5db; box-shadow: none; pointer-events: none;">
+            Tiada Pelawat
+        </a>
+    {% endif %}
+
+    <div class="action-grid">
+        <button onclick="openNumberModal()" class="btn-app btn-secondary-app">Senarai</button>
+        <button onclick="openAddModal()" class="btn-app btn-secondary-app">+ Tambah</button>
+    </div>
+    
+    {% if current_serving %}
+    <button onclick="showConfirmModal('{{ current_serving.id }}', '{{ current_serving.number|stringformat:'03d' }}')" class="btn-app btn-secondary-app text-danger border-danger">
+        Return to Queue
+    </button>
+    {% endif %}
+    
+    <div class="text-center mt-2">
+        <button onclick="openRemoveModal()" style="background:none; border:none; color:#9ca3af; font-size:0.85rem; cursor:pointer;">
+            Clear entire queue
+        </button>
+    </div>
+</div>
+
+<div class="visitor-grid pt-3" id="visitor-list-grid" hx-swap-oob="true">
+    {% for v in all_waiting_visitors %}
+        <button onclick="selectVisitor(this, '{{ v.id }}', '{{ v.number|stringformat:"03d" }}')" class="btn-num">
+            {{ v.number|stringformat:"03d" }}
+        </button>
+    {% empty %}
+        <div class="text-center text-muted w-100 py-4" style="grid-column: span 4;">
+            Q kosong
+        </div>
+    {% endfor %}
+</div>

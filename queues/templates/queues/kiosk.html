@@ -1,235 +1,64 @@
 {% extends 'base.html' %}
 {% block content %}
 
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
 <style>
-    /* --- KIOSK CSS --- */
+    /* --- KIOSK CSS Global --- */
     body { 
         background-color: #f3f4f6; 
-        overflow: hidden; /* Halang scroll */
+        overflow: hidden; 
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-    
     .kiosk-container {
-        height: 100vh;
-        width: 100vw;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        position: relative;
+        height: 100vh; width: 100vw; position: relative;
     }
-
-    /* --- SCREEN 1: ATTRACT SCREEN (Touch to Start) --- */
+    
+    /* Style komponen Form & Attract */
     .attract-screen {
-        text-align: center;
-        animation: pulse 2s infinite;
-        cursor: pointer;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        background: white;
-        z-index: 10;
+        text-align: center; cursor: pointer;
+        width: 100%; height: 100%;
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
+        background: white; animation: pulse 2s infinite;
     }
-    .attract-title { font-size: 3rem; font-weight: 800; color: #111827; margin-bottom: 10px; padding: 0 20px; }
-    .attract-sub { font-size: 1.5rem; color: #6b7280; margin-top: 10px; }
+    .attract-title { font-size: 3rem; font-weight: 800; color: #111827; margin-bottom: 10px; }
     .touch-icon { font-size: 6rem; margin-bottom: 20px; }
-    
-    /* Logo Styling */
-    .kiosk-logo { 
-        max-height: 150px; /* Besar sikit supaya jelas di iPad */
-        max-width: 80%;
-        object-fit: contain;
-        margin-bottom: 30px;
-    }
+    .kiosk-logo { max-height: 150px; margin-bottom: 30px; }
 
-    /* --- SCREEN 2: INPUT FORM --- */
     .form-screen {
-        background: white;
-        padding: 50px;
-        border-radius: 30px;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-        width: 85%;
-        max-width: 600px;
+        background: white; padding: 50px; border-radius: 30px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.1); width: 85%; max-width: 600px;
         text-align: center;
-        display: none; /* Hidden by default */
-        z-index: 20;
     }
-    
     .form-title { font-size: 2.2rem; font-weight: 700; margin-bottom: 30px; color: #1f2937; }
     
     .kiosk-input {
-        width: 100%;
-        padding: 20px;
-        font-size: 1.8rem; /* Input besar utk jari */
-        border: 2px solid #e5e7eb;
-        border-radius: 15px;
-        margin-bottom: 30px;
-        text-align: center;
-        outline: none;
-        background-color: #f9fafb;
+        width: 100%; padding: 20px; font-size: 1.8rem;
+        border: 2px solid #e5e7eb; border-radius: 15px; margin-bottom: 30px;
+        text-align: center; outline: none; background-color: #f9fafb;
     }
     .kiosk-input:focus { border-color: #3b82f6; background-color: #fff; }
     
     .btn-kiosk {
-        width: 100%;
-        padding: 25px;
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: white;
-        background-color: #3b82f6;
-        border: none;
-        border-radius: 15px;
-        cursor: pointer;
-        transition: transform 0.1s;
+        width: 100%; padding: 25px; font-size: 1.8rem; font-weight: 700;
+        color: white; background-color: #3b82f6; border: none; border-radius: 15px;
     }
-    .btn-kiosk:active { transform: scale(0.98); }
-    
     .btn-cancel {
-        margin-top: 25px;
-        background: none;
-        border: none;
-        color: #9ca3af;
-        font-size: 1.3rem;
-        cursor: pointer;
-        padding: 10px;
+        margin-top: 25px; background: none; border: none; color: #9ca3af; font-size: 1.3rem;
     }
-
-    /* --- SCREEN 3: SUCCESS (TICKET) --- */
-    .success-overlay {
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.8);
-        z-index: 999;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
+    
     .ticket-card {
-        background: white;
-        width: 500px;
-        padding: 50px;
-        border-radius: 30px;
-        text-align: center;
-        animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        background: white; width: 500px; padding: 50px;
+        border-radius: 30px; text-align: center;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.2);
     }
-    .ticket-number { font-size: 7rem; font-weight: 900; color: #000; line-height: 1; margin: 20px 0; letter-spacing: -3px; }
-    .ticket-info { font-size: 1.5rem; color: #6b7280; }
-    .auto-close-bar { 
-        height: 8px; background: #3b82f6; width: 100%; margin-top: 30px; border-radius: 10px;
-        transition: width 5s linear; /* 5 saat countdown */
-    }
+    .ticket-number { font-size: 7rem; font-weight: 900; line-height: 1; margin: 20px 0; letter-spacing: -3px; }
 
     @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
-    @keyframes popUp { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
 </style>
 
-<div class="kiosk-container">
-
-    <div id="attract" class="attract-screen" onclick="startKiosk()">
-        
-        {% if queue.logo %}
-            <img src="{{ queue.logo.url }}" alt="Logo" class="kiosk-logo">
-        {% else %}
-            <div class="touch-icon">👆</div> 
-        {% endif %}
-        
-        <div class="attract-title">Welcome to {{ queue.name }}</div>
-        <div class="attract-sub">Touch anywhere to get a ticket</div>
-    </div>
-
-    
-<div id="form-box" class="form-screen">
-        
-        <div class="form-title">
-            {% if queue.ask_input %}
-                Enter Your Details
-            {% else %}
-                Get Your Ticket
-            {% endif %}
-        </div>
-        
-        <form method="POST">
-            {% csrf_token %}
-            
-            {% if queue.ask_input %}
-                <input type="text" name="name" class="kiosk-input" 
-                       placeholder="{{ queue.input_label|default:'Enter your name' }}" 
-                       required autocomplete="off" id="nameInput">
-            {% else %}
-                <div style="margin-bottom: 30px; color: #6b7280; font-size: 1.2rem;">
-                    Please press the button below to get your queue number.
-                </div>
-            {% endif %}
-
-            <button type="submit" class="btn-kiosk">Print Ticket</button>
-            <button type="button" class="btn-cancel" onclick="resetKiosk()">Cancel</button>
-        </form>
-    </div>
-
-
-
-    {% if success_mode and new_ticket %}
-    <div class="success-overlay">
-        <div class="ticket-card">
-            <div style="font-size: 5rem;">🎉</div>
-            <h2 class="fw-bold mt-3 mb-0">You are registered!</h2>
-            
-            <div class="ticket-info mt-4">Your number is</div>
-            <div class="ticket-number">#{{ new_ticket.number|stringformat:"03d" }}</div>
-            <div class="ticket-info">Please take a photo</div>
-
-            <div class="w-100 bg-light rounded-pill mt-4 overflow-hidden">
-                <div id="progress-bar" class="auto-close-bar" style="width: 100%;"></div>
-            </div>
-            <p class="small text-muted mt-2">Screen will close in 5 seconds</p>
-        </div>
-    </div>
-
-    <script>
-        // AUTO RESET SELEPAS 5 SAAT
-        setTimeout(function() {
-            // Redirect bersih ke page kiosk (untuk buang data POST)
-            window.location.href = "{% url 'kiosk_join' queue.slug %}";
-        }, 5000);
-
-        // Animasi bar masa
-        setTimeout(() => {
-            document.getElementById('progress-bar').style.width = "0%";
-        }, 100);
-    </script>
-    {% endif %}
-
+<div id="kiosk-container" class="kiosk-container">
+    {% include 'queues/partials/kiosk_form_partial.html' %}
 </div>
-
-<script>
-    // Logic Transition: Attract -> Form
-    function startKiosk() {
-        document.getElementById('attract').style.display = 'none';
-        document.getElementById('form-box').style.display = 'block';
-        
-        // Cek jika elemen input wujud (bermakna setting ON)
-        const input = document.getElementById('nameInput');
-        
-        // Hanya fokus jika input wujud
-        if(input) {
-            setTimeout(() => {
-                input.focus();
-            }, 100);
-        }
-    }
-
-    // Logic: Cancel -> Balik ke Attract
-    function resetKiosk() {
-        document.getElementById('form-box').style.display = 'none';
-        document.getElementById('attract').style.display = 'flex';
-        
-        // Reset nilai input jika ada (supaya orang seterusnya tak nampak nama lama jika cancel)
-        const input = document.getElementById('nameInput');
-        if(input) input.value = '';
-    }
-</script>
 
 {% endblock %}

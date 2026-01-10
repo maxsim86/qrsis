@@ -1,0 +1,205 @@
+<style>
+    /* --- STYLE KHAS UNTUK PARTIAL INI --- */
+    
+    /* Wrapper untuk memastikan sentiasa center */
+    .kiosk-wrapper {
+        position: absolute; /* Paksa timbul atas layout asal */
+        top: 0; left: 0; right: 0; bottom: 0;
+        width: 100%; height: 100%;
+        display: flex;
+        justify-content: center; /* Center Horizontal */
+        align-items: center;     /* Center Vertical */
+        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); /* Latar belakang gradient lembut */
+        z-index: 10;
+    }
+
+    /* --- SKRIN 1: ATTRACT (TOUCH HERE) --- */
+    .attract-card {
+        text-align: center;
+        cursor: pointer;
+        padding: 40px;
+        border-radius: 30px;
+        transition: transform 0.2s ease;
+        max-width: 800px;
+        width: 90%;
+    }
+    
+    .attract-card:active { transform: scale(0.98); }
+
+    .kiosk-logo {
+        height: 120px;
+        width: auto;
+        margin-bottom: 30px;
+        object-fit: contain;
+        filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
+    }
+
+    .touch-icon {
+        font-size: 5rem;
+        margin-bottom: 20px;
+        display: inline-block;
+        animation: float 3s ease-in-out infinite; /* Animasi terapung */
+    }
+
+    .attract-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #1f2937;
+        margin-bottom: 10px;
+        line-height: 1.2;
+    }
+
+    .attract-sub {
+        font-size: 1.2rem;
+        color: #6b7280;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-top: 15px;
+    }
+
+    /* --- SKRIN 2: FORM INPUT --- */
+    .form-card {
+        background: white;
+        padding: 50px;
+        border-radius: 25px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); /* Shadow moden */
+        width: 100%;
+        max-width: 550px;
+        text-align: center;
+        animation: slideUp 0.4s ease-out;
+    }
+
+    .form-header {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 30px;
+    }
+
+    /* Input yang cantik & bersih */
+    .modern-input {
+        width: 100%;
+        padding: 20px;
+        font-size: 1.5rem;
+        text-align: center;
+        border: 2px solid #e5e7eb;
+        border-radius: 15px;
+        background-color: #f9fafb;
+        margin-bottom: 25px;
+        transition: all 0.3s;
+        outline: none;
+    }
+    .modern-input:focus {
+        border-color: #3b82f6;
+        background-color: white;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    }
+
+    /* Butang Besar */
+    .btn-primary-kiosk {
+        width: 100%;
+        padding: 20px;
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: white;
+        background: linear-gradient(to right, #2563eb, #3b82f6);
+        border: none;
+        border-radius: 50px; /* Bentuk Pill */
+        cursor: pointer;
+        box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);
+        transition: transform 0.1s;
+    }
+    .btn-primary-kiosk:active { transform: scale(0.98); }
+
+    .btn-cancel-kiosk {
+        margin-top: 20px;
+        background: none;
+        border: none;
+        color: #9ca3af;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 10px 20px;
+        border-radius: 50px;
+    }
+    .btn-cancel-kiosk:hover { background-color: #f3f4f6; color: #4b5563; }
+
+    /* --- ANIMATIONS --- */
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-15px); }
+        100% { transform: translateY(0px); }
+    }
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="kiosk-wrapper">
+
+    <div id="attract" class="attract-card" onclick="startKiosk()" style="display: flex; flex-direction: column; align-items: center;">
+        
+        {% if queue.logo %}
+            <img src="{{ queue.logo.url }}" alt="Logo" class="kiosk-logo">
+        {% endif %}
+        
+        <div class="touch-icon">👆</div> 
+        
+        <div class="attract-title">Selamat Datang ke<br>{{ queue.name }}</div>
+        <div class="attract-sub">Sentuh skrin untuk mula</div>
+    </div>
+
+    <div id="form-box" class="form-card" style="display: none;">
+        <div class="form-header">
+            {% if queue.ask_input %}
+                Masukkan Nama Anda
+            {% else %}
+                Sahkan Cetakan
+            {% endif %}
+        </div>
+        
+        <form hx-post="." hx-target="#kiosk-container" hx-swap="innerHTML">
+            {% csrf_token %}
+            
+            {% if queue.ask_input %}
+                <input type="text" name="name" class="modern-input" 
+                       placeholder="{{ queue.input_label|default:'Nama Penuh' }}" 
+                       required autocomplete="off" id="nameInput">
+            {% else %}
+                <div style="margin-bottom: 30px; color: #6b7280; font-size: 1.1rem; line-height: 1.5;">
+                    Sila tekan butang <strong>Cetak Tiket</strong> di bawah untuk mendapatkan nombor giliran anda.
+                </div>
+            {% endif %}
+
+            <button type="submit" class="btn-primary-kiosk">
+                Cetak Tiket
+            </button>
+            
+            <button type="button" class="btn-cancel-kiosk" onclick="resetKiosk()">
+                Batal
+            </button>
+        </form>
+    </div>
+
+</div>
+
+<script>
+    // Logic untuk tukar skrin
+    function startKiosk() {
+        document.getElementById('attract').style.display = 'none';
+        document.getElementById('form-box').style.display = 'block';
+        
+        const input = document.getElementById('nameInput');
+        // Auto focus keyboard
+        if(input) setTimeout(() => input.focus(), 100);
+    }
+
+    function resetKiosk() {
+        document.getElementById('form-box').style.display = 'none';
+        document.getElementById('attract').style.display = 'flex';
+        
+        const input = document.getElementById('nameInput');
+        if(input) input.value = '';
+    }
+</script>

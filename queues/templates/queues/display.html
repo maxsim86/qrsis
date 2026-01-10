@@ -4,88 +4,176 @@
 <style>
     /* --- GLOBAL & RESET --- */
     html, body {
-        height: 100%; width: 100%; margin: 0; padding: 0;
-        overflow: hidden; background-color: #ffffff;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        height: 100%; 
+        width: 100%;
+        margin: 0; 
+        padding: 0;
+        overflow: hidden; 
+        background-color: #ffffff;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
-    /* CONTAINER UTAMA FLEXBOX */
+    /* CONTAINER UTAMA (Flex Column) */
     .display-container {
-        height: 100vh; width: 100vw;
-        display: flex; flex-direction: column; justify-content: space-between; 
+        height: 100vh; 
+        width: 100vw;
+        display: flex;
+        flex-direction: column; 
+        justify-content: space-between;
+        
+        /* --- TAMBAHAN UNTUK ALIH KE KIRI --- */
+        box-sizing: border-box; /* Wajib ada supaya tak lari saiz */
+        padding-right: 30vw;      /* Tambah ruang 5% di kanan, so content gerak ke kiri */
+        /* Anda boleh ubah 5vw kepada 8vw atau 10vw jika nak lagi ke kiri */
     }
 
-    /* --- 1. HEADER --- */
+    /* --- 1. HEADER (Atas) --- */
     .queue-header {
-        flex: 0 0 auto; height: 12vh; min-height: 80px; width: 100%;
-        display: flex; justify-content: center; align-items: center;
-        background-color: #ffffff; border-bottom: 1px solid #e5e7eb;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); z-index: 10; gap: 20px;
+        flex: 0 0 auto; /* Tinggi tetap, jangan mengecut/membesar */
+        height: 12vh;
+        min-height: 80px; 
+        width: 100%;
+        display: flex;
+        justify-content: center; /* Center Horizontal */
+        align-items: center;     /* Center Vertical */
+        background-color: #ffffff;
+        border-bottom: 1px solid #e5e7eb;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        z-index: 10;
+        gap: 20px;
     }
+
     .queue-logo-img { height: 60%; width: auto; object-fit: contain; }
+    
     .queue-title {
-        font-size: clamp(1.5rem, 4vw, 2.5rem); font-weight: 800;
-        color: #1f2937; text-transform: uppercase; letter-spacing: 1px;
+        font-size: clamp(1.5rem, 4vw, 2.5rem); 
+        font-weight: 800;
+        color: #1f2937;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
 
-    /* --- 2. ACTIVE SECTION --- */
+    /* --- 2. ACTIVE SECTION (Tengah - PENTING) --- */
     .active-section {
-        flex: 1 1 auto; display: flex; flex-direction: column;
-        justify-content: center; align-items: center; width: 100%;
-        padding: 20px; box-sizing: border-box; overflow: hidden; 
-    }
-    .label-current {
-        font-size: clamp(1.2rem, 3vh, 2.2rem); font-weight: 600;
-        color: #6b7280; text-transform: uppercase; letter-spacing: 4px; margin-bottom: 1vh;
-    }
-    .big-number {
-        font-size: clamp(8rem, 25vh, 20rem); font-weight: 900; line-height: 1;
-        color: #111827; letter-spacing: -5px; font-variant-numeric: tabular-nums;
-        transition: transform 0.3s ease-out;
-    }
-    .pop-in { transform: scale(1.15); color: #2563eb; }
-    .visitor-name {
-        font-size: clamp(1.5rem, 5vh, 3.5rem); color: #2563eb; font-weight: 700;
-        margin-top: 2vh; max-width: 90%; text-align: center;
-        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .counter-display {
-        font-size: clamp(1.5rem, 4vh, 3.5rem); color: #ef4444; font-weight: 800;
-        margin-top: 3vh; text-transform: uppercase; background: #fef2f2;
-        padding: 10px 40px; border-radius: 50px; white-space: nowrap;
+        /* INI BAHAGIAN UNTUK CENTER KAN NOMBOR */
+        flex: 1;  /* Ambil semua ruang kosong yang ada */
+        display: flex;
+        flex-direction: column;
+        justify-content: center; /* Center Menegak (Atas-Bawah) */
+        align-items: center;     /* Center Melintang (Kiri-Kanan) */
+        width: 100%;
+        padding: 20px; 
+        box-sizing: border-box;
+        text-align: center;      /* Pastikan text juga center */
     }
 
-    /* --- 3. FOOTER --- */
+    .label-current {
+        font-size: clamp(1.2rem, 3vh, 2.2rem);
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 4px;
+        margin-bottom: 0; /* Kurangkan gap */
+    }
+
+    .big-number {
+        font-size: clamp(10rem, 35vh, 25rem); /* Besarkan sikit lagi */
+        font-weight: 900;
+        line-height: 1;
+        color: #2563eb; /* Warna Biru Utama */
+        letter-spacing: -5px;
+        font-variant-numeric: tabular-nums;
+        transition: transform 0.3s ease-out;
+        margin: 10px 0; /* Gap atas bawah sikit */
+    }
+    
+    .pop-in { transform: scale(1.15); }
+
+    .visitor-name {
+        font-size: clamp(1.5rem, 5vh, 3.5rem);
+        color: #1f2937;
+        font-weight: 700;
+        margin-top: 1vh;
+        max-width: 90%;
+        text-align: center;
+    }
+    
+    .counter-display {
+        font-size: clamp(1.5rem, 4vh, 3.5rem);
+        color: #ef4444;
+        font-weight: 800;
+        margin-top: 3vh;
+        text-transform: uppercase;
+        background: #fef2f2;
+        padding: 15px 50px;
+        border-radius: 50px;
+        white-space: nowrap;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    /* --- 3. FOOTER (Bawah) --- */
     .footer-section {
-        flex: 0 0 auto; height: 25vh; min-height: 150px; width: 100%;
-        background-color: #f9fafb; border-top: 1px solid #e5e7eb;
-        display: flex; flex-direction: column; align-items: center;
-        justify-content: center; position: relative; 
+        flex: 0 0 auto; /* Tinggi tetap */
+        height: 25vh;
+        min-height: 150px; 
+        width: 100%;
+        background-color: #f9fafb;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative; 
     }
+
     .next-label {
-        font-size: clamp(0.9rem, 2vh, 1.2rem); font-weight: 700; color: #9ca3af;
-        margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px;
+        font-size: clamp(0.9rem, 2vh, 1.2rem);
+        font-weight: 700;
+        color: #9ca3af;
+        margin-bottom: 15px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
     }
+
     .next-list {
-        display: flex; gap: 2vw; justify-content: center; width: 100%; padding: 0 20px;
+        display: flex;
+        gap: 3vw; /* Jarak antara kad next */
+        justify-content: center;
+        width: 100%;
     }
+
     .next-card {
-        background-color: #ffffff; padding: 1vh 3vw; border-radius: 15px;
-        min-width: 100px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center;
+        background-color: #ffffff;
+        padding: 1.5vh 3vw;
+        border-radius: 20px;
+        min-width: 120px;
+        text-align: center;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
+
     .next-number {
-        font-size: clamp(2rem, 5vh, 3.5rem); font-weight: 800; color: #374151; line-height: 1;
+        font-size: clamp(2.5rem, 6vh, 4rem);
+        font-weight: 800;
+        color: #374151;
+        line-height: 1;
     }
+
     .waiting-info {
-        position: absolute; bottom: 15px; right: 20px; font-size: 0.9rem; color: #9ca3af;
+        position: absolute;
+        bottom: 20px;
+        right: 30px;
+        font-size: 1rem;
+        color: #9ca3af;
     }
 
     @media (max-height: 600px) {
         .queue-header { height: 15vh; }
-        .footer-section { height: 20vh; min-height: 100px; }
+        .footer-section { height: 20vh; }
         .big-number { font-size: 6rem; }
-        .counter-display { margin-top: 10px; padding: 5px 20px; }
     }
 </style>
 

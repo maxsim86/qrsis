@@ -1,0 +1,55 @@
+<form hx-post="{% url 'update_queue_settings' queue.slug %}" 
+      hx-swap="outerHTML" 
+      class="py-2">
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success p-2 mb-3 small rounded-3">
+                <i class="bi bi-check-circle-fill me-1"></i> {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% csrf_token %}
+    
+    <div class="mb-3">
+        <label class="form-label fw-bold small text-muted">QUEUE NAME</label>
+        <input type="text" name="name" class="form-control bg-light border-0" value="{{ queue.name }}" required>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label fw-bold small text-muted">KIOSK LINK</label>
+        <div class="input-group">
+            <input type="text" class="form-control bg-light border-0" value="{{ request.scheme }}://{{ request.get_host }}/q/{{ queue.slug }}/join/" readonly>
+            <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('{{ request.scheme }}://{{ request.get_host }}/q/{{ queue.slug }}/join/')">Copy</button>
+        </div>
+    </div>
+
+    <div class="card bg-light border-0 mb-3">
+        <div class="card-body d-flex justify-content-between align-items-center py-3">
+            <span class="fw-bold text-dark">Allow Join</span>
+            <div class="form-check form-switch m-0">
+                <input class="form-check-input fs-5" type="checkbox" name="allow_join" {% if queue.allow_join %}checked{% endif %}>
+            </div>
+        </div>
+    </div>
+
+    <div class="card bg-light border-0 mb-3">
+        <div class="card-body d-flex justify-content-between align-items-center py-3">
+            <span class="fw-bold text-dark">Ask Visitor Name</span>
+            <div class="form-check form-switch m-0">
+                <input class="form-check-input fs-5" type="checkbox" name="ask_input" {% if queue.ask_input %}checked{% endif %}>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label fw-bold small text-muted">INPUT LABEL</label>
+        <input type="text" name="input_label" class="form-control bg-light border-0" 
+               value="{{ queue.input_label }}" placeholder="Enter your name">
+    </div>
+
+    <div class="d-grid mt-4">
+        <button type="submit" class="btn btn-primary rounded-pill fw-bold">Save Changes</button>
+    </div>
+</form>
