@@ -31,7 +31,8 @@ def get_admin_updates(request, slug):
     
     # Dapatkan data terkini
     current_serving = Visitor.objects.filter(queue=queue, status='SERVING').first()
-    all_waiting_visitors = Visitor.objects.filter(queue=queue, status='WAITING').order_by('id')
+    all_waiting_visitors = Visitor.objects.filter(queue=queue, status='WAITING') \
+                                          .order_by('is_returned', 'id')
     waiting_count = all_waiting_visitors.count()
     
     # Kira nombor pelawat seterusnya (untuk button Call Next)
@@ -494,7 +495,11 @@ def call_next(request, slug):
         
     #next_visitor = Visitor.objects.filter(queue=queue, status='WAITING').order_by('id').first()
     with transaction.atomic():
-        next_visitor = Visitor.objects.filter(queue=queue, status='WAITING').select_for_update().order_by('id').first()
+        # UBAH BARIS INI: Tambah 'is_returned' sebelum 'id'
+        next_visitor = Visitor.objects.filter(queue=queue, status='WAITING') \
+                                      .select_for_update() \
+                                      .order_by('is_returned', 'id') \
+                                      .first()
         
     if next_visitor:
         next_visitor.status = 'SERVING'
@@ -536,7 +541,8 @@ def get_realtime_data(queue):
     """
     Helper untuk ambil data terkini queue supaya boleh dihantar ke WebSocket
     """
-    waiting_visitors = Visitor.objects.filter(queue=queue, status='WAITING').order_by('id')
+    waiting_visitors = Visitor.objects.filter(queue=queue, status='WAITING') \
+                                      .order_by('is_returned', 'id')
     waiting_count = waiting_visitors.count()
     
     # Ambil 3 orang seterusnya untuk dipaparkan di TV
