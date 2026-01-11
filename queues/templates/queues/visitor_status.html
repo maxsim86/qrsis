@@ -132,10 +132,104 @@
     </div>
 </div>
 
+
+<audio id="alertSound" preload="auto">
+    <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
+</audio>
+
+{% if visitor.status == 'WAITING' %}
+    <button id="btn-enable-notif" class="btn-action btn-blue" onclick="enableSmartAlerts()">
+        🔔 Enable Notifications & Keep Awake
+    </button>
+    <a href="{% url 'visitor_quit' visitor.id %}" class="btn-action btn-gray">Quit the queue</a>
+{% endif %}
+
+
 <script>
     const currentVisitorId = "{{ visitor.id }}"; 
+    const alertSound = document.getElementById('alertSound');
+    let wakeLock = null;
 
-    // Websocket
+    // --- 1. SETUP SMART ALERTS ---
+    async function enableSmartAlerts() {
+        const btn = document.getElementById('btn-enable-notif');
+        
+        // A. Minta Izin Notification System
+        if ("Notification" in window) {
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    console.log("Notification granted");
+                }
+            });
+        }
+
+        // B. 'Unlock' Audio pada iOS/Android
+        // Browser mobile tak bagi bunyi auto-play melainkan user tekan sesuatu dulu.
+        // Kita mainkan bunyi senyap (mute) sekejap.
+        alertSound.volume = 0;
+        alertSound.play().then(() => {
+            alertSound.pause();
+            alertSound.currentTime = 0;
+            alertSound.volume = 1.0; // Set balik volume kuat
+        }).catch(e => console.log("Audio permission error:", e));
+
+        // C. Aktifkan WAKE LOCK (Supaya skrin tak gelap)
+        try {
+            if ('wakeLock' in navigator) {
+                wakeLock = await navigator.wakeLock.request('screen');
+                console.log('Screen Wake Lock active');
+                btn.innerText = "✅ Notifications Active (Do not close tab)";
+                btn.style.backgroundColor = "#22c55e"; // Tukar jadi hijau
+                
+                // Jika user minimize dan masuk balik, request semula
+                document.addEventListener('visibilitychange', async () => {
+                    if (wakeLock !== null && document.visibilityState === 'visible') {
+                        wakeLock = await navigator.wakeLock.request('screen');
+                    }
+                });
+            } else {
+                alert("Sila pastikan skrin anda sentiasa menyala.");
+            }
+        } catch (err) {
+            console.error(`${err.name}, ${err.message}`);
+        }
+    }
+
+    // --- 2. FUNGSI TRIGGER ALERT (BUNYI + GEGAR + NOTIF) ---
+    function triggerItIsYourTurn() {
+        // A. Bunyi
+        alertSound.play().catch(e => console.log("Gagal main bunyi:", e));
+
+        // B. Getaran (Vibration) - Android Only
+        if (navigator.vibrate) {
+            navigator.vibrate([500, 200, 500, 200, 1000]); // Corak getaran: Vroom... Vroom... VROOOOM
+        }
+
+        // C. System Notification (Lock Screen)
+        if (Notification.permission === "granted") {
+    const notif = new Notification("Giliran Anda!", {
+        body: "Sila ke kaunter sekarang. Nombor anda #{{ visitor.number|stringformat:'03d' }}",
+        
+        // --- UBAH JADI MACAM NI ---
+        // Kita cek dulu: Kalau ada logo, baru ambil URL. Kalau tak, biar kosong string.
+        icon: "{% if queue.logo %}{{ queue.logo.url }}{% endif %}",
+        // --------------------------
+        
+        vibrate: [200, 100, 200]
+    });
+            
+            // Bila user tekan notif, buka balik browser
+            notif.onclick = function() {
+                window.focus();
+                notif.close();
+            };
+        }
+
+        // D. Tunjuk Modal dalam UI
+        document.getElementById('inviteModal').style.display = 'flex';
+    }
+
+    // --- 3. WEBSOCKET LOGIC ---
     const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
     const queueSlug = "{{ queue.slug }}"; 
     const socket = new WebSocket(protocol + window.location.host + '/ws/queue/' + queueSlug + '/');
@@ -145,26 +239,33 @@
         const eventType = data.message;
         const payload = data.data;
 
-        // Refresh status
+        // Refresh Visual (HTMX)
         document.body.dispatchEvent(new Event('queue_update'));
 
-        // LOGIC MODAL:
-        // 1. Jika Admin tekan "Return to Queue"
+        // Logic Modal & Bunyi
         if (eventType === 'visitor_returned' && payload.visitor_id == currentVisitorId) {
             document.getElementById('returnModal').style.display = 'flex';
         }
 
-        // 2. Jika Admin tekan "Call Next" (Giliran Tiba)
+        // TRIGGER ALARM DISINI
         if (eventType === 'invite_next' && payload.visitor_id == currentVisitorId) {
-            document.getElementById('inviteModal').style.display = 'flex';
+            triggerItIsYourTurn();
         }
     };
     
+    // Auto-reconnect jika socket putus (sebab skrin terpadam lama)
+    socket.onclose = function() {
+        console.log("Socket putus, cuba connect semula...");
+        setTimeout(() => {
+            window.location.reload(); // Reload page terus paling selamat
+        }, 3000);
+    };
+
     function closeModal(modalId) {
         document.getElementById(modalId).style.display = 'none';
-        // Trigger refresh manual untuk pastikan status bertukar di skrin
+        alertSound.pause(); // Stop bunyi bila user tekan 'On my way'
+        alertSound.currentTime = 0;
         document.body.dispatchEvent(new Event('queue_update'));
     }
 </script>
-
 {% endblock %}
