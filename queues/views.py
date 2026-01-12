@@ -8,23 +8,34 @@ import base64
 from django.contrib import messages
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+#from asgiref.sync import sync_to_async
 from django.db import transaction
 from django.http import HttpResponse
+
+
+
+
+def get_ticket_format(visitor):
+    return f"{visitor.service_type}{visitor.number:03d}"
 
 
 def search_visitors(request, slug):
     query = request.GET.get('q')
     queue = get_object_or_404(Queue, slug=slug)
     
-    visitors = Visitor.objects.filter(queue=queue, status='WAITING')
+    # Ambil semua waiting visitor
+    visitors = Visitor.objects.filter(queue=queue, status='WAITING').order_by('is_returned', 'id')
     
     if query:
-        visitors = visitors.filter(number__icontains=query) # Cari ikut nombor
+        # Filter jika ada carian (case insensitive)
+        # Kita cari 'number' ATAU kita boleh filter guna 'ticket_number' logic kalau nak advanced
+        # Untuk simple, cari ikut nombor integer pun boleh, atau string search
+        visitors = visitors.filter(number__icontains=query) 
         
+    # PENTING: Render fail partial yang baru kita buat
     return render(request, 'queues/partials/visitor_list.html', {
         'all_waiting_visitors': visitors
     })
-
 
 def get_admin_updates(request, slug):
     queue = get_object_or_404(Queue, slug=slug)
@@ -57,50 +68,53 @@ def kiosk_join(request, slug):
         return render(request, 'queues/disabled.html')
     
     if request.method == "POST":
-        last_visitor = Visitor.objects.filter(queue=queue).aggregate(Max('number'))
+        # 1. Ambil Service Type dari butang yang ditekan (default 'A')
+        service_type = request.POST.get('service_type', 'A')
+
+        # 2. Kira Max Number BERDASARKAN SERVICE TYPE itu sahaja
+        last_visitor = Visitor.objects.filter(queue=queue, service_type=service_type).aggregate(Max('number'))
         next_number = (last_visitor['number__max'] or 0) + 1
         
-        # 1. Tentukan Nama
+        # 3. Tentukan Nama
         if queue.ask_input:
             custom_name = request.POST.get('name')
-            visitor_name = custom_name if custom_name else f"Visitor #{next_number}"
+            # Guna format baru A001 dalam nama default
+            visitor_name = custom_name if custom_name else f"Visitor #{service_type}{next_number:03d}"
         else:
-            visitor_name = f"Visitor #{next_number}"
+            visitor_name = f"Visitor #{service_type}{next_number:03d}"
         
-        # 2. Create Visitor Dulu!
+        # 4. Create Visitor
         new_visitor = Visitor.objects.create(
             queue=queue, 
             name=visitor_name, 
             number=next_number,
+            service_type=service_type, # Simpan jenis servis
             status='WAITING'
         )
 
-        # 3. Hantar Socket Update
+        # 5. Socket Update (Guna format tiket baru)
         send_socket_update(slug, 'new_visitor', {
             'visitor_id': new_visitor.id,
-            'number': f"{new_visitor.number:03d}",
+            'ticket': new_visitor.ticket_number, # Guna property dari model
+            'number': new_visitor.ticket_number,
             'name': new_visitor.name
         })
         
-        # 4. BARU Return Respons HTMX (Sebab new_visitor dah wujud)
         if request.headers.get('HX-Request'):
             return render(request, 'queues/partials/kiosk_ticket_partial.html', {
                 'new_ticket': new_visitor
             })
         
-        # Fallback untuk non-HTMX
         return render(request, 'queues/kiosk.html', {
             'queue': queue,
             'new_ticket': new_visitor,
             'success_mode': True
         })
     
-    # GET Request: Jika HTMX minta form (contoh: butang Back/Reset)
     if request.headers.get('HX-Request'):
          return render(request, 'queues/partials/kiosk_form_partial.html', {'queue': queue})
     
     return render(request, 'queues/kiosk.html', {'queue': queue})
-
 
 
 
@@ -307,31 +321,35 @@ def visitor_join(request, slug):
 
     return render(request, 'queues/visitor_join.html', {'queue': queue})
 
-def visitor_status(request, visitor_id):
+async def visitor_status(request, visitor_id):
     try:
-        visitor = Visitor.objects.get(id=visitor_id)
-    except Visitor.DoesNotExist:
+        # 1. Guna 'aget' (Async Get)
+        # 2. Guna 'select_related' supaya data 'queue' diambil sekali (elak error lazy loading)
+        visitor = await Visitor.objects.select_related('queue').aget(id=visitor_id)
+    except Visitor.DoesNotExist:   
         return render(request, 'queues/session_ended.html')
     
+    # Kerana kita dah guna select_related, kita boleh akses visitor.queue tanpa db call baru
     queue = visitor.queue
     
-    # Kira kedudukan dalam barisan
-    people_ahead = Visitor.objects.filter(
-        queue=queue, 
-        status='WAITING', 
-        id__lt=visitor.id
-    ).count()
-    
-    position = people_ahead + 1 if visitor.status == 'WAITING' else 0
+    if visitor.status == 'WAITING':
+        # 3. Guna 'acount' (Async Count)
+        people_ahead = await Visitor.objects.filter(
+            queue=queue, 
+            status='WAITING', 
+            id__lt=visitor.id
+        ).acount() # Perhatikan ada 'a' di depan count
+        
+        position = people_ahead + 1
+    else:
+        position = 0
     
     context = {
         'visitor': visitor,
         'queue': queue,
-        'position': position,
-        'people_ahead': people_ahead
+        'position': position
     }
     
-    # HTMX Polling Support (Auto-refresh kedudukan setiap 5 saat)
     if request.headers.get('HX-Request'):
         return render(request, 'queues/partials/visitor_status_content.html', context)
         
@@ -383,38 +401,40 @@ def admin_interface(request, slug):
 def add_manual_visitor(request, slug):
     queue = get_object_or_404(Queue, slug=slug)
     
-    # Kira nombor seterusnya
-    last_visitor = Visitor.objects.filter(queue=queue).aggregate(Max('number'))
+    # Ambil service type dari form (Anda kena tambah dropdown di HTML nanti)
+    service_type = request.POST.get('service_type', 'A') 
+
+    # Kira nombor ikut servis
+    last_visitor = Visitor.objects.filter(queue=queue, service_type=service_type).aggregate(Max('number'))
     next_number = (last_visitor['number__max'] or 0) + 1
     
-    # LOGIK BARU: Cek jika ada nama dihantar dari form
     custom_name = request.POST.get('custom_name')
-    
     if custom_name:
-        # Jika admin isi nama, guna nama tu
         visitor_name = custom_name
     else:
-        # Jika tak isi (atau setting OFF), guna nama default
-        visitor_name = f"Visitor #{next_number}"
+        visitor_name = f"Visitor #{service_type}{next_number:03d}"
     
-    # Create Visitor
     new_visitor = Visitor.objects.create(
         queue=queue,
         name=visitor_name,
         number=next_number,
+        service_type=service_type,
         status='WAITING'
     )
     
-    messages.success(request, f"Added {visitor_name} (#{next_number:03d})")
+    # Gunakan ticket_number property
+    ticket_str = new_visitor.ticket_number 
     
-    # Hantar Signal WebSocket
+    messages.success(request, f"Added {visitor_name} ({ticket_str})")
+    
     send_socket_update(slug, 'new_visitor', {
         'visitor_id': new_visitor.id,
-        'number': f"{new_visitor.number:03d}",
+        'ticket': ticket_str,
+        'number': ticket_str,
         'name': new_visitor.name
     })
+    
     if request.headers.get('HX-Request'):
-        # Boleh juga return Toast Message ringkas (pilihan)
         return HttpResponse(status=204)
 
     return redirect('admin_interface', slug=slug)
@@ -495,7 +515,6 @@ def call_next(request, slug):
         
     #next_visitor = Visitor.objects.filter(queue=queue, status='WAITING').order_by('id').first()
     with transaction.atomic():
-        # UBAH BARIS INI: Tambah 'is_returned' sebelum 'id'
         next_visitor = Visitor.objects.filter(queue=queue, status='WAITING') \
                                       .select_for_update() \
                                       .order_by('is_returned', 'id') \
@@ -507,10 +526,13 @@ def call_next(request, slug):
         next_visitor.is_invited = True
         next_visitor.save()
         
-        # SIGNAL SEDIA ADA (BETUL)
+        # UPDATE FORMAT DI SINI
+        ticket_str = next_visitor.ticket_number # Guna property models
+
         send_socket_update(slug, 'invite_next', {
             'visitor_id': next_visitor.id,
-            'number': f"{next_visitor.number:03d}",
+            'ticket': ticket_str,      # Hantar A001
+            'number': ticket_str,      # Hantar A001
             'name': next_visitor.name,
             'counter': counter_name,
         })
@@ -530,23 +552,26 @@ def acknowledge_invite(request, visitor_id):
 def status_display(request, slug):
     queue = get_object_or_404(Queue, slug=slug)
     current_serving = Visitor.objects.filter(queue=queue, status='SERVING').first()
+    waiting_visitors = Visitor.objects.filter(queue=queue, status='WAITING').order_by('is_returned', 'id')
+    waiting_count = waiting_visitors.count()
+    next_visitors = [f"{v.number:03d}" for v in waiting_visitors[:3]]
     
     return render(request, 'queues/display.html', {
         'queue': queue,
-        'current_serving': current_serving
+        'current_serving': current_serving,
+        # Pass data ini ke template
+        'waiting_count': waiting_count,
+        'next_visitors': next_visitors
     })
     
 #Dapatkan Data Real-time
 def get_realtime_data(queue):
-    """
-    Helper untuk ambil data terkini queue supaya boleh dihantar ke WebSocket
-    """
     waiting_visitors = Visitor.objects.filter(queue=queue, status='WAITING') \
                                       .order_by('is_returned', 'id')
     waiting_count = waiting_visitors.count()
     
-    # Ambil 3 orang seterusnya untuk dipaparkan di TV
-    next_3_visitors = [f"{v.number:03d}" for v in waiting_visitors[:3]]
+    # UPDATE SINI: Guna v.ticket_number
+    next_3_visitors = [v.ticket_number for v in waiting_visitors[:3]]
     
     return {
         'waiting_count': waiting_count,
@@ -569,14 +594,17 @@ def invite_specific_visitor(request, visitor_id):
     visitor.served_by = counter_name
     visitor.is_invited = True
     visitor.save()
+    ticket_str = visitor.ticket_number
 
     # 3. Hantar Signal (Logic ini automatik update list next visitors di TV)
+    # Hantar Signal ke WebSocket
     send_socket_update(slug, 'invite_next', {
-        'visitor_id': visitor.id,
-        'number': f"{visitor.number:03d}",
+        'ticket': ticket_str,   # A001
+        'number': ticket_str,   # A001
         'name': visitor.name,
-        'counter': counter_name,
+        'counter': visitor.served_by,
     })
+
     if request.headers.get('HX-Request'):
         return HttpResponse(status=204)
 

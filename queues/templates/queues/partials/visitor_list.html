@@ -1,20 +1,52 @@
-<div class="visitor-grid pt-3" id="visitor-list-grid" hx-swap-oob="true">
-    
+<style>
+    /* Grid Layout untuk butang nombor */
+    .visitor-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 15px;
+        padding-top: 15px;
+    }
+
+    .btn-num {
+        background-color: #ffffff;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 15px 5px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+
+    .btn-num:hover {
+        border-color: #3b82f6;
+        background-color: #eff6ff;
+        transform: translateY(-2px);
+    }
+
+    .btn-num:active { transform: scale(0.95); }
+
+    .ticket-main { font-size: 1.4rem; font-weight: 800; color: #1f2937; }
+    .ticket-sub { font-size: 0.75rem; text-transform: uppercase; color: #6b7280; margin-top: 4px; font-weight: 600; }
+</style>
+
+<div id="visitor-grid-content" class="visitor-grid">
     {% for v in all_waiting_visitors %}
-        <button 
-            type="button"
-            onclick="selectVisitor(this, '{{ v.id }}', '{{ v.number|stringformat:"03d" }}')" 
-            class="btn-num">
+        <div class="btn-num" onclick="selectVisitor(this, '{{ v.id }}', '{{ v.ticket_number }}')">
             
-            {{ v.number|stringformat:"03d" }}
+            <div class="ticket-main">{{ v.ticket_number }}</div>
             
-        </button>
-    
+            <div class="ticket-sub">
+                {% if v.service_type == 'A' %} Pendaftaran
+                {% elif v.service_type == 'B' %} Pembayaran
+                {% elif v.service_type == 'C' %} Pertanyaan
+                {% endif %}
+            </div>
+            
+        </div>
     {% empty %}
-        <div class="text-center text-muted w-100 py-4" style="grid-column: span 4;">
-            <i class="mb-2" style="opacity: 0.5;">(Tiada Pelawat)</i><br>
-            <span class="small">Queue is empty</span>
+        <div class="text-center w-100 text-muted p-4" style="grid-column: 1 / -1;">
+            Tiada pelawat dijumpai.
         </div>
     {% endfor %}
-
 </div>

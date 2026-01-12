@@ -1,41 +1,80 @@
-<div class="success-overlay d-flex flex-column justify-content-center align-items-center w-100 h-100">
-    <div class="ticket-card animate-pop">
-        <div style="font-size: 5rem;">🎉</div>
-        <h2 class="fw-bold mt-3 mb-0">Pendaftaran Berjaya!</h2>
-        
-        <div class="ticket-info mt-4">Nombor giliran anda</div>
-        <div class="ticket-number">#{{ new_ticket.number|stringformat:"03d" }}</div>
-        <div class="ticket-info">Sila tunggu giliran anda</div>
+<style>
+    /* Gunakan wrapper yang sama supaya center */
+    .kiosk-wrapper {
+        position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+        width: 100%; height: 100%;
+        display: flex; justify-content: center; align-items: center;
+        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        z-index: 10;
+    }
 
-        <div class="w-100 bg-light rounded-pill mt-4 overflow-hidden">
-            <div id="progress-bar" class="auto-close-bar" style="width: 100%; height: 8px; background: #3b82f6; transition: width 5s linear;"></div>
+    .ticket-card {
+        background: white;
+        padding: 50px 40px;
+        border-radius: 30px;
+        text-align: center;
+        box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+        max-width: 500px;
+        width: 90%;
+        animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .ticket-number {
+        font-size: 5rem;
+        font-weight: 800;
+        color: #2563eb;
+        line-height: 1;
+        margin: 20px 0;
+        background: #eff6ff;
+        padding: 20px;
+        border-radius: 20px;
+        border: 2px dashed #bfdbfe;
+    }
+
+    @keyframes popUp { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+</style>
+
+<div class="kiosk-wrapper">
+    <div class="ticket-card">
+        <div style="font-size: 5rem;">🎉</div>
+        <h2 class="fw-bold mt-3 text-dark">Pendaftaran Berjaya!</h2>
+        
+        <div class="text-muted mt-2">Nombor giliran anda:</div>
+        
+        <div class="ticket-number">
+            {{ new_ticket.ticket_number }}
         </div>
         
-        <button 
-            hx-get="." 
-            hx-target="#kiosk-container" 
-            class="btn btn-light mt-4 rounded-pill px-4 text-muted">
-            Skrin akan tutup dalam 5 saat...
+        <h4 class="fw-bold text-dark">{{ new_ticket.name }}</h4>
+        <p class="text-muted small">Sila tunggu nombor anda dipanggil</p>
+
+        <div class="w-100 bg-light rounded-pill mt-4 mb-3 overflow-hidden" style="height: 6px;">
+            <div id="progress-bar" style="width: 100%; height: 100%; background: #3b82f6; transition: width 5s linear;"></div>
+        </div>
+        
+        <button id="btn-reset"
+                hx-get="{% url 'kiosk_join' new_ticket.queue.slug %}" 
+                hx-target="#kiosk-frame" 
+                hx-swap="innerHTML"
+                class="btn btn-secondary rounded-pill px-4">
+            Selesai (Auto tutup 5s)
         </button>
     </div>
 </div>
 
 <script>
-    // Animasi Progress Bar
+    // 1. Jalankan animasi bar
     setTimeout(() => {
         const bar = document.getElementById('progress-bar');
         if(bar) bar.style.width = "0%";
     }, 100);
 
-    // Auto Reset selepas 5 saat guna HTMX
+    // 2. Auto Click butang reset selepas 5 saat
     setTimeout(function() {
-        // Cari butang hx-get di atas dan klik secara manual
-        const resetBtn = document.querySelector('button[hx-get="."]');
-        if(resetBtn) htmx.trigger(resetBtn, 'click');
+        const btn = document.getElementById('btn-reset');
+        if(btn) {
+            // Trigger HTMX request pada butang tersebut
+            htmx.trigger(btn, 'click');
+        }
     }, 5000);
 </script>
-
-<style>
-    .animate-pop { animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-    @keyframes popUp { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-</style>

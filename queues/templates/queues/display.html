@@ -4,262 +4,172 @@
 <style>
     /* --- GLOBAL & RESET --- */
     html, body {
-        height: 100%; 
-        width: 100%;
-        margin: 0; 
-        padding: 0;
-        overflow: hidden; 
+        height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden; 
         background-color: #ffffff;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
-    /* CONTAINER UTAMA (Flex Column) */
+    /* CONTAINER UTAMA */
     .display-container {
-        height: 100vh; 
-        width: 100vw;
-        display: flex;
-        flex-direction: column; 
-        justify-content: space-between;
-        
-        /* --- TAMBAHAN UNTUK ALIH KE KIRI --- */
-        box-sizing: border-box; /* Wajib ada supaya tak lari saiz */
-        padding-right: 30vw;      /* Tambah ruang 5% di kanan, so content gerak ke kiri */
-        /* Anda boleh ubah 5vw kepada 8vw atau 10vw jika nak lagi ke kiri */
+        height: 100vh; width: 100vw;
+        display: flex; flex-direction: column; justify-content: space-between;
+        box-sizing: border-box; padding-right: 5vw;
     }
 
-    /* --- 1. HEADER (Atas) --- */
+    /* 1. HEADER */
     .queue-header {
-        flex: 0 0 auto; /* Tinggi tetap, jangan mengecut/membesar */
-        height: 12vh;
-        min-height: 80px; 
-        width: 100%;
-        display: flex;
-        justify-content: center; /* Center Horizontal */
-        align-items: center;     /* Center Vertical */
-        background-color: #ffffff;
-        border-bottom: 1px solid #e5e7eb;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        z-index: 10;
-        gap: 20px;
+        flex: 0 0 auto; height: 12vh; width: 100%;
+        display: flex; justify-content: center; align-items: center;     
+        background-color: #ffffff; border-bottom: 1px solid #e5e7eb; gap: 20px;
     }
-
     .queue-logo-img { height: 60%; width: auto; object-fit: contain; }
-    
-    .queue-title {
-        font-size: clamp(1.5rem, 4vw, 2.5rem); 
-        font-weight: 800;
-        color: #1f2937;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
+    .queue-title { font-size: clamp(1.5rem, 4vw, 2.5rem); font-weight: 800; color: #1f2937; text-transform: uppercase; }
 
-    /* --- 2. ACTIVE SECTION (Tengah - PENTING) --- */
+    /* 2. ACTIVE SECTION (Tengah) */
     .active-section {
-        /* INI BAHAGIAN UNTUK CENTER KAN NOMBOR */
-        flex: 1;  /* Ambil semua ruang kosong yang ada */
-        display: flex;
-        flex-direction: column;
-        justify-content: center; /* Center Menegak (Atas-Bawah) */
-        align-items: center;     /* Center Melintang (Kiri-Kanan) */
-        width: 100%;
-        padding: 20px; 
-        box-sizing: border-box;
-        text-align: center;      /* Pastikan text juga center */
+        flex: 1; display: flex; flex-direction: column;
+        justify-content: center; align-items: center; width: 100%; text-align: center;      
     }
-
-    .label-current {
-        font-size: clamp(1.2rem, 3vh, 2.2rem);
-        font-weight: 600;
-        color: #6b7280;
-        text-transform: uppercase;
-        letter-spacing: 4px;
-        margin-bottom: 0; /* Kurangkan gap */
-    }
-
-    .big-number {
-        font-size: clamp(10rem, 35vh, 25rem); /* Besarkan sikit lagi */
-        font-weight: 900;
-        line-height: 1;
-        color: #2563eb; /* Warna Biru Utama */
-        letter-spacing: -5px;
-        font-variant-numeric: tabular-nums;
-        transition: transform 0.3s ease-out;
-        margin: 10px 0; /* Gap atas bawah sikit */
-    }
+    .label-current { font-size: clamp(1.2rem, 3vh, 2.2rem); font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 4px; }
     
-    .pop-in { transform: scale(1.15); }
-
-    .visitor-name {
-        font-size: clamp(1.5rem, 5vh, 3.5rem);
-        color: #1f2937;
-        font-weight: 700;
-        margin-top: 1vh;
-        max-width: 90%;
-        text-align: center;
+    .big-number {
+        font-size: clamp(10rem, 35vh, 25rem); 
+        font-weight: 900; line-height: 1; color: #2563eb; 
+        letter-spacing: -5px; transition: transform 0.3s ease-out; margin: 10px 0; 
+        font-variant-numeric: tabular-nums; /* Penting supaya nombor tak 'joget' */
     }
+    .pop-in { animation: popScale 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .visitor-name { font-size: clamp(1.5rem, 5vh, 3.5rem); color: #1f2937; font-weight: 700; margin-top: 1vh; }
     
     .counter-display {
-        font-size: clamp(1.5rem, 4vh, 3.5rem);
-        color: #ef4444;
-        font-weight: 800;
-        margin-top: 3vh;
-        text-transform: uppercase;
-        background: #fef2f2;
-        padding: 15px 50px;
-        border-radius: 50px;
-        white-space: nowrap;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        font-size: clamp(1.5rem, 4vh, 3.5rem); color: #ef4444; font-weight: 800;
+        margin-top: 3vh; text-transform: uppercase; background: #fef2f2;
+        padding: 15px 50px; border-radius: 50px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     }
 
-    /* --- 3. FOOTER (Bawah) --- */
+    /* 3. FOOTER */
     .footer-section {
-        flex: 0 0 auto; /* Tinggi tetap */
-        height: 25vh;
-        min-height: 150px; 
-        width: 100%;
-        background-color: #f9fafb;
-        border-top: 1px solid #e5e7eb;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        position: relative; 
+        flex: 0 0 auto; height: 25vh; width: 100%;
+        background-color: #f9fafb; border-top: 1px solid #e5e7eb;
+        display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; 
     }
-
-    .next-label {
-        font-size: clamp(0.9rem, 2vh, 1.2rem);
-        font-weight: 700;
-        color: #9ca3af;
-        margin-bottom: 15px;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-    }
-
-    .next-list {
-        display: flex;
-        gap: 3vw; /* Jarak antara kad next */
-        justify-content: center;
-        width: 100%;
-    }
-
-    .next-card {
-        background-color: #ffffff;
-        padding: 1.5vh 3vw;
-        border-radius: 20px;
-        min-width: 120px;
-        text-align: center;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-        border: 1px solid #e5e7eb;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .next-number {
-        font-size: clamp(2.5rem, 6vh, 4rem);
-        font-weight: 800;
-        color: #374151;
-        line-height: 1;
-    }
-
-    .waiting-info {
-        position: absolute;
-        bottom: 20px;
-        right: 30px;
-        font-size: 1rem;
-        color: #9ca3af;
-    }
-
-    @media (max-height: 600px) {
-        .queue-header { height: 15vh; }
-        .footer-section { height: 20vh; }
-        .big-number { font-size: 6rem; }
-    }
+    .next-label { font-size: clamp(0.9rem, 2vh, 1.2rem); font-weight: 700; color: #9ca3af; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px; }
+    .next-list { display: flex; gap: 3vw; justify-content: center; width: 100%; }
+    .next-card { background-color: #ffffff; padding: 1.5vh 3vw; border-radius: 20px; min-width: 120px; text-align: center; box-shadow: 0 5px 10px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; }
+    .next-number { font-size: clamp(2.5rem, 6vh, 4rem); font-weight: 800; color: #374151; line-height: 1; }
+    .waiting-info { position: absolute; bottom: 20px; right: 30px; font-size: 1rem; color: #9ca3af; }
+    
+    @keyframes popScale { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 </style>
 
 <div class="display-container">
+    
     <div class="queue-header">
         {% if queue.logo %}
-            <img src="{{ queue.logo.url }}" class="queue-logo-img" alt="Queue Logo">
+            <img src="{{ queue.logo.url }}" class="queue-logo-img" alt="Logo">
         {% endif %}
         <div class="queue-title">{{ queue.name }}</div>
     </div>    
 
     <div id="active-container" class="active-section">
         <div class="label-current">Now Serving</div>
-        <div id="number-text" class="big-number">000</div>
-        <div id="name-text" class="visitor-name"></div>
-        <div id="counter-text" class="counter-display" style="display: none;"></div>
+        
+        <div id="number-text" class="big-number">
+            {% if current_serving %}
+                {{ current_serving.ticket_number }} {% else %}
+                ---
+            {% endif %}
+        </div>
+        
+        <div id="name-text" class="visitor-name">
+            {{ current_serving.name|default:"" }}
+        </div>
+        
+        <div id="counter-text" class="counter-display" style="{% if not current_serving %}display: none;{% endif %}">
+            {{ current_serving.served_by|default:"KAUNTER" }}
+        </div>
     </div>
 
     <div class="footer-section">
         <div class="next-label">Coming Up Next</div>
         <div id="next-list-container" class="next-list">
-            <div class="next-card"><span class="next-number">-</span></div>
-            <div class="next-card"><span class="next-number">-</span></div>
-            <div class="next-card"><span class="next-number">-</span></div>
+            {% if next_visitors %}
+                {% for ticket in next_visitors %}
+                    <div class="next-card"><span class="next-number">{{ ticket }}</span></div>
+                {% endfor %}
+            {% else %}
+                <div class="next-card"><span class="next-number">-</span></div>
+                <div class="next-card"><span class="next-number">-</span></div>
+                <div class="next-card"><span class="next-number">-</span></div>
+            {% endif %}
         </div>
         <div class="waiting-info">
-            Wait: <strong id="total-waiting" style="color:#000">0</strong>
+            Wait: <strong id="total-waiting" style="color:#000">{{ waiting_count|default:"0" }}</strong>
         </div>
     </div>
 </div> 
 
-<audio id="notify-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
+<div id="start-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; justify-content: center; align-items: center; color: white; flex-direction: column; cursor: pointer;">
+    <div style="font-size: 5rem;">🔇 ➡️ 🔊</div>
+    <h1 style="margin-top: 20px;">Klik skrin untuk mulakan paparan</h1>
+</div>
 
 <script>
-    // --- KONFIGURASI ---
     const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
     const queueSlug = "{{ queue.slug }}"; 
     const socket = new WebSocket(protocol + window.location.host + '/ws/queue/' + queueSlug + '/');
-    const AUDIO_BASE_PATH = "/static/audio/";
+    const AUDIO_BASE_PATH = "/static/audio/"; 
 
-    // --- AUDIO MANAGER CLASS ---
+    // Handle Overlay Click
+    document.getElementById('start-overlay').addEventListener('click', function() {
+        let dummy = new Audio();
+        dummy.play().catch(e => {});
+        this.style.display = 'none';
+    });
+
+    // --- AUDIO MANAGER ---
     const AudioManager = {
-        queue: [],          
-        isPlaying: false,   
-        audioCache: {},     
+        queue: [], isPlaying: false, audioCache: {},     
 
-        // 1. Fungsi Utama: Masukkan pengumuman ke dalam Q
         announce: function(ticket, counterName) {
             this.queue.push({ ticket, counterName });
             this.processQueue(); 
         },
 
-        // 2. Proses Q
         processQueue: function() {
             if (this.isPlaying || this.queue.length === 0) return;
-
             this.isPlaying = true;
             const nextItem = this.queue.shift(); 
             const playlist = this.generatePlaylist(nextItem.ticket, nextItem.counterName);
-            
             this.playSequence(playlist);
         },
 
-        // 3. Generate senarai fail MP3
         generatePlaylist: function(ticket, counterName) {
-            let playlist = [];
-            playlist.push("chime.mp3");
-            playlist.push("intro.mp3");
-
-            let cleanNumber = ticket.toString().replace(/[^0-9]/g, ''); 
-            cleanNumber.split('').forEach(num => {
-                playlist.push(num + ".mp3");
+            let playlist = ["chime.mp3", "intro.mp3"];
+            
+            // Logic Baru: Pecahkan A001 kepada ['A', '0', '0', '1']
+            let characters = ticket.toString().toUpperCase().split('');
+            
+            characters.forEach(char => {
+                // Pastikan anda ada fail a.mp3, b.mp3, c.mp3
+                playlist.push(char.toLowerCase() + ".mp3");
             });
 
             if (counterName) {
                 let counterNum = counterName.replace(/[^0-9]/g, '');
-                playlist.push("silake.mp3");
-                playlist.push("sebutan_kaunter.mp3");
-                playlist.push(counterNum + ".mp3");
+                if(counterNum) {
+                    playlist.push("silake.mp3");
+                    playlist.push("sebutan_kaunter.mp3");
+                    playlist.push(counterNum + ".mp3");
+                } else {
+                     playlist.push("kaunter.mp3");
+                }
             } else {
                 playlist.push("kaunter.mp3");
             }
             return playlist;
         },
 
-        // 4. Mainkan Playlist
         playSequence: async function(filenames) {
             for (let filename of filenames) {
                 await this.playOneFile(filename);
@@ -270,62 +180,72 @@
             }, 500); 
         },
 
-        // 5. Mainkan satu fail
         playOneFile: function(filename) {
-            return new Promise((resolve, reject) => {
-                let audioObj;
-
-                if (this.audioCache[filename]) {
-                    audioObj = this.audioCache[filename];
-                    audioObj.currentTime = 0; 
-                } else {
-                    audioObj = new Audio(AUDIO_BASE_PATH + filename);
+            return new Promise((resolve) => {
+                let audioObj = this.audioCache[filename] || new Audio(AUDIO_BASE_PATH + filename);
+                if (!this.audioCache[filename]) {
                     audioObj.preload = 'auto'; 
                     this.audioCache[filename] = audioObj;
+                } else {
+                    audioObj.currentTime = 0;
                 }
-
-                // LAJUKAN SIKIT (1.3x)
-                audioObj.playbackRate = 1.3; 
-
-                audioObj.onended = function() { resolve(); };
-                audioObj.onerror = function() { 
-                    console.warn("Audio missing:", filename); 
+                audioObj.playbackRate = 1.1; 
+                audioObj.onended = () => resolve();
+                audioObj.onerror = (e) => { 
+                    // console.warn("Audio 404:", filename); 
                     resolve(); 
                 };
-
-                let playPromise = audioObj.play();
-                if (playPromise !== undefined) {
-                    playPromise.catch(error => {
-                        console.log("Browser block audio:", error);
-                        resolve(); 
-                    });
-                }
+                audioObj.play().catch(e => { resolve(); });
             });
         }
-    }; // <--- INI YANG TERTINGGAL TADI (Penutup AudioManager)
+    };
 
-    // --- FUNGSI UPDATE VISUAL ---
-    function updateVisuals(payload) {
-        const numEl = document.getElementById('number-text');
-        const nameEl = document.getElementById('name-text');
-        const counterEl = document.getElementById('counter-text');
+    // --- WEBSOCKET HANDLER ---
+    socket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        const eventType = data.message;
+        const payload = data.data;
 
-        let rawNum = payload.ticket || payload.number;
+        if (eventType === 'invite_next') {
+            const numEl = document.getElementById('number-text');
+            const nameEl = document.getElementById('name-text');
+            const counterEl = document.getElementById('counter-text');
 
-        numEl.innerText = rawNum; 
-        nameEl.innerText = payload.name ? payload.name : "";
-        
-        if (payload.counter) {
-            counterEl.style.display = "block";
-            counterEl.innerText = payload.counter.toUpperCase();
-        } else {
-            counterEl.style.display = "none";
+            // Guna 'ticket' (A001) bukan 'number'
+            let displayNum = payload.ticket || payload.number;
+
+            numEl.innerText = displayNum; 
+            nameEl.innerText = payload.name || "";
+            
+            if (payload.counter) {
+                counterEl.style.display = "block";
+                counterEl.innerText = payload.counter.toUpperCase();
+            } else {
+                counterEl.style.display = "none";
+            }
+
+            numEl.classList.remove('pop-in');
+            void numEl.offsetWidth; 
+            numEl.classList.add('pop-in');
+
+            AudioManager.announce(displayNum, payload.counter);
         }
 
-        numEl.classList.remove('pop-in');
-        void numEl.offsetWidth; 
-        numEl.classList.add('pop-in');
-    }
+        if (eventType === 'queue_reset') {
+             document.getElementById('number-text').innerText = "---"; 
+             document.getElementById('name-text').innerText = "";
+             document.getElementById('counter-text').style.display = "none";
+             updateNextList([]);
+        }
+        
+        if (payload.next_visitors) updateNextList(payload.next_visitors);
+        if (payload.waiting_count !== undefined) document.getElementById('total-waiting').innerText = payload.waiting_count;
+    };
+
+    socket.onclose = function() { 
+        console.log("Socket putus. Reconnecting...");
+        setTimeout(() => location.reload(), 3000); 
+    };
 
     function updateNextList(visitorsArray) {
         const container = document.getElementById('next-list-container');
@@ -333,56 +253,34 @@
         
         if (!visitorsArray || visitorsArray.length === 0) {
             container.innerHTML = `
-                <div class="next-card"><span class="next-number" style="color:#e5e7eb">-</span></div>
-                <div class="next-card"><span class="next-number" style="color:#e5e7eb">-</span></div>
-                <div class="next-card"><span class="next-number" style="color:#e5e7eb">-</span></div>`;
+                <div class="next-card"><span class="next-number">-</span></div>
+                <div class="next-card"><span class="next-number">-</span></div>
+                <div class="next-card"><span class="next-number">-</span></div>`;
             return;
         }
 
-        visitorsArray.slice(0, 3).forEach(num => {
+        visitorsArray.slice(0, 3).forEach(ticket => {
             const card = document.createElement('div'); card.className = 'next-card';
-            const span = document.createElement('span'); span.className = 'next-number'; 
-            span.innerText = num;
-            card.appendChild(span); container.appendChild(card);
+            card.innerHTML = `<span class="next-number">${ticket}</span>`;
+            container.appendChild(card);
         });
     }
 
-    // --- WEBSOCKET HANDLERS ---
-    socket.onmessage = function(e) {
-        const data = JSON.parse(e.data);
-        const eventType = data.message;
-        const payload = data.data;
-
-        if (eventType === 'invite_next') {
-            updateVisuals(payload);
-            AudioManager.announce(payload.ticket || payload.number, payload.counter);
-        }
-
-        if (eventType === 'return_queue' || eventType === 'queue_reset') {
-            document.getElementById('number-text').innerText = "000"; 
-            document.getElementById('name-text').innerText = "";
-            document.getElementById('counter-text').style.display = "none";
-            if(eventType === 'queue_reset') updateNextList([]);
-        }
-        
-        if (payload.next_visitors) updateNextList(payload.next_visitors);
-        if (payload.waiting_count !== undefined) document.getElementById('total-waiting').innerText = payload.waiting_count;
-    };
-
-    socket.onclose = function(e) { 
-        console.log("Socket closed. Reconnecting...");
-        setTimeout(function() { location.reload(); }, 3000); 
-    };
-
-    // Pre-load audio kritikal
+    // Preload Audio (Tambah huruf A, B, C)
     window.addEventListener('load', function() {
         const commonFiles = ["chime.mp3", "intro.mp3", "kaunter.mp3", "silake.mp3", "sebutan_kaunter.mp3"];
-        commonFiles.forEach(f => {
+        const numberFiles = ["0.mp3", "1.mp3", "2.mp3", "3.mp3", "4.mp3", "5.mp3", "6.mp3", "7.mp3", "8.mp3", "9.mp3"];
+        // Tambah huruf untuk Multi-Service
+        const letterFiles = ["a.mp3", "b.mp3", "c.mp3"]; 
+        
+        const allFiles = [...commonFiles, ...numberFiles, ...letterFiles];
+
+        allFiles.forEach(f => {
             let a = new Audio(AUDIO_BASE_PATH + f);
-            a.preload = 'auto';
+            a.preload = 'auto'; 
             AudioManager.audioCache[f] = a;
         });
+        console.log("✅ Audio Cache Preloaded");
     });
-
 </script>
 {% endblock %}

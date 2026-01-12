@@ -2,6 +2,11 @@ from django.db import models
 import uuid
 # Create your models here.
 
+
+
+
+
+
 class Queue(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True, default=uuid.uuid4) # Unik link untuk QR
@@ -41,9 +46,23 @@ class Visitor(models.Model):
         ('SERVING', 'Serving'),
         ('COMPLETED', 'Completed'),
     ]
+    
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='WAITING')
     is_returned = models.BooleanField(default=False)
     is_invited = models.BooleanField(default=False)
 
+    SERVICE_CHOICES = [
+        ('A', 'Pendaftaran'),
+        ('B', 'Pembayaran'),
+        ('C', 'Pertanyaan'),
+    ]
+    # Default 'A' supaya data lama tak rosak
+    service_type = models.CharField(max_length=1, choices=SERVICE_CHOICES, default='A') 
+
+    @property
+    def ticket_number(self):
+        """Helper untuk paparkan nombor penuh: A001, B005"""
+        return f"{self.service_type}{self.number:03d}"
+
     def __str__(self):
-        return f"{self.name} - {self.number}"
+        return f"{self.name} - {self.ticket_number}"

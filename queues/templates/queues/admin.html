@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
 
-
 <style>
     /* --- CSS (Sama seperti design asal) --- */
     body { background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; min-height: 100vh; }
@@ -35,10 +34,9 @@
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .modal-title { font-size: 1.4rem; font-weight: 800; color: #212529; }
 
-    /* Visitor Grid */
-    .visitor-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding-bottom: 20px; }
-    .btn-num { background: #f8f9fa; border: 2px solid #e9ecef; padding: 15px 0; border-radius: 12px; font-weight: 700; color: #1f2937; cursor: pointer; text-align: center; }
-    .btn-num.selected { background-color: #e0f2fe; border-color: #3b82f6; color: #0284c7; box-shadow: 0 0 0 2px #3b82f6; }
+    /* Visitor Grid (Styled in Partial, but basic overrides here) */
+    .visitor-grid { padding-bottom: 20px; }
+    .btn-num.selected { background-color: #e0f2fe !important; border-color: #3b82f6 !important; color: #0284c7 !important; box-shadow: 0 0 0 2px #3b82f6; }
     
     .selection-actions { display: none; flex-direction: column; gap: 10px; margin-top: 10px; padding-top: 20px; border-top: 1px solid #eee; }
     .selection-info { text-align: center; font-size: 0.9rem; color: #6b7280; margin-bottom: 5px; }
@@ -48,15 +46,12 @@
     .htmx-request .htmx-indicator { display:inline; }
 </style>
 
-
-
-
 <div class="mobile-app-container">
     
     <div class="app-header">
         <div class="queue-name">{{ queue.name|truncatechars:20 }}</div>
         <button onclick="openSettingsModal()" class="btn-settings-app shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM9.05 3a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0V3h9.05zM4.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM2.05 8a2.5 2.5 0 0 1 4.9 0H16v1H6.95a2.5 2.5 0 0 1-4.9 0H0V8h2.05zm9.45 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm-2.45 1a2.5 2.5 0 0 1 4.9 0H16v1h-2.05a2.5 2.5 0 0 1-4.9 0H0v-1h9.05z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.86z"/></svg>
         </button>
     </div>
 
@@ -86,21 +81,24 @@
         </div>
         
         <div class="px-2 pb-2">
-            <input type="text" 
+            <input type="search" 
                    class="form-control bg-light border-0" 
-                   placeholder="Cari nombor tiket..." 
-                   onkeyup="filterVisitors(this.value)">
+                   placeholder="Cari nombor tiket (Contoh: A001)..." 
+                   name="q"
+                   hx-get="{% url 'search_visitors' queue.slug %}"
+                   hx-trigger="keyup changed delay:500ms"
+                   hx-target="#visitor-list-container">
         </div>
 
-        <div class="visitor-grid pt-3" id="visitor-list-grid">
-            <div class="text-center w-100 text-muted">Loading list...</div>
+        <div id="visitor-list-container" style="max-height: 50vh; overflow-y: auto;" class="mt-3">
+             {% include 'queues/partials/visitor_list.html' %}
         </div>
 
         <div id="selection-actions" class="selection-actions">
-            <div class="selection-info">Selected: <strong id="selected-number-display">--</strong></div>
-            <div class="d-flex gap-2 flex-column">
-                <a href="#" id="btn-call-selected" class="btn-app btn-primary-app py-3">Call Visitor</a>
-                <a href="#" id="btn-remove-selected" class="btn-app btn-danger-app py-3 fw-bold">Remove from queue</a>
+            <div class="selection-info">Dipilih: <strong id="selected-number-display" class="text-primary">--</strong></div>
+            <div class="d-grid gap-2">
+                <a href="#" id="btn-call-selected" class="btn btn-primary rounded-pill py-2 fw-bold">Panggil Sekarang</a>
+                <a href="#" id="btn-remove-selected" class="btn btn-outline-danger rounded-pill py-2">Padam</a>
             </div>
         </div>
     </div>
@@ -112,14 +110,28 @@
             <h5 class="modal-title m-0 fw-bold">Tambah Manual</h5>
             <button onclick="closeModals()" class="btn-close"></button>
         </div>
+        
         <form hx-post="{% url 'add_manual_visitor' queue.slug %}" hx-swap="none" onsubmit="closeModals()" class="py-3">
             {% csrf_token %}
+            
             <div class="mb-3">
+                <label class="form-label fw-bold">Jenis Servis</label>
+                <select name="service_type" class="form-select form-select-lg bg-light">
+                    <option value="A" selected>📝 A - Pendaftaran</option>
+                    <option value="B">💰 B - Pembayaran</option>
+                    <option value="C">❓ C - Pertanyaan</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
                 <label class="form-label fw-bold">Nama Pelawat (Pilihan)</label>
                 <input type="text" name="custom_name" class="form-control form-control-lg bg-light" 
-                       placeholder="{{ queue.input_label|default:'Enter name' }}">
+                       placeholder="{{ queue.input_label|default:'Contoh: En. Abu' }}">
             </div>
-            <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold">Masukkan Tiket</button>
+
+            <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold">
+                Masukkan Tiket
+            </button>
         </form>
     </div>
 </div>
@@ -135,56 +147,30 @@
         
     </div>
 </div>
-            
-            <div class="py-2">
-                <div class="mb-3">
-                    <label class="form-label fw-bold small text-muted">QUEUE NAME</label>
-                    <input type="text" name="name" class="form-control bg-light border-0" value="{{ queue.name }}">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-bold small text-muted">KIOSK LINK</label>
-                    <div class="input-group">
-                        <input type="text" class="form-control bg-light border-0" value="{{ request.scheme }}://{{ request.get_host }}/q/{{ queue.slug }}/join/" readonly>
-                        <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('{{ request.scheme }}://{{ request.get_host }}/q/{{ queue.slug }}/join/')">Copy</button>
-                    </div>
-                </div>
-                <div class="card bg-light border-0 mb-3">
-                    <div class="card-body d-flex justify-content-between align-items-center py-3">
-                        <span class="fw-bold text-dark">Allow Join</span>
-                        <div class="form-check form-switch m-0">
-                            <input class="form-check-input fs-5" type="checkbox" name="allow_join" {% if queue.allow_join %}checked{% endif %}>
-                        </div>
-                    </div>
-                </div>
-                <div class="mb-5"></div>
+
+<div id="confirmModal" class="modal-overlay">
+    <div class="modal-sheet text-center">
+         <div class="py-4">
+            <h3 class="fw-bold mb-3">Kembali ke Barisan?</h3>
+            <p class="text-muted mb-4">Hantar tiket <strong id="returnNum" class="text-dark">---</strong> semula ke senarai menunggu?</p>
+            <div class="d-grid gap-2">
+                <a id="confirmYesBtn" href="#" class="btn btn-primary btn-lg rounded-pill">Ya, Kembalikan</a>
+                <button type="button" onclick="closeModals()" class="btn btn-light btn-lg rounded-pill">Batal</button>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 
 <div id="removeModal" class="modal-overlay">
     <div class="modal-sheet text-center">
         <div class="py-4">
-            <h3 class="fw-bold text-danger mb-3">Clear Queue?</h3>
-            <p class="text-muted mb-4 px-3">This will remove <strong>ALL</strong> waiting visitors permanently.</p>
+            <h3 class="fw-bold text-danger mb-3">Reset Giliran?</h3>
+            <p class="text-muted mb-4 px-3">Tindakan ini akan memadam <strong>SEMUA</strong> pelawat yang sedang menunggu.</p>
             <form action="{% url 'remove_visitors' queue.slug %}" method="POST" class="d-grid gap-2">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-danger btn-lg rounded-pill">Yes, Clear All</button>
-                <button type="button" onclick="closeModals()" class="btn btn-light btn-lg rounded-pill">Cancel</button>
+                <button type="submit" class="btn btn-danger btn-lg rounded-pill">Ya, Padam Semua</button>
+                <button type="button" onclick="closeModals()" class="btn btn-light btn-lg rounded-pill">Batal</button>
             </form>
-        </div>
-    </div>
-</div>
-
-<div id="confirmModal" class="modal-overlay">
-    <div class="modal-sheet text-center">
-         <div class="py-4">
-            <h3 class="fw-bold mb-3">Return to Queue?</h3>
-            <p class="text-muted mb-4">Send visitor <strong id="returnNum">000</strong> back to waiting list?</p>
-            <div class="d-grid gap-2">
-                <a id="confirmYesBtn" href="#" class="btn btn-primary btn-lg rounded-pill">Yes, Return</a>
-                <button type="button" onclick="closeModals()" class="btn btn-light btn-lg rounded-pill">Cancel</button>
-            </div>
         </div>
     </div>
 </div>
@@ -195,22 +181,34 @@
         document.querySelectorAll('.modal-overlay').forEach(el => el.style.display = 'none');
         resetSelection();
     }
-    function openNumberModal() { document.getElementById('numberModal').style.display = 'flex'; }
-    function openAddModal() { document.getElementById('addModal').style.display = 'flex'; }
-    function openSettingsModal() { document.getElementById('settingsModal').style.display = 'flex'; }
-    function openRemoveModal() { closeModals(); document.getElementById('removeModal').style.display = 'flex'; }
     
-    function showConfirmModal(id, num) {
+    // Modal Openers (Global Functions untuk button onclick)
+    window.openNumberModal = function() { document.getElementById('numberModal').style.display = 'flex'; }
+    window.openAddModal = function() { document.getElementById('addModal').style.display = 'flex'; }
+    window.openSettingsModal = function() { document.getElementById('settingsModal').style.display = 'flex'; }
+    window.openRemoveModal = function() { closeModals(); document.getElementById('removeModal').style.display = 'flex'; }
+    
+    window.showConfirmModal = function(id, num) {
         document.getElementById('returnNum').innerText = num;
         document.getElementById('confirmYesBtn').href = "/q/visitor/" + id + "/return/";
         document.getElementById('confirmModal').style.display = 'flex';
     }
 
-    function selectVisitor(btnElement, id, number) {
+    // Logic Pemilihan Pelawat (Dipanggil dari partial visitor_list.html)
+    window.selectVisitor = function(btnElement, id, number) {
+        // Buang highlight lama
         document.querySelectorAll('.btn-num').forEach(el => el.classList.remove('selected'));
-        btnElement.classList.add('selected');
+        
+        // Highlight baru
+        if(btnElement) btnElement.classList.add('selected');
+        
+        // Tunjuk panel action
         document.getElementById('selection-actions').style.display = 'flex';
         document.getElementById('selected-number-display').innerText = number;
+        
+        // Set Link URL (Pastikan URL pattern anda di urls.py sepadan)
+        // Jika anda guna 'invite_specific_visitor', URL mungkin berbeza. Sila semak urls.py
+        // Contoh: path('visitor/<int:visitor_id>/invite/', ...)
         document.getElementById('btn-call-selected').href = "/q/visitor/" + id + "/invite/";
         document.getElementById('btn-remove-selected').href = "/q/visitor/" + id + "/remove/";
     }
@@ -220,32 +218,25 @@
         document.getElementById('selection-actions').style.display = 'none';
     }
 
-    function copyToClipboard(text) {
-        navigator.clipboard.writeText(text).then(() => { alert("Link copied!"); });
+    window.copyToClipboard = function(text) {
+        navigator.clipboard.writeText(text).then(() => { alert("Pautan berjaya disalin!"); });
     }
 
-    // Fungsi Filter Pelawat Manual (Tanpa Request Server)
-    function filterVisitors(query) {
-        const btns = document.querySelectorAll('.btn-num');
-        const lowerQuery = query.toLowerCase();
-        btns.forEach(btn => {
-            const num = btn.innerText.toLowerCase();
-            if(num.includes(lowerQuery)) {
-                btn.style.display = 'block';
-            } else {
-                btn.style.display = 'none';
-            }
-        });
-    }
-
-    // --- WEBSOCKET ---
+    // --- WEBSOCKET HANDLER ---
     const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
     const queueSlug = "{{ queue.slug }}"; 
     const socket = new WebSocket(protocol + window.location.host + '/ws/queue/' + queueSlug + '/');
 
     socket.onmessage = function(e) {
-        // Trigger HTMX refresh
+        // Bila ada update (cth: orang baru masuk), trigger event 'queue_update'
+        // HTMX di 'htmx-controller' akan tangkap event ini dan refresh dashboard
         document.body.dispatchEvent(new Event('queue_update'));
+        
+        // Opsyenal: Jika modal senarai sedang buka, refresh senarai juga
+        const listContainer = document.getElementById('visitor-list-container');
+        if(document.getElementById('numberModal').style.display === 'flex') {
+            htmx.trigger(document.querySelector('input[name="q"]'), 'keyup'); 
+        }
     };
 
     socket.onclose = function(e) { 
