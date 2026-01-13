@@ -109,10 +109,10 @@
     </div>
 </div> 
 
-<div id="start-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; justify-content: center; align-items: center; color: white; flex-direction: column; cursor: pointer;">
+<!-- <div id="start-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; justify-content: center; align-items: center; color: white; flex-direction: column; cursor: pointer;">
     <div style="font-size: 5rem;">🔇 ➡️ 🔊</div>
     <h1 style="margin-top: 20px;">Klik skrin untuk mulakan paparan</h1>
-</div>
+</div> -->
 
 <script>
     const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
@@ -158,7 +158,7 @@
             if (counterName) {
                 let counterNum = counterName.replace(/[^0-9]/g, '');
                 if(counterNum) {
-                    playlist.push("silake.mp3");
+                    //playlist.push("silake.mp3");
                     playlist.push("sebutan_kaunter.mp3");
                     playlist.push(counterNum + ".mp3");
                 } else {
