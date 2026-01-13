@@ -82,12 +82,12 @@
         
         <div class="px-2 pb-2">
             <input type="search" 
-                   class="form-control bg-light border-0" 
-                   placeholder="Cari nombor tiket (Contoh: A001)..." 
-                   name="q"
-                   hx-get="{% url 'search_visitors' queue.slug %}"
-                   hx-trigger="keyup changed delay:500ms"
-                   hx-target="#visitor-list-container">
+       class="form-control bg-light border-0" 
+       placeholder="Cari nombor tiket (Contoh: A001)..." 
+       name="q"
+       hx-get="{% url 'search_visitors' queue.slug %}"
+       hx-trigger="keyup changed delay:500ms, queue_update from:body" 
+       hx-target="#visitor-list-container">
         </div>
 
         <div id="visitor-list-container" style="max-height: 50vh; overflow-y: auto;" class="mt-3">
@@ -97,8 +97,8 @@
         <div id="selection-actions" class="selection-actions">
             <div class="selection-info">Dipilih: <strong id="selected-number-display" class="text-primary">--</strong></div>
             <div class="d-grid gap-2">
-                <a href="#" id="btn-call-selected" class="btn btn-primary rounded-pill py-2 fw-bold">Panggil Sekarang</a>
-                <a href="#" id="btn-remove-selected" class="btn btn-outline-danger rounded-pill py-2">Padam</a>
+                <button id="btn-call-selected" class="btn btn-primary rounded-pill py-2 fw-bold">Panggil Sekarang</button>
+                <button id="btn-remove-selected" class="btn btn-outline-danger rounded-pill py-2">Padam</button>
             </div>
         </div>
     </div>
@@ -194,23 +194,28 @@
         document.getElementById('confirmModal').style.display = 'flex';
     }
 
-    // Logic Pemilihan Pelawat (Dipanggil dari partial visitor_list.html)
+    // Logic Pemilihan Pelawat
     window.selectVisitor = function(btnElement, id, number) {
-        // Buang highlight lama
         document.querySelectorAll('.btn-num').forEach(el => el.classList.remove('selected'));
-        
-        // Highlight baru
         if(btnElement) btnElement.classList.add('selected');
         
-        // Tunjuk panel action
         document.getElementById('selection-actions').style.display = 'flex';
         document.getElementById('selected-number-display').innerText = number;
         
-        // Set Link URL (Pastikan URL pattern anda di urls.py sepadan)
-        // Jika anda guna 'invite_specific_visitor', URL mungkin berbeza. Sila semak urls.py
-        // Contoh: path('visitor/<int:visitor_id>/invite/', ...)
-        document.getElementById('btn-call-selected').href = "/q/visitor/" + id + "/invite/";
-        document.getElementById('btn-remove-selected').href = "/q/visitor/" + id + "/remove/";
+        // --- UBAH DUA BARIS INI ---
+        var callBtn = document.getElementById('btn-call-selected');
+        var removeBtn = document.getElementById('btn-remove-selected');
+
+        // Set Attribute untuk HTMX (Supaya tak perlu refresh page)
+        callBtn.setAttribute('hx-get', "/q/visitor/" + id + "/invite/");
+        callBtn.setAttribute('hx-swap', "none"); // Tak perlu swap apa-apa, WebSocket akan handle refresh
+        // Kita perlu process attribute baru ni supaya HTMX sedar
+        htmx.process(callBtn);
+
+        removeBtn.setAttribute('hx-get', "/q/visitor/" + id + "/remove/");
+        removeBtn.setAttribute('hx-swap', "none");
+        htmx.process(removeBtn);
+        // ---------------------------
     }
 
     function resetSelection() {
@@ -228,15 +233,10 @@
     const socket = new WebSocket(protocol + window.location.host + '/ws/queue/' + queueSlug + '/');
 
     socket.onmessage = function(e) {
-        // Bila ada update (cth: orang baru masuk), trigger event 'queue_update'
-        // HTMX di 'htmx-controller' akan tangkap event ini dan refresh dashboard
+        console.log("Data update received");
+        // Trigger event global. 
+        // Semua elemen yang ada 'hx-trigger="queue_update from:body"' akan auto-refresh!
         document.body.dispatchEvent(new Event('queue_update'));
-        
-        // Opsyenal: Jika modal senarai sedang buka, refresh senarai juga
-        const listContainer = document.getElementById('visitor-list-container');
-        if(document.getElementById('numberModal').style.display === 'flex') {
-            htmx.trigger(document.querySelector('input[name="q"]'), 'keyup'); 
-        }
     };
 
     socket.onclose = function(e) { 
