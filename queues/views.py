@@ -11,6 +11,7 @@ from asgiref.sync import async_to_sync
 #from asgiref.sync import sync_to_async
 from django.db import transaction
 from django.http import HttpResponse
+import re
 
 
 
@@ -23,16 +24,21 @@ def search_visitors(request, slug):
     query = request.GET.get('q')
     queue = get_object_or_404(Queue, slug=slug)
     
-    # Ambil semua waiting visitor
+    # LOGIC SUSUNAN: 
+    # 'is_returned' (False=0, True=1). Jadi False (Normal) naik dulu, True (Return) duduk bawah.
     visitors = Visitor.objects.filter(queue=queue, status='WAITING').order_by('is_returned', 'id')
     
     if query:
-        # Filter jika ada carian (case insensitive)
-        # Kita cari 'number' ATAU kita boleh filter guna 'ticket_number' logic kalau nak advanced
-        # Untuk simple, cari ikut nombor integer pun boleh, atau string search
-        visitors = visitors.filter(number__icontains=query) 
+        # LOGIC CARIAN: Buang huruf A, B, C, ambil nombor sahaja
+        # Contoh: User taip "A012" -> Jadi "12" -> Database cari 12
+        clean_query = re.sub(r'\D', '', query) 
         
-    # PENTING: Render fail partial yang baru kita buat
+        if clean_query:
+            visitors = visitors.filter(number__icontains=clean_query)
+        else:
+            # Kalau user taip nama (contoh: "Abu"), cari ikut nama
+            visitors = visitors.filter(name__icontains=query)
+        
     return render(request, 'queues/partials/visitor_list.html', {
         'all_waiting_visitors': visitors
     })

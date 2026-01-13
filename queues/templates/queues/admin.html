@@ -2,57 +2,43 @@
 {% block content %}
 
 <style>
-    /* --- CSS (Sama seperti design asal) --- */
-    body { background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; min-height: 100vh; }
-    .mobile-app-container { max-width: 480px; margin: 0 auto; min-height: 100vh; background-color: #ffffff; box-shadow: 0 0 30px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between; padding: 20px; box-sizing: border-box; }
+    /* CSS Khas Admin */
+    body { background-color: #f3f4f6; margin: 0; padding: 0; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+    .mobile-app-container { max-width: 480px; margin: 0 auto; min-height: 100vh; background-color: #ffffff; box-shadow: 0 0 30px rgba(0,0,0,0.1); display: flex; flex-direction: column; padding: 20px; }
+    
+    /* Header & Status */
     .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .queue-name { font-size: 1.1rem; font-weight: 700; color: #1f2937; }
+    .status-card { background-color: #1f2937; color: white; border-radius: 25px; padding: 30px 20px; text-align: center; margin-top: 10px; margin-bottom: auto; }
+    .status-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; }
+    .status-number { font-size: 6rem; font-weight: 800; line-height: 1; margin: 15px 0; }
     
-    .btn-settings-app { width: 48px; height: 48px; background-color: #e0f2fe; color: #0284c7; border: none; border-radius: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.1s; }
-    .btn-settings-app:active { transform: scale(0.95); }
-
-    /* Placeholder Status Card */
-    .status-card { background-color: #1f2937; color: white; border-radius: 25px; padding: 40px 20px; text-align: center; box-shadow: 0 15px 30px rgba(0,0,0,0.2); margin-bottom: auto; margin-top: 20px; }
-    .status-label { text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1.5px; opacity: 0.7; font-weight: 600; }
-    .status-number { font-size: 7rem; font-weight: 800; line-height: 1.1; margin: 10px 0; letter-spacing: -3px; }
-    .status-sub { font-size: 1rem; color: #9ca3af; }
-    .status-sub strong { color: #fff; }
-
-    /* Controls */
-    .controls-area { display: flex; flex-direction: column; gap: 12px; margin-top: 30px; margin-bottom: 20px; }
-    .btn-app { width: 100%; padding: 16px; border: none; border-radius: 16px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: transform 0.1s; text-decoration: none; display: flex; justify-content: center; align-items: center; }
-    .btn-app:active { transform: scale(0.97); }
-    .btn-primary-app { background-color: #3b82f6; color: white; box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4); font-size: 1.1rem; padding: 18px; }
-    .btn-secondary-app { background-color: #f8f9fa; color: #374151; border: 1px solid #e9ecef; }
-    .btn-danger-app { background-color: #fee2e2; color: #ef4444; border: 1px solid #fecaca; }
+    /* Buttons */
+    .controls-area { margin-top: 30px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; }
+    .btn-app { width: 100%; padding: 15px; border-radius: 15px; border: none; font-weight: 700; font-size: 1rem; cursor: pointer; text-decoration: none; display: flex; justify-content: center; align-items: center; }
+    .btn-primary-app { background-color: #3b82f6; color: white; font-size: 1.1rem; padding: 18px; }
+    .btn-secondary-app { background-color: #f3f4f6; color: #1f2937; }
     .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-    /* Modal CSS */
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; display: none; align-items: flex-end; justify-content: center; }
-    .modal-sheet { background: white; width: 100%; max-width: 480px; border-top-left-radius: 25px; border-top-right-radius: 25px; padding: 25px; animation: slideUp 0.3s ease-out; max-height: 85vh; overflow-y: auto; display: flex; flex-direction: column; }
+    /* Modal */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; display: none; align-items: flex-end; justify-content: center; }
+    .modal-sheet { background: white; width: 100%; max-width: 480px; border-radius: 25px 25px 0 0; padding: 25px; max-height: 80vh; display: flex; flex-direction: column; animation: slideUp 0.3s ease-out; }
     @keyframes slideUp { from {transform: translateY(100%);} to {transform: translateY(0);} }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .modal-title { font-size: 1.4rem; font-weight: 800; color: #212529; }
 
-    /* Visitor Grid (Styled in Partial, but basic overrides here) */
-    .visitor-grid { padding-bottom: 20px; }
-    .btn-num.selected { background-color: #e0f2fe !important; border-color: #3b82f6 !important; color: #0284c7 !important; box-shadow: 0 0 0 2px #3b82f6; }
-    
-    .selection-actions { display: none; flex-direction: column; gap: 10px; margin-top: 10px; padding-top: 20px; border-top: 1px solid #eee; }
-    .selection-info { text-align: center; font-size: 0.9rem; color: #6b7280; margin-bottom: 5px; }
-    
-    /* HTMX Indicator */
-    .htmx-indicator { display:none; }
-    .htmx-request .htmx-indicator { display:inline; }
+    /* Selection Actions */
+    .selection-actions { margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; display: none; flex-direction: column; gap: 10px; }
+
+    /* Visitor Grid dalam Modal */
+    .visitor-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; overflow-y: auto; padding-bottom: 10px; }
+    .btn-num { background: #fff; border: 2px solid #e5e7eb; border-radius: 12px; padding: 12px 0; font-weight: 700; color: #374151; font-size: 1rem; cursor: pointer; }
+    .btn-num.selected { background-color: #eff6ff; border-color: #3b82f6; color: #2563eb; }
 </style>
 
 <div class="mobile-app-container">
     
     <div class="app-header">
         <div class="queue-name">{{ queue.name|truncatechars:20 }}</div>
-        <button onclick="openSettingsModal()" class="btn-settings-app shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16"><path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.86z"/></svg>
-        </button>
+        <button onclick="openSettingsModal()" class="btn-app btn-secondary-app" style="width: 45px; height: 45px; padding: 0;">⚙️</button>
     </div>
 
     <div id="htmx-controller"
@@ -61,41 +47,36 @@
     </div>
 
     <div id="status-card-area" class="status-card">
-        <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-        <p class="mt-3 text-white-50 small">Syncing Data...</p>
+        <div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div>
     </div>
 
-    <div id="controls-area" class="controls-area text-center py-5">
-        <div class="spinner-border text-primary" role="status"></div>
+    <div id="controls-area" class="controls-area">
+        <div class="spinner-border text-primary mx-auto" role="status"></div>
     </div>
 
 </div>
 
 <div id="numberModal" class="modal-overlay">
     <div class="modal-sheet">
-        <div class="modal-header border-bottom pb-3">
-            <h5 class="modal-title m-0 fw-bold">Pilih Pelawat</h5>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold m-0">Pilih Pelawat</h5>
             <button onclick="closeModals()" class="btn-close"></button>
         </div>
-        
-        <div class="px-2 pb-2">
-            <input type="search" 
-       class="form-control bg-light border-0" 
-       placeholder="Cari nombor tiket (Contoh: A001)..." 
-       name="q"
-       hx-get="{% url 'search_visitors' queue.slug %}"
-       hx-trigger="keyup changed delay:500ms, queue_update from:body" 
-       hx-target="#visitor-list-container">
-        </div>
 
-        <div id="visitor-list-container" style="max-height: 50vh; overflow-y: auto;" class="mt-3">
+        <input type="search" 
+               class="form-control form-control-lg bg-light border-0 mb-3" 
+               placeholder="Cari nombor (Contoh: A012)..." 
+               name="q"
+               hx-get="{% url 'search_visitors' queue.slug %}"
+               hx-trigger="keyup changed delay:500ms, queue_update from:body" 
+               hx-target="#visitor-list-container">
+
+        <div id="visitor-list-container" style="flex: 1; overflow-y: auto;">
              {% include 'queues/partials/visitor_list.html' %}
         </div>
 
         <div id="selection-actions" class="selection-actions">
-            <div class="selection-info">Dipilih: <strong id="selected-number-display" class="text-primary">--</strong></div>
+            <div class="text-center text-muted small mb-1">Nombor Dipilih: <strong id="selected-number-display" class="text-primary">--</strong></div>
             <div class="d-grid gap-2">
                 <button id="btn-call-selected" class="btn btn-primary rounded-pill py-2 fw-bold">Panggil Sekarang</button>
                 <button id="btn-remove-selected" class="btn btn-outline-danger rounded-pill py-2">Padam</button>
@@ -106,56 +87,37 @@
 
 <div id="addModal" class="modal-overlay">
     <div class="modal-sheet">
-        <div class="modal-header border-bottom pb-3">
-            <h5 class="modal-title m-0 fw-bold">Tambah Manual</h5>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold m-0">Tambah Manual</h5>
             <button onclick="closeModals()" class="btn-close"></button>
         </div>
-        
-        <form hx-post="{% url 'add_manual_visitor' queue.slug %}" hx-swap="none" onsubmit="closeModals()" class="py-3">
+        <form hx-post="{% url 'add_manual_visitor' queue.slug %}" hx-swap="none" onsubmit="closeModals()">
             {% csrf_token %}
-            
             <div class="mb-3">
-                <label class="form-label fw-bold">Jenis Servis</label>
-                <select name="service_type" class="form-select form-select-lg bg-light">
+                <label class="fw-bold small text-muted">JENIS SERVIS</label>
+                <select name="service_type" class="form-select form-select-lg bg-light border-0">
                     <option value="A" selected>📝 A - Pendaftaran</option>
                     <option value="B">💰 B - Pembayaran</option>
                     <option value="C">❓ C - Pertanyaan</option>
                 </select>
             </div>
-
             <div class="mb-4">
-                <label class="form-label fw-bold">Nama Pelawat (Pilihan)</label>
-                <input type="text" name="custom_name" class="form-control form-control-lg bg-light" 
-                       placeholder="{{ queue.input_label|default:'Contoh: En. Abu' }}">
+                <label class="fw-bold small text-muted">NAMA (PILIHAN)</label>
+                <input type="text" name="custom_name" class="form-control form-control-lg bg-light border-0" placeholder="Contoh: Ali">
             </div>
-
-            <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold">
-                Masukkan Tiket
-            </button>
+            <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold">Cetak Tiket</button>
         </form>
-    </div>
-</div>
-
-<div id="settingsModal" class="modal-overlay">
-    <div class="modal-sheet">
-        <div class="modal-header border-bottom pb-3 mb-3">
-            <h5 class="modal-title m-0 fw-bold">Settings</h5>
-            <button type="button" onclick="closeModals()" class="btn-close"></button>
-        </div>
-        
-        {% include 'queues/partials/settings_form.html' %}
-        
     </div>
 </div>
 
 <div id="confirmModal" class="modal-overlay">
     <div class="modal-sheet text-center">
          <div class="py-4">
-            <h3 class="fw-bold mb-3">Kembali ke Barisan?</h3>
-            <p class="text-muted mb-4">Hantar tiket <strong id="returnNum" class="text-dark">---</strong> semula ke senarai menunggu?</p>
-            <div class="d-grid gap-2">
+            <h3 class="fw-bold mb-3">Return to Queue?</h3>
+            <p class="text-muted">Hantar <strong id="returnNum" class="text-dark">---</strong> ke barisan belakang?</p>
+            <div class="d-grid gap-2 mt-4">
                 <a id="confirmYesBtn" href="#" class="btn btn-primary btn-lg rounded-pill">Ya, Kembalikan</a>
-                <button type="button" onclick="closeModals()" class="btn btn-light btn-lg rounded-pill">Batal</button>
+                <button onclick="closeModals()" class="btn btn-light btn-lg rounded-pill">Batal</button>
             </div>
         </div>
     </div>
@@ -164,9 +126,9 @@
 <div id="removeModal" class="modal-overlay">
     <div class="modal-sheet text-center">
         <div class="py-4">
-            <h3 class="fw-bold text-danger mb-3">Reset Giliran?</h3>
-            <p class="text-muted mb-4 px-3">Tindakan ini akan memadam <strong>SEMUA</strong> pelawat yang sedang menunggu.</p>
-            <form action="{% url 'remove_visitors' queue.slug %}" method="POST" class="d-grid gap-2">
+            <h3 class="fw-bold text-danger mb-3">Clear Queue?</h3>
+            <p class="text-muted">Tindakan ini memadam <strong>SEMUA</strong> pelawat menunggu.</p>
+            <form action="{% url 'remove_visitors' queue.slug %}" method="POST" class="d-grid gap-2 mt-4">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger btn-lg rounded-pill">Ya, Padam Semua</button>
                 <button type="button" onclick="closeModals()" class="btn btn-light btn-lg rounded-pill">Batal</button>
@@ -175,47 +137,53 @@
     </div>
 </div>
 
+<div id="settingsModal" class="modal-overlay">
+    <div class="modal-sheet">
+         <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold m-0">Settings</h5>
+            <button onclick="closeModals()" class="btn-close"></button>
+        </div>
+        {% include 'queues/partials/settings_form.html' %}
+    </div>
+</div>
+
 <script>
-    // --- UI LOGIC ---
+    // --- UI HELPERS ---
     function closeModals() {
         document.querySelectorAll('.modal-overlay').forEach(el => el.style.display = 'none');
         resetSelection();
     }
     
-    // Modal Openers (Global Functions untuk button onclick)
-    window.openNumberModal = function() { document.getElementById('numberModal').style.display = 'flex'; }
-    window.openAddModal = function() { document.getElementById('addModal').style.display = 'flex'; }
-    window.openSettingsModal = function() { document.getElementById('settingsModal').style.display = 'flex'; }
-    window.openRemoveModal = function() { closeModals(); document.getElementById('removeModal').style.display = 'flex'; }
+    window.openNumberModal = () => document.getElementById('numberModal').style.display = 'flex';
+    window.openAddModal = () => document.getElementById('addModal').style.display = 'flex';
+    window.openSettingsModal = () => document.getElementById('settingsModal').style.display = 'flex';
+    window.openRemoveModal = () => { closeModals(); document.getElementById('removeModal').style.display = 'flex'; }
     
-    window.showConfirmModal = function(id, num) {
+    window.showConfirmModal = (id, num) => {
         document.getElementById('returnNum').innerText = num;
         document.getElementById('confirmYesBtn').href = "/q/visitor/" + id + "/return/";
         document.getElementById('confirmModal').style.display = 'flex';
     }
 
-    // Logic Pemilihan Pelawat
-    window.selectVisitor = function(btnElement, id, number) {
+    // Logic Pilih Pelawat & Set HTMX Button
+    window.selectVisitor = (btnElement, id, number) => {
         document.querySelectorAll('.btn-num').forEach(el => el.classList.remove('selected'));
         if(btnElement) btnElement.classList.add('selected');
         
         document.getElementById('selection-actions').style.display = 'flex';
         document.getElementById('selected-number-display').innerText = number;
         
-        // --- UBAH DUA BARIS INI ---
-        var callBtn = document.getElementById('btn-call-selected');
-        var removeBtn = document.getElementById('btn-remove-selected');
+        // Setup HTMX Buttons secara dinamik
+        let callBtn = document.getElementById('btn-call-selected');
+        let removeBtn = document.getElementById('btn-remove-selected');
 
-        // Set Attribute untuk HTMX (Supaya tak perlu refresh page)
-        callBtn.setAttribute('hx-get', "/q/visitor/" + id + "/invite/");
-        callBtn.setAttribute('hx-swap', "none"); // Tak perlu swap apa-apa, WebSocket akan handle refresh
-        // Kita perlu process attribute baru ni supaya HTMX sedar
-        htmx.process(callBtn);
+        callBtn.setAttribute('hx-get', `/q/visitor/${id}/invite/`);
+        callBtn.setAttribute('hx-swap', 'none'); 
+        htmx.process(callBtn); // Refresh HTMX binding
 
-        removeBtn.setAttribute('hx-get', "/q/visitor/" + id + "/remove/");
-        removeBtn.setAttribute('hx-swap', "none");
+        removeBtn.setAttribute('hx-get', `/q/visitor/${id}/remove/`);
+        removeBtn.setAttribute('hx-swap', 'none');
         htmx.process(removeBtn);
-        // ---------------------------
     }
 
     function resetSelection() {
@@ -223,26 +191,20 @@
         document.getElementById('selection-actions').style.display = 'none';
     }
 
-    window.copyToClipboard = function(text) {
-        navigator.clipboard.writeText(text).then(() => { alert("Pautan berjaya disalin!"); });
+    window.copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text).then(() => alert("Copied!"));
     }
 
-    // --- WEBSOCKET HANDLER ---
+    // --- WEBSOCKET ---
     const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-    const queueSlug = "{{ queue.slug }}"; 
-    const socket = new WebSocket(protocol + window.location.host + '/ws/queue/' + queueSlug + '/');
+    const socket = new WebSocket(protocol + window.location.host + '/ws/queue/{{ queue.slug }}/');
 
     socket.onmessage = function(e) {
-        console.log("Data update received");
-        // Trigger event global. 
-        // Semua elemen yang ada 'hx-trigger="queue_update from:body"' akan auto-refresh!
+        // Trigger global event untuk update semua HTMX elements (Search list & Dashboard)
         document.body.dispatchEvent(new Event('queue_update'));
     };
-
-    socket.onclose = function(e) { 
-        console.log("Socket putus. Reconnecting...");
-        setTimeout(() => location.reload(), 3000); 
-    };
+    
+    socket.onclose = () => setTimeout(() => location.reload(), 3000);
 </script>
 
 {% endblock %}
