@@ -63,9 +63,35 @@
             <button onclick="closeModals()" class="btn-close"></button>
         </div>
 
+        <div class="d-flex gap-2 mb-3 overflow-auto" style="white-space: nowrap;">
+            <button class="btn btn-sm btn-dark px-3 rounded-pill"
+                    hx-get="{% url 'search_visitors' queue.slug %}?type=ALL"
+                    hx-target="#visitor-list-container">
+                Semua
+            </button>
+
+            <button class="btn btn-sm btn-primary px-3 rounded-pill"
+                    hx-get="{% url 'search_visitors' queue.slug %}?type=A"
+                    hx-target="#visitor-list-container">
+                📝 A
+            </button>
+
+            <button class="btn btn-sm btn-success px-3 rounded-pill"
+                    hx-get="{% url 'search_visitors' queue.slug %}?type=B"
+                    hx-target="#visitor-list-container">
+                💰 B
+            </button>
+
+            <button class="btn btn-sm btn-info text-white px-3 rounded-pill"
+                    hx-get="{% url 'search_visitors' queue.slug %}?type=C"
+                    hx-target="#visitor-list-container">
+                ❓ C
+            </button>
+        </div>
+
         <input type="search" 
                class="form-control form-control-lg bg-light border-0 mb-3" 
-               placeholder="Cari nombor (Contoh: A012)..." 
+               placeholder="Cari nombor..." 
                name="q"
                hx-get="{% url 'search_visitors' queue.slug %}"
                hx-trigger="keyup changed delay:500ms, queue_update from:body" 
@@ -75,14 +101,7 @@
              {% include 'queues/partials/visitor_list.html' %}
         </div>
 
-        <div id="selection-actions" class="selection-actions">
-            <div class="text-center text-muted small mb-1">Nombor Dipilih: <strong id="selected-number-display" class="text-primary">--</strong></div>
-            <div class="d-grid gap-2">
-                <button id="btn-call-selected" class="btn btn-primary rounded-pill py-2 fw-bold">Panggil Sekarang</button>
-                <button id="btn-remove-selected" class="btn btn-outline-danger rounded-pill py-2">Padam</button>
-            </div>
         </div>
-    </div>
 </div>
 
 <div id="addModal" class="modal-overlay">

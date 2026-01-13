@@ -22,26 +22,30 @@ def get_ticket_format(visitor):
 
 def search_visitors(request, slug):
     query = request.GET.get('q')
+    service_filter = request.GET.get('type') # <--- TAMBAH INI (Ambil parameter filter)
     queue = get_object_or_404(Queue, slug=slug)
     
-    # LOGIC SUSUNAN: 
-    # 'is_returned' (False=0, True=1). Jadi False (Normal) naik dulu, True (Return) duduk bawah.
     visitors = Visitor.objects.filter(queue=queue, status='WAITING').order_by('is_returned', 'id')
     
+    # 1. Filter ikut Service Type (A/B/C) jika butang ditekan
+    if service_filter and service_filter != 'ALL':
+        visitors = visitors.filter(service_type=service_filter)
+
+    # 2. Filter ikut Carian Nombor/Nama
     if query:
-        # LOGIC CARIAN: Buang huruf A, B, C, ambil nombor sahaja
-        # Contoh: User taip "A012" -> Jadi "12" -> Database cari 12
-        clean_query = re.sub(r'\D', '', query) 
-        
+        clean_query = re.sub(r'\D', '', query)
         if clean_query:
             visitors = visitors.filter(number__icontains=clean_query)
         else:
-            # Kalau user taip nama (contoh: "Abu"), cari ikut nama
             visitors = visitors.filter(name__icontains=query)
         
     return render(request, 'queues/partials/visitor_list.html', {
         'all_waiting_visitors': visitors
     })
+    
+    
+    
+    
 
 def get_admin_updates(request, slug):
     queue = get_object_or_404(Queue, slug=slug)
