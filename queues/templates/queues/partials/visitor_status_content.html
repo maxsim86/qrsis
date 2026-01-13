@@ -4,47 +4,47 @@
     <div class="circle-card {% if visitor.status == 'SERVING' %}serving{% endif %}">
         
         {% if visitor.status == 'WAITING' %}
-            <div class="text-top">Your number is <strong>#{{ visitor.number|stringformat:"03d" }}</strong></div>
+            <div class="text-top">Nombor anda <strong>#{{ visitor.number|stringformat:"03d" }}</strong></div>
             
             <div class="text-main">
                 {% if position == 1 %}
-                    You are 1st
+                    Anda no 1
                 {% elif position == 2 %}
-                    You are 2nd
+                    Anda no 2
                 {% elif position == 3 %}
-                    You are 3rd
+                    Anda no 3
                 {% else %}
-                    You are {{ position }}th
+                    Anda no {{ position }}ke
                 {% endif %}
-                <br>in the queue
+                <br>dalam barisan
             </div>
             
             <div class="text-sub">
                 <span class="divider-line"></span>
                 {% if position <= 2 %}
-                    almost there!
+                   hampir tiba!
                 {% else %}
-                    wait a bit more
+                    tunggu sikit lagi
                 {% endif %}
             </div>
 
         {% elif visitor.status == 'SERVING' %}
             <div class="text-top">Number <strong>#{{ visitor.number|stringformat:"03d" }}</strong></div>
-            <div class="text-main" style="color: #22c55e;">It's your<br>turn now!</div>
+            <div class="text-main" style="color: #22c55e;">Giliran anda<br>sekarang!</div>
             <div class="text-sub">
                 <span class="divider-line"></span>
-                you are invited!
+                anda dijemput!
             </div>
 
         {% else %}
-            <div class="text-main">Done</div>
-            <div class="text-sub">Thanks for visiting</div>
+            <div class="text-main">Selesai</div>
+            <div class="text-sub">Terima kasih</div>
         {% endif %}
         
     </div>
 </div>
 
 {% if visitor.status == 'WAITING' %}
-    <button class="btn-action btn-blue" onclick="alert('Notifications enabled!')">Enable notifications</button>
-    <a href="{% url 'visitor_quit' visitor.id %}" class="btn-action btn-gray">Quit the queue</a>
+    <button class="btn-action btn-blue" onclick="alert('Notifications enabled!')">Benarkan notifikasi</button>
+    <a href="{% url 'visitor_quit' visitor.id %}" class="btn-action btn-gray">Keluar dari Q</a>
 {% endif %}

@@ -116,18 +116,18 @@
 <div id="returnModal" class="modal-overlay">
     <div class="modal-card">
         <div class="modal-emoji">⏳</div>
-        <div class="modal-h">You were moved to queue</div>
-        <div class="modal-p">Please, wait for your turn</div>
-        <button onclick="closeModal('returnModal')" class="btn-action btn-blue">Good</button>
+        <div class="modal-h">Anda telah dipindahkan ke Q</div>
+        <div class="modal-p">Sila tunggu giliran anda</div>
+        <button onclick="closeModal('returnModal')" class="btn-action btn-blue">Bagus</button>
     </div>
 </div>
 
 <div id="inviteModal" class="modal-overlay">
     <div class="modal-card">
         <div class="modal-emoji">🎉</div>
-        <div class="modal-h">It's your turn!</div>
-        <div class="modal-p">Please proceed to the counter</div>
-        <button onclick="closeModal('inviteModal')" class="btn-action btn-blue">On my way</button>
+        <div class="modal-h">Giliran anda!</div>
+        <div class="modal-p">Sila terus ke kaunter</div>
+        <button onclick="closeModal('inviteModal')" class="btn-action btn-blue">Dalam perjalanan</button>
     </div>
 </div>
 
@@ -138,9 +138,9 @@
 
 {% if visitor.status == 'WAITING' %}
     <button id="btn-enable-notif" class="btn-action btn-blue" onclick="enableSmartAlerts()">
-        🔔 Enable Notifications & Keep Awake
+        🔔 Benarkan Pemberitahuan dan Kekal Terjaga
     </button>
-    <a href="{% url 'visitor_quit' visitor.id %}" class="btn-action btn-gray">Quit the queue</a>
+    <a href="{% url 'visitor_quit' visitor.id %}" class="btn-action btn-gray">Keluar dari Q</a>
 {% endif %}
 
 

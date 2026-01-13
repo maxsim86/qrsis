@@ -37,24 +37,22 @@
         <h5 class="fw-bold mb-3 text-dark">Queue: {{ queue.name }}</h5>
 
 
-        <div class="link-item">
-    <div class="link-label">
-        Link for visitors (used in QR code):
-        <span class="badge bg-success ms-2">Mobile Optimized</span>
-    </div>
-    <div class="link-value">
-        <a href="{{ visitor_dashboard_url }}" target="_blank">{{ visitor_dashboard_url }}</a>
-    </div>
-</div>
 
-<div class="link-item">
-    <div class="link-label">
-        Kiosk Link (For iPad/Tablet at entrance):
-    </div>
-    <div class="link-value">
-        <a href="{{ kiosk_url }}" target="_blank">{{ kiosk_url }}</a>
-    </div>
-</div>
+
+   
+        <div class="mb-3">
+            <span class="fw-bold text-dark">Pautan untuk pelawat (digunakan dalam QR):</span> 
+            <span class="badge bg-success ms-2">Mobile Optimized</span>
+            <a href="{{ visitor_dashboard_url }}" target="_blank" class="text-break text-primary text-decoration-none">{{ visitor_dashboard_url }}</a>
+        </div>
+
+
+        <div class="mb-3">
+            <span class="fw-bold text-dark">Pautan Kiosk (Untuk Mobile):</span> 
+            <a href="{{ kiosk_url }}" target="_blank" class="text-break text-primary text-decoration-none">{{ kiosk_url }}</a>
+        </div>
+
+
         
         <div class="mb-3">
             <span class="fw-bold text-dark">Pautan untuk pelawat (digunakan dalam kod QR):</span> 

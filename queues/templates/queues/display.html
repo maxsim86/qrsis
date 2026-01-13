@@ -72,7 +72,7 @@
     </div>    
 
     <div id="active-container" class="active-section">
-        <div class="label-current">Now Serving</div>
+        <div class="label-current">Sedang Berkhidmat</div>
         
         <div id="number-text" class="big-number">
             {% if current_serving %}
@@ -92,7 +92,7 @@
     </div>
 
     <div class="footer-section">
-        <div class="next-label">Coming Up Next</div>
+        <div class="next-label">Akan Datang</div>
         <div id="next-list-container" class="next-list">
             {% if next_visitors %}
                 {% for ticket in next_visitors %}
@@ -148,7 +148,6 @@
             if (counterName) {
                 let counterNum = counterName.replace(/[^0-9]/g, '');
                 if(counterNum) {
-                    // playlist.push("silake.mp3"); // Anda comment out ini, jadi saya kekalkan
                     playlist.push("sebutan_kaunter.mp3");
                     playlist.push(counterNum + ".mp3");
                 } else {

@@ -2,16 +2,16 @@
 {% block content %}
 <div class="container d-flex flex-column align-items-center justify-content-center min-vh-100">
     <div class="card p-4 shadow" style="max-width: 400px; width: 100%;">
-        <h3 class="text-center fw-bold mb-3">Counter Setup</h3>
-        <p class="text-center text-muted">Which counter are you manning today?</p>
+        <h3 class="text-center fw-bold mb-3">Kaunter Setup</h3>
+        <p class="text-center text-muted">Kaunter mana yang anda jaga hari ini??</p>
         
         <form method="POST">
             {% csrf_token %}
             <div class="mb-3">
-                <label class="form-label fw-bold">Counter Name</label>
-                <input type="text" name="counter_name" class="form-control form-control-lg" placeholder="e.g. Counter 1" required>
+                <label class="form-label fw-bold">Nama Kaunter</label>
+                <input type="text" name="counter_name" class="form-control form-control-lg" placeholder="e.g. Kaunter 1 atau Kaunter A" required>
             </div>
-            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Start Serving</button>
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Mula Berkhidmat</button>
         </form>
     </div>
 </div>
