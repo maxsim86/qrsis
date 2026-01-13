@@ -12,8 +12,67 @@ from asgiref.sync import async_to_sync
 from django.db import transaction
 from django.http import HttpResponse
 import re
+import json
+from django.db.models import Count
+from django.utils import timezone
+from django.db.models.functions import ExtractHour
 
+def queue_stats(request, slug):
+    queue = get_object_or_404(Queue, slug=slug)
+    # 1. Ambil pelawat HARI INI sahaja
+    today = timezone.now().date()
+    visitors_today = Visitor.objects.filter(queue=queue, joined_at__date=today)
+    
+    # 2. Statistik Asas
+    total_today = visitors_today.count()
+    completed_count = visitors_today.filter(status='COMPLETED').count()
+    waiting_count = visitors_today.filter(status='WAITING').count()
+    serving_count = visitors_today.filter(status='SERVING').count()
+    
+    # 3. Statistik Mengikut Servis (A, B, C)
+    count_a = visitors_today.filter(service_type='A').count()
+    count_b = visitors_today.filter(service_type='B').count()
+    count_c = visitors_today.filter(service_type='C').count()
+    
+    # 4. Data untuk Carta 1 & 2
+    chart_service_data = [count_a, count_b, count_c]
+    chart_status_data = [completed_count, serving_count, waiting_count]
 
+    # --- 5. LOGIK BARU: WAKTU PUNCAK (PEAK HOURS) ---
+    # Kira berapa orang datang pada pukul 8, 9, 10, dll.
+    peak_data = visitors_today.annotate(hour=ExtractHour('joined_at')) \
+                              .values('hour') \
+                              .annotate(count=Count('id')) \
+                              .order_by('hour')
+    
+    # Sediakan label jam (8:00 - 17:00)
+    # Ini create list: ["8:00", "9:00", ... "17:00"]
+    hours_labels = [f"{h}:00" for h in range(8, 18)] 
+    
+    # Sediakan data kosong (0 pelawat untuk setiap jam)
+    hours_data = [0] * 10 
+    
+    # Isi data sebenar ke dalam slot jam yang betul
+    for item in peak_data:
+        h = item['hour']
+        # Pastikan jam berada dalam lingkungan ofis (8am - 5pm)
+        if 8 <= h < 18:
+            index = h - 8 # Contoh: Pukul 8 tolak 8 = index 0
+            hours_data[index] = item['count']
+
+    context = {
+        'queue': queue,
+        'today': today,
+        'total_today': total_today,
+        # Data Carta Asal
+        'chart_service_data': json.dumps(chart_service_data),
+        'chart_status_data': json.dumps(chart_status_data),
+        # Data Carta Baru (Waktu Puncak)
+        'chart_hours_labels': json.dumps(hours_labels),
+        'chart_hours_data': json.dumps(hours_data),
+    }
+    
+    return render(request, 'queues/stats.html', context)
 
 
 def get_ticket_format(visitor):

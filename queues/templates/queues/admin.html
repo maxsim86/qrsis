@@ -37,9 +37,20 @@
 <div class="mobile-app-container">
     
     <div class="app-header">
-        <div class="queue-name">{{ queue.name|truncatechars:20 }}</div>
-        <button onclick="openSettingsModal()" class="btn-app btn-secondary-app" style="width: 45px; height: 45px; padding: 0;">⚙️</button>
+    <div class="queue-name">{{ queue.name|truncatechars:20 }}</div>
+    
+    <div class="d-flex gap-2">
+        <a href="{% url 'queue_stats' queue.slug %}" class="btn-settings-app shadow-sm text-decoration-none" style="background-color: #f0fdf4; color: #16a34a;">
+            📊
+        </a>
+
+        <button onclick="openSettingsModal()" class="btn-settings-app shadow-sm">
+            ⚙️
+        </button>
     </div>
+</div>
+
+
 
     <div id="htmx-controller"
          hx-get="{% url 'get_admin_updates' queue.slug %}"
@@ -103,7 +114,7 @@
             <div class="d-grid gap-2">
                 <button id="btn-call-selected" class="btn btn-primary rounded-pill py-2 fw-bold">Panggil Sekarang</button>
                 
-                <button id="btn-remove-selected" class="btn btn-outline-danger rounded-pill py-2">Padam dari Queue</button>
+                <button id="btn-remove-selected" class="btn btn-outline-danger rounded-pill py-2">Padam dari Q</button>
             </div>
         </div>
 

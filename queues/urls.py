@@ -59,5 +59,6 @@ urlpatterns = [
     path('q/<slug:slug>/add-manual/', views.add_manual_visitor, name='add_manual_visitor'),
     path('q/<slug:slug>/remove-all/', views.remove_visitors, name='remove_visitors'),
     path('q/<slug:slug>/visitor-join/', views.visitor_join, name='visitor_join'),
+    path('q/<str:slug>/stats/', views.queue_stats, name='queue_stats'),
 
 ]
