@@ -1,20 +1,32 @@
 <style>
     /* --- CSS UNTUK UI KIOSK --- */
+    
     .kiosk-wrapper {
-        position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+        /* Tukar ke FIXED supaya sentiasa center di skrin */
+        position: fixed; 
+        top: 0; left: 0; right: 0; bottom: 0;
         width: 100%; height: 100%;
         display: flex; justify-content: center; align-items: center;
         background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-        z-index: 10;
+        z-index: 9999; /* Pastikan ia paling atas */
+        overflow-y: auto;
     }
 
     /* SKRIN 1: ATTRACT MODE */
     .attract-card {
-        text-align: center; cursor: pointer; padding: 40px; border-radius: 30px;
-        transition: transform 0.2s ease; max-width: 800px; width: 90%;
-        display: flex; flex-direction: column; align-items: center;
+        text-align: center; 
+        cursor: pointer; 
+        padding: 40px; 
+        border-radius: 30px;
+        transition: transform 0.2s ease; 
+        max-width: 800px; width: 90%;
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; /* Centerkan Logo & Teks secara horizontal */
+        justify-content: center; /* Centerkan secara vertical */
     }
     .attract-card:active { transform: scale(0.98); }
+    
     .kiosk-logo { height: 120px; width: auto; margin-bottom: 30px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1)); }
     .touch-icon { font-size: 5rem; margin-bottom: 20px; animation: float 3s ease-in-out infinite; }
     .attract-title { font-size: 2.5rem; font-weight: 800; color: #1f2937; margin-bottom: 10px; }
@@ -28,16 +40,27 @@
         display: none; 
         animation: slideUp 0.4s ease-out;
         position: relative;
+        margin: auto; /* Pastikan card berada di tengah */
     }
     
-    .form-header { font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 20px; }
+    .form-header { font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 30px; }
 
-    /* Butang Servis */
+    /* --- BUTANG SERVIS (CENTERED) --- */
     .btn-service {
-        display: flex; align-items: center; justify-content: flex-start;
-        padding: 20px 25px; margin-bottom: 15px; width: 100%;
-        border: none; border-radius: 20px; text-align: left;
-        cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+        display: flex; 
+        align-items: center; 
+        
+        /* UBAH DI SINI: Tukar flex-start kepada CENTER */
+        justify-content: center; 
+        
+        padding: 20px 25px; 
+        margin-bottom: 15px; 
+        width: 100%;
+        border: none; 
+        border-radius: 20px; 
+        text-align: left; /* Teks dalaman kekal kemas */
+        cursor: pointer; 
+        transition: transform 0.2s, box-shadow 0.2s;
         position: relative;
     }
     .btn-service:active { transform: scale(0.98); }
@@ -46,18 +69,42 @@
     .btn-srv-b { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
     .btn-srv-c { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; }
 
-    .srv-icon { font-size: 2rem; margin-right: 15px; background: rgba(255,255,255,0.2); width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 12px; }
-    .srv-text h3 { margin: 0; font-weight: 700; font-size: 1.3rem; }
-    .srv-text p { margin: 0; opacity: 0.9; font-size: 0.8rem; }
+    .srv-icon { 
+        font-size: 2rem; 
+        margin-right: 20px; /* Jarak antara ikon dan teks */
+        background: rgba(255,255,255,0.2); 
+        width: 60px; height: 60px; /* Besarkan sikit kotak ikon */
+        display: flex; align-items: center; justify-content: center; 
+        border-radius: 15px; 
+        flex-shrink: 0; /* Elak ikon jadi kemek */
+    }
+    
+    .srv-text {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        /* Biar text align left supaya tajuk & sub-tajuk selari */
+        text-align: left; 
+        min-width: 180px; /* Tetapkan lebar minimum supaya nampak seimbang */
+    }
+
+    .srv-text h3 { margin: 0; font-weight: 700; font-size: 1.4rem; line-height: 1.2; }
+    .srv-text p { margin: 5px 0 0 0; opacity: 0.9; font-size: 0.9rem; }
 
     /* Input Nama */
     .modern-input {
         width: 100%; padding: 15px; font-size: 1.2rem; text-align: center;
         border: 2px solid #e5e7eb; border-radius: 15px; background-color: #f9fafb;
-        margin-bottom: 20px; outline: none; transition: all 0.3s;
+        margin-bottom: 25px; outline: none; transition: all 0.3s;
     }
     .modern-input:focus { border-color: #3b82f6; background-color: white; }
-    .btn-cancel { margin-top: 15px; background: none; border: none; color: #9ca3af; cursor: pointer; }
+    
+    .btn-cancel { 
+        margin-top: 10px; background: none; border: none; 
+        color: #9ca3af; cursor: pointer; font-size: 1rem;
+        padding: 10px 20px;
+    }
+    .btn-cancel:hover { color: #6b7280; text-decoration: underline; }
 
     /* Animasi & Loading */
     @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0px); } }
