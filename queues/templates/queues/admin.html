@@ -69,19 +69,16 @@
                     hx-target="#visitor-list-container">
                 Semua
             </button>
-
             <button class="btn btn-sm btn-primary px-3 rounded-pill"
                     hx-get="{% url 'search_visitors' queue.slug %}?type=A"
                     hx-target="#visitor-list-container">
                 📝 A
             </button>
-
             <button class="btn btn-sm btn-success px-3 rounded-pill"
                     hx-get="{% url 'search_visitors' queue.slug %}?type=B"
                     hx-target="#visitor-list-container">
                 💰 B
             </button>
-
             <button class="btn btn-sm btn-info text-white px-3 rounded-pill"
                     hx-get="{% url 'search_visitors' queue.slug %}?type=C"
                     hx-target="#visitor-list-container">
@@ -101,7 +98,16 @@
              {% include 'queues/partials/visitor_list.html' %}
         </div>
 
+        <div id="selection-actions" class="selection-actions">
+            <div class="text-center text-muted small mb-1">Nombor Dipilih: <strong id="selected-number-display" class="text-primary">--</strong></div>
+            <div class="d-grid gap-2">
+                <button id="btn-call-selected" class="btn btn-primary rounded-pill py-2 fw-bold">Panggil Sekarang</button>
+                
+                <button id="btn-remove-selected" class="btn btn-outline-danger rounded-pill py-2">Padam dari Queue</button>
+            </div>
         </div>
+
+    </div>
 </div>
 
 <div id="addModal" class="modal-overlay">
@@ -186,30 +192,43 @@
 
     // Logic Pilih Pelawat & Set HTMX Button
     window.selectVisitor = (btnElement, id, number) => {
+        // Highlight button
         document.querySelectorAll('.btn-num').forEach(el => el.classList.remove('selected'));
         if(btnElement) btnElement.classList.add('selected');
         
-        document.getElementById('selection-actions').style.display = 'flex';
+        // Show actions
+        const actionPanel = document.getElementById('selection-actions');
+        if(actionPanel) actionPanel.style.display = 'flex';
+        
         document.getElementById('selected-number-display').innerText = number;
         
-        // Setup HTMX Buttons secara dinamik
+        // --- Setup HTMX Buttons Dynamically ---
         let callBtn = document.getElementById('btn-call-selected');
         let removeBtn = document.getElementById('btn-remove-selected');
 
-        callBtn.setAttribute('hx-get', `/q/visitor/${id}/invite/`);
-        callBtn.setAttribute('hx-swap', 'none'); 
-        htmx.process(callBtn); // Refresh HTMX binding
+        if(callBtn) {
+            callBtn.setAttribute('hx-get', `/q/visitor/${id}/invite/`);
+            callBtn.setAttribute('hx-swap', 'none'); 
+            htmx.process(callBtn);
+        }
 
-        removeBtn.setAttribute('hx-get', `/q/visitor/${id}/remove/`);
-        removeBtn.setAttribute('hx-swap', 'none');
-        htmx.process(removeBtn);
+        if(removeBtn) {
+            removeBtn.setAttribute('hx-get', `/q/visitor/${id}/remove/`);
+            removeBtn.setAttribute('hx-swap', 'none');
+            // Note: We use hx-swap='none' because the WebSocket update will trigger the list refresh
+            // But if you want immediate feedback, the WebSocket 'queue_update' trigger on the search input handles it.
+            htmx.process(removeBtn);
+        }
     }
 
     function resetSelection() {
+        // Buang highlight pada semua nombor
         document.querySelectorAll('.btn-num').forEach(el => el.classList.remove('selected'));
-        document.getElementById('selection-actions').style.display = 'none';
+        var actionPanel = document.getElementById('selection-actions');
+        if (actionPanel) {
+            actionPanel.style.display = 'none';
+        }
     }
-
     window.copyToClipboard = (text) => {
         navigator.clipboard.writeText(text).then(() => alert("Copied!"));
     }
