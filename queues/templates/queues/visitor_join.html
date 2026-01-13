@@ -61,7 +61,7 @@
         border-radius: 8px;
         font-weight: 600;
         font-size: 1rem;
-        cursor: pointer;
+        cursor: pointer;S</b
         transition: background 0.2s;
     }
     .btn-join:hover { background-color: #60a5fa; }
@@ -75,20 +75,20 @@
     </div>
 
     <div class="join-title">
-        You are about to join "{{ queue.name }}" queue
+        Anda akan menyertai Q "{{ queue.name }}"
     </div>
     <div class="join-subtitle">
-        Press the button below to join
+            Sila tekan butang join dibawah
     </div>
 
     <form method="POST" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
         {% csrf_token %}
         
         <input type="text" name="name" class="form-input" 
-               placeholder="Your Name (Optional)" 
+               placeholder="Nama anda" 
                {% if queue.ask_input %}required{% endif %}>
                
-        <button type="submit" class="btn-join">Join</button>
+        <button type="submit" class="btn-join">Sertai</button>
     </form>
 </div>
 
