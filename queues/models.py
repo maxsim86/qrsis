@@ -58,6 +58,7 @@ class Visitor(models.Model):
     name = models.CharField(max_length=100)
     number = models.IntegerField() # Nombor giliran (101, 102...)
     joined_at = models.DateTimeField(auto_now_add=True)
+    served_at = models.DateTimeField(null=True, blank=True)
     
     
     STATUS_CHOICES = [
@@ -78,6 +79,12 @@ class Visitor(models.Model):
     # Default 'A' supaya data lama tak rosak
     service_type = models.CharField(max_length=1, choices=SERVICE_CHOICES, default='A') 
 
+    @property
+    def service_duration(self):
+        if self.served_at and self.completed_at:
+            return self.completed_at - self.served_at
+        return None
+    
     @property
     def ticket_number(self):
         """Helper untuk paparkan nombor penuh: A001, B005"""

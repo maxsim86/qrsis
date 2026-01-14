@@ -591,6 +591,7 @@ def call_next(request, slug):
         
     if next_visitor:
         next_visitor.status = 'SERVING'
+        next_visitor.served_at = timezone.now()
         next_visitor.served_by = counter_name
         next_visitor.is_invited = True
         next_visitor.save()
@@ -660,11 +661,15 @@ def invite_specific_visitor(request, visitor_id):
 
     # 2. Set pelawat yang DIPILIH sebagai serving
     visitor.status = 'SERVING'
+    if not visitor.served_at:
+        visitor.served_at=timezone.now()
     visitor.served_by = counter_name
     visitor.is_invited = True
     visitor.save()
     ticket_str = visitor.ticket_number
 
+    
+    
     # 3. Hantar Signal (Logic ini automatik update list next visitors di TV)
     # Hantar Signal ke WebSocket
     send_socket_update(slug, 'invite_next', {

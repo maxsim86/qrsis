@@ -386,6 +386,48 @@
     };
     
     socket.onclose = () => setTimeout(() => location.reload(), 3000);
+
+
+
+
+
+    // Fungsi untuk format masa (contoh: 65 saat -> 01:05)
+    function formatTime(seconds) {
+        const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+        return `${m}:${s}`;
+    }
+
+    // Update timer setiap saat
+    setInterval(() => {
+        const timers = document.querySelectorAll('.live-timer');
+        
+        timers.forEach(timer => {
+            const startTimeStr = timer.getAttribute('data-start');
+            if (!startTimeStr) return;
+
+            const startTime = new Date(startTimeStr).getTime();
+            const now = new Date().getTime();
+            
+            // Kira beza masa dalam saat
+            const diffInSeconds = Math.floor((now - startTime) / 1000);
+            
+            if (diffInSeconds >= 0) {
+                timer.innerText = formatTime(diffInSeconds);
+                
+                // Optional: Tukar warna merah kalau lebih 10 minit (600 saat)
+                if (diffInSeconds > 600) {
+                    timer.style.color = '#ff6b6b'; 
+                }
+            }
+        });
+    }, 1000); // Jalan setiap 1 saat
+
+
+
+
+
+
 </script>
 
 {% endblock %}

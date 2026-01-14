@@ -7,10 +7,25 @@
             --
         {% endif %}
     </div>
-    <div class="status-sub">
+
+{% if current_serving and current_serving.served_at %}
+        <div class="mt-2 p-2 rounded bg-dark bg-opacity-25 d-inline-block">
+            <small class="text-white-50 d-block" style="font-size: 0.7rem;">MASA BERURUSAN</small>
+            <span class="live-timer fw-bold text-white fs-4" 
+                  data-start="{{ current_serving.served_at|date:'c' }}">
+                  00:00
+            </span>
+        </div>
+    {% endif %}
+    
+    <div class="status-sub mt-3">
         Menunggu: <strong>{{ waiting_count }}</strong>
     </div>
 </div>
+
+
+
+
 
 <div id="controls-area" class="controls-area" hx-swap-oob="true">
     {% if next_visitor %}
