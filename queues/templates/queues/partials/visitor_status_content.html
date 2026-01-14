@@ -4,7 +4,7 @@
     <div class="circle-card {% if visitor.status == 'SERVING' %}serving{% endif %}">
         
         {% if visitor.status == 'WAITING' %}
-            <div class="text-top">Nombor anda <strong>#{{ visitor.number|stringformat:"03d" }}</strong></div>
+            <div class="text-top">Nombor anda <strong>#{{ visitor.ticket_number }}</strong></div>
             
             <div class="text-main">
                 {% if position == 1 %}
@@ -29,11 +29,11 @@
             </div>
 
         {% elif visitor.status == 'SERVING' %}
-            <div class="text-top">Number <strong>#{{ visitor.number|stringformat:"03d" }}</strong></div>
+            <div class="text-top">Nombor <strong>#{{ visitor.ticket_number }}</strong></div>
             <div class="text-main" style="color: #22c55e;">Giliran anda<br>sekarang!</div>
             <div class="text-sub">
                 <span class="divider-line"></span>
-                anda dijemput!
+                Sila ke kaunter!
             </div>
 
         {% else %}
