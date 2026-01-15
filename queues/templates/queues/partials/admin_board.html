@@ -30,6 +30,7 @@
 <div id="controls-area" class="controls-area" hx-swap-oob="true">
     {% if next_visitor %}
         <button 
+            id="btn-next"
             hx-get="{% url 'call_next' queue.slug %}" 
             hx-swap="none"
             class="btn-app btn-primary-app">
@@ -42,14 +43,24 @@
     {% endif %}
 
     <div class="action-grid">
-        <button onclick="openNumberModal()" class="btn-app btn-secondary-app">Senarai</button>
-        <button onclick="openAddModal()" class="btn-app btn-secondary-app">+ Tambah</button>
+        <button id="btn-list" onclick="openNumberModal()" class="btn-app btn-secondary-app">Senarai</button>
+        <button id="btn-add" onclick="openAddModal()" class="btn-app btn-secondary-app">+ Tambah</button>
     </div>
     
     {% if current_serving %}
-    <button onclick="showConfirmModal('{{ current_serving.id }}', '{{ current_serving.ticket_number }}')" class="btn-app btn-secondary-app text-danger border-danger">
-        Kembali dalam Q
-    </button>
+        <div class="action-grid mt-2">
+            <button 
+                id="btn-recall"
+                hx-get="{% url 'invite_specific_visitor' current_serving.id %}" 
+                hx-swap="none"
+                class="btn-app btn-secondary-app text-primary border-primary fw-bold">
+                🔊 Panggil Semula
+            </button>
+
+            <button onclick="showConfirmModal('{{ current_serving.id }}', '{{ current_serving.ticket_number }}')" class="btn-app btn-secondary-app text-danger border-danger">
+                Kembali ke Q
+            </button>
+        </div>
     {% endif %}
     
     <div class="text-center mt-2">
@@ -58,3 +69,4 @@
         </button>
     </div>
 </div>
+

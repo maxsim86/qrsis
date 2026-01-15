@@ -166,7 +166,7 @@
             setTimeout(() => {
                 this.isPlaying = false;
                 this.processQueue();
-            }, 500); 
+            }, 100); 
         },
 
         playOneFile: function(filename) {
@@ -178,7 +178,7 @@
                 } else {
                     audioObj.currentTime = 0;
                 }
-                audioObj.playbackRate = 1.1; 
+                audioObj.playbackRate = 1.3; 
                 audioObj.onended = () => resolve();
                 audioObj.onerror = (e) => { 
                     resolve(); 

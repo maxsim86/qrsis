@@ -426,7 +426,56 @@
 
 
 
+// --- KEYBOARD SHORTCUTS (KEYPAD SUPPORT) ---
+    document.addEventListener('keydown', function(event) {
+        
+        // 1. Jangan jalan kalau Modal sedang buka (supaya tak tertekan masa taip nama)
+        if (document.querySelector('.modal-overlay[style*="display: flex"]')) {
+            // Kecuali butang ESC untuk tutup modal
+            if (event.key === "Escape") closeModals();
+            return; 
+        }
 
+        // 2. Mapping Butang
+        switch (event.code) {
+            case 'Enter':        // Butang Enter (Besar)
+            case 'NumpadEnter':  // Butang Enter pada Numpad
+                event.preventDefault(); // Elak submit form tak sengaja
+                triggerClick('btn-next'); // Cari ID butang Next
+                break;
+
+            case 'Space':        // Spacebar
+            case 'Numpad0':      // Nombor 0 di Numpad
+                event.preventDefault();
+                triggerClick('btn-recall'); // Cari ID butang Recall
+                break;
+
+
+            // --- BUTANG "TAMBAH" (Guna Simbol + di Numpad) ---
+            case 'NumpadAdd':
+                triggerClick('btn-add');
+                break;
+
+            
+                
+            case 'KeyS':         // Huruf 'S'
+            case 'NumpadDecimal': // Titik (.) di Numpad
+                openNumberModal(); // Buka senarai
+                break;
+        }
+    });
+
+    // Helper function untuk simulate click & bagi visual effect
+    function triggerClick(elementId) {
+        const btn = document.getElementById(elementId);
+        if (btn) {
+            btn.click(); // Tekan butang secara software
+            
+            // Visual Effect (Flash) supaya admin tahu butang ditekan
+            btn.style.transform = "scale(0.95)";
+            setTimeout(() => btn.style.transform = "scale(1)", 100);
+        }
+    }
 
 </script>
 

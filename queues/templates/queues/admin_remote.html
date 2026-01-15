@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+    /* BASE STYLES */
+    body { background-color: #111827; color: white; overflow: hidden; }
+    .container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+    
+    /* REMOTE LAYOUT */
+    .remote-container {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 20px;
+        position: relative;
+    }
+
+    /* INFO CARD */
+    .info-card {
+        background: #1f2937;
+        border-radius: 20px;
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        transition: all 0.3s ease;
+    }
+    .big-number { font-size: 4rem; font-weight: 800; color: #3b82f6; line-height: 1; }
+    .small-label { color: #9ca3af; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* BUTTONS GRID */
+    .btn-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        flex-grow: 1;
+    }
+
+    /* BUTTON STYLES */
+    .btn-remote {
+        border: none;
+        border-radius: 20px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform 0.1s, opacity 0.2s;
+        width: 100%;
+        height: 100%;
+        position: relative;
+    }
+    .btn-remote:active { transform: scale(0.95); }
+    
+    /* Disabled State */
+    .btn-remote:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Colors */
+    .btn-next { background: linear-gradient(135deg, #2563eb, #1d4ed8); grid-column: span 2; }
+    .btn-recall { background: #374151; color: #60a5fa; border: 2px solid #3b82f6; }
+    .btn-return { background: #374151; color: #f87171; border: 2px solid #ef4444; }
+
+    /* Loading Indicator (Spinner untuk button) */
+    .htmx-indicator { display: none; }
+    .htmx-request .htmx-indicator { display: inline-block; }
+    .htmx-request.btn-remote { opacity: 0.7; pointer-events: none; }
+
+</style>
+
+<div id="htmx-controller"
+     hx-get="{% url 'admin_remote' queue.slug %}"
+     hx-select="#remote-dynamic-content"
+     hx-target="#remote-dynamic-content"
+     hx-swap="outerHTML"
+     hx-trigger="queue_update from:body">
+</div>
+
+<div class="remote-container">
+
+    <div id="remote-dynamic-content">
+        
+        <div class="info-card">
+            <div class="small-label">Sedang Dilayan</div>
+            <div class="big-number">
+                {% if current_serving %}
+                    {{ current_serving.ticket_number }}
+                {% else %}
+                    --
+                {% endif %}
+            </div>
+            <div class="mt-2 text-muted small">
+                Menunggu: <span class="fw-bold text-white">{{ waiting_count }}</span>
+            </div>
+        </div>
+
+        <div class="btn-grid">
+            
+            {% if next_visitor %}
+            <button class="btn-remote btn-next"
+                    hx-get="{% url 'call_next' queue.slug %}"
+                    hx-swap="none"
+                    hx-indicator="this"> <span>➡️ NEXT</span>
+                <small style="font-weight:normal; opacity:0.8;">{{ next_visitor.ticket_number }}</small>
+                <span class="htmx-indicator spinner-border spinner-border-sm ms-2"></span>
+            </button>
+            {% else %}
+            <button class="btn-remote" style="background: #374151; color: #6b7280; grid-column: span 2;" disabled>
+                TIADA PELAWAT
+            </button>
+            {% endif %}
+
+            {% if current_serving %}
+                <button class="btn-remote btn-recall"
+                        hx-get="{% url 'invite_specific_visitor' current_serving.id %}"
+                        hx-swap="none"
+                        hx-indicator="this">
+                    <div>🔊 Panggil</div>
+                    <span class="htmx-indicator spinner-border spinner-border-sm mt-1"></span>
+                </button>
+
+                <button class="btn-remote btn-return"
+                        hx-get="{% url 'return_to_queue' current_serving.id %}"
+                        hx-swap="none"
+                        hx-confirm="Pasti kembalikan ke Q?"
+                        hx-indicator="this">
+                    <div>↩️ Return</div>
+                    <span class="htmx-indicator spinner-border spinner-border-sm mt-1"></span>
+                </button>
+            {% else %}
+                <div></div>
+                <div></div>
+            {% endif %}
+
+        </div>
+    </div> 
+    <div class="text-center mt-3">
+        <a href="{% url 'admin_interface' queue.slug %}" class="text-decoration-none text-muted small">
+            Kembali ke Admin PC
+        </a>
+    </div>
+
+</div>
+
+<script>
+    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    const socket = new WebSocket(protocol + window.location.host + '/ws/queue/{{ queue.slug }}/');
+
+    socket.onmessage = function(e) {
+        console.log("Data update received");
+        // Trigger HTMX pada controller di atas
+        document.body.dispatchEvent(new Event('queue_update'));
+        
+        // Haptic Feedback (Gegar)
+        if (navigator.vibrate) navigator.vibrate(50); 
+    };
+
+    socket.onclose = function(e) {
+        console.error('Socket closed unexpectedly');
+        // Auto reload page if socket dies (optional safety net)
+        setTimeout(function() { window.location.reload(); }, 3000);
+    };
+</script>
+
+{% endblock %}

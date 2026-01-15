@@ -4,7 +4,6 @@ from django.db.models import Max
 import qrcode
 from io import BytesIO
 import base64
-#from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -16,6 +15,25 @@ import json
 from django.db.models import Count
 from django.utils import timezone
 from django.db.models.functions import ExtractHour
+
+
+
+def admin_remote(request, slug):
+    queue = get_object_or_404(Queue, slug=slug)
+    
+    # Dapatkan status terkini untuk dipaparkan di remote
+    current_serving = Visitor.objects.filter(queue=queue, status='SERVING').last()
+    waiting_count = Visitor.objects.filter(queue=queue, status='WAITING').count()
+    next_visitor = Visitor.objects.filter(queue=queue, status='WAITING').order_by('id').first()
+
+    context = {
+        'queue': queue,
+        'current_serving': current_serving,
+        'waiting_count': waiting_count,
+        'next_visitor': next_visitor,
+    }
+    return render(request, 'queues/admin_remote.html', context)
+
 
 def queue_stats(request, slug):
     queue = get_object_or_404(Queue, slug=slug)
@@ -286,18 +304,6 @@ def create_queue(request):
         return redirect('dashboard', slug=new_queue.slug)
     return render(request, 'queues/create.html')
 
-# # 2. Page Dashboard lepas create (Screenshot 2)
-# def dashboard(request, slug):
-#     queue = get_object_or_404(Queue, slug=slug)
-#     base_url = f"{request.scheme}://{request.get_host()}"
-#     context = {
-#         'queue': queue,
-#         'visitor_url': f"{base_url}/q/{slug}/join/",
-#         'poster_url': f"{base_url}/q/{slug}/poster/",
-#         'admin_url': f"{base_url}/q/{slug}/admin/",
-#         'display_url': f"{base_url}/q/{slug}/display/",
-#     }
-#     return render(request, 'queues/dashboard.html', context)
 
 def dashboard(request, slug):
     queue = get_object_or_404(Queue, slug=slug)

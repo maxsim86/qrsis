@@ -23,7 +23,6 @@ audio_list = {
     # --- HURUF KATEGORI (Multi-Service) ---
     # Tips: Google kadang-kadang baca 'A' sebagai 'Ah'. 
     # Kalau nak bunyi English 'Ei', boleh tukar text jadi 'Ei'.
-    # Tapi untuk standard Melayu, kita guna huruf biasa dulu.
     "a": "A", 
     "b": "B",
     "c": "C",
@@ -53,7 +52,7 @@ print("-" * 40)
 for filename, text in audio_list.items():
     print(f"🔊 Generating: '{text}' -> {filename}.mp3")
     
-    # 1. Generate Audio guna Google (Bahasa Melayu)
+    # 1. Generate Audio guna Google (Bahasa bm)
     try:
         tts = gTTS(text=text, lang='ms', slow=False)
         temp_file = f"{OUTPUT_FOLDER}/temp_{filename}.mp3"
@@ -63,10 +62,17 @@ for filename, text in audio_list.items():
         
         # 2. Proses Audio (Jika FFmpeg ada)
         if ffmpeg_available:
-            # Command untuk buang senyap (silence) di awal/akhir & kuatkan volume
+            # --- PENJELASAN PARAMETER FFMPEG YANG DIKEMASKINI ---
+            # silenceremove=start_periods=1:start_duration=0:start_threshold=-40dB:detection=peak
+            # -> Buang senyap di AWAL fail jika ia lebih senyap dari -40dB.
+            # areverse -> Terbalikkan audio (supaya hujung jadi awal).
+            # silenceremove=... -> Buang senyap lagi (yang asalnya di HUJUNG fail).
+            # areverse -> Terbalikkan semula ke asal.
+            # volume=1.5 -> Kuatkan suara 50%.
+            
             command = [
                 "ffmpeg", "-y", "-i", temp_file,
-                "-af", "silenceremove=start_periods=1:start_duration=0:start_threshold=-50dB:detection=peak,areverse,silenceremove=start_periods=1:start_duration=0:start_threshold=-50dB:detection=peak,areverse,volume=1.5",
+                "-af", "silenceremove=start_periods=1:start_duration=0:start_threshold=-40dB:detection=peak,areverse,silenceremove=start_periods=1:start_duration=0:start_threshold=-40dB:detection=peak,areverse,volume=1.5",
                 "-acodec", "libmp3lame", "-b:a", "128k",
                 final_file
             ]
@@ -89,5 +95,5 @@ for filename, text in audio_list.items():
 
 print("-" * 40)
 print(f"✅ SIAP! Semua fail audio ada di folder: {OUTPUT_FOLDER}/")
-print("   Pastikan fail 'chime.mp3' (Ding Dong) dimasukkan secara manual.")
+print("   Sila upload fail-fail ini ke folder staticfiles server anda.")
 print("==========================================")
