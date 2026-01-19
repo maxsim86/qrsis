@@ -1,0 +1,8 @@
+<div hx-target="this" hx-swap="outerHTML" class="d-flex align-items-center gap-2">
+    <span>{{ visitor.name }}</span>
+    <button hx-get="{% url 'edit_visitor_name_form' visitor.id %}" 
+            class="btn btn-sm text-muted p-0 border-0" 
+            title="Edit Nama">
+        ✏️
+    </button>
+</div>

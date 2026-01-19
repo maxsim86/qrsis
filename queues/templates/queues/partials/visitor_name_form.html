@@ -1,0 +1,6 @@
+<form hx-post="{% url 'save_visitor_name' visitor.id %}" hx-target="this" hx-swap="outerHTML" class="d-flex gap-1">
+    {% csrf_token %}
+    <input type="text" name="name" value="{{ visitor.name }}" class="form-control form-control-sm" style="width: 150px;" required>
+    <button type="submit" class="btn btn-sm btn-success">✓</button>
+    <button hx-get="{% url 'visitor_name_text' visitor.id %}" class="btn btn-sm btn-secondary">✕</button>
+</form>

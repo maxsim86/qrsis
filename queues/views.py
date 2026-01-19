@@ -16,7 +16,31 @@ from django.db.models import Count
 from django.utils import timezone
 from django.db.models.functions import ExtractHour
 
+def visitor_name_text(request, visitor_id):
+    visitor = get_object_or_404(Visitor, id=visitor_id)
+    return render(request, 'queues/partials/visitor_name_display.html', {'visitor': visitor})
 
+def edit_visitor_name_form(request, visitor_id):
+    visitor = get_object_or_404(Visitor, id=visitor_id)
+    return render(request, 'queues/partials/visitor_name_form.html', {'visitor': visitor})
+
+def save_visitor_name(request, visitor_id):
+    visitor = get_object_or_404(Visitor, id=visitor_id)
+    new_name = request.POST.get('name')
+    
+    if new_name:
+        visitor.name = new_name
+        visitor.save()
+        
+        # Optional: Hantar update ke websocket supaya TV pun update nama baru
+        send_socket_update(visitor.queue.slug, 'update_visitor', {
+            'visitor_id': visitor.id,
+            'name': visitor.name,
+            'ticket': visitor.ticket_number
+        })
+
+    # Kembali ke paparan biasa selepas simpan
+    return render(request, 'queues/partials/visitor_name_display.html', {'visitor': visitor})
 
 def admin_remote(request, slug):
     queue = get_object_or_404(Queue, slug=slug)
@@ -291,7 +315,6 @@ def update_queue_settings(request, slug):
     return redirect('admin_interface', slug=slug)
 
 
-
 def create_queue(request):
     if request.method == "POST":
         name = request.POST.get('name')
@@ -564,7 +587,6 @@ def remove_visitors(request, slug):
 def remove_specific_visitor(request, visitor_id):
     visitor = get_object_or_404(Visitor, id=visitor_id)
     slug = visitor.queue.slug
-    
 #     # 1. Padam Visitor
     visitor.delete()
     

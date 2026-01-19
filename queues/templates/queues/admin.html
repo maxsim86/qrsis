@@ -2,19 +2,17 @@
 {% block content %}
 
 <style>
-    /* --- GLOBAL RESPONSIVE RESET --- */
+    /* --- 1. GLOBAL LAYOUT & RESET --- */
     body { 
         background-color: #f3f4f6; 
-        margin: 0; 
-        padding: 0; 
         min-height: 100vh; 
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
     }
 
-    /* MAIN CONTAINER: Responsive Width */
+    /* Main Container */
     .admin-container { 
         width: 100%;
-        max-width: 1000px; /* Limit width on big screens */
+        max-width: 1000px;
         margin: 0 auto; 
         min-height: 100vh; 
         background-color: #ffffff; 
@@ -24,7 +22,7 @@
         box-sizing: border-box;
     }
     
-    /* On larger screens, add some shadow and margin */
+    /* Desktop View Tweaks */
     @media (min-width: 768px) {
         .admin-container {
             margin: 40px auto;
@@ -35,7 +33,7 @@
         }
     }
 
-    /* HEADER */
+    /* --- 2. HEADER & DASHBOARD --- */
     .app-header { 
         display: flex; 
         justify-content: space-between; 
@@ -44,23 +42,22 @@
     }
     .queue-name { font-size: 1.25rem; font-weight: 800; color: #111827; }
 
-    /* DASHBOARD LAYOUT (Grid for Desktop) */
+    /* Dashboard Grid */
     .dashboard-grid {
         display: flex;
         flex-direction: column;
         gap: 20px;
     }
-    
     @media (min-width: 768px) {
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr; /* Side by side on desktop */
+            grid-template-columns: 1fr 1fr;
             align-items: start;
             gap: 40px;
         }
     }
 
-    /* STATUS CARD */
+    /* Status Card (Kiri) */
     .status-card { 
         background: linear-gradient(145deg, #1f2937, #111827); 
         color: white; 
@@ -72,109 +69,252 @@
     .status-label { font-size: 0.85rem; letter-spacing: 1.5px; opacity: 0.8; font-weight: 600; text-transform: uppercase; }
     .status-number { font-size: clamp(5rem, 10vw, 7rem); font-weight: 800; line-height: 1.1; margin: 15px 0; letter-spacing: -3px; }
 
-    /* CONTROLS AREA */
+    /* Controls Area (Kanan) */
     .controls-area { display: flex; flex-direction: column; gap: 15px; }
+    
+    /* Global Button Styles (untuk partials) */
     .btn-app { 
-        width: 100%; 
-        padding: 18px; 
-        border: none; 
-        border-radius: 18px; 
-        font-size: 1rem; 
-        font-weight: 700; 
-        cursor: pointer; 
-        transition: transform 0.1s, box-shadow 0.2s; 
-        text-decoration: none; 
-        display: flex; 
-        justify-content: center; 
-        align-items: center; 
+        width: 100%; padding: 18px; border: none; border-radius: 18px; 
+        font-size: 1rem; font-weight: 700; cursor: pointer; 
+        transition: transform 0.1s, box-shadow 0.2s; text-decoration: none; 
+        display: flex; justify-content: center; align-items: center; 
     }
     .btn-app:active { transform: scale(0.98); }
-    .btn-app:hover { filter: brightness(105%); }
-
     .btn-primary-app { background-color: #3b82f6; color: white; box-shadow: 0 8px 20px -5px rgba(59, 130, 246, 0.5); font-size: 1.1rem; }
     .btn-secondary-app { background-color: #f3f4f6; color: #1f2937; border: 1px solid #e5e7eb; }
     .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 
-    /* MODAL (Responsive) */
+    /* --- 3. MODAL SYSTEM --- */
     .modal-overlay { 
         position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-        background: rgba(0,0,0,0.6); 
-        z-index: 1000; 
-        display: none; 
-        /* Mobile: Align bottom */
-        align-items: flex-end; 
-        justify-content: center;
+        background: rgba(0,0,0,0.6); z-index: 1000; 
+        display: none; align-items: flex-end; justify-content: center;
         backdrop-filter: blur(5px);
     }
-    
     .modal-sheet { 
-        background: white; 
-        width: 100%; 
-        border-top-left-radius: 25px; 
-        border-top-right-radius: 25px; 
-        padding: 25px; 
-        max-height: 85vh; 
-        display: flex; 
-        flex-direction: column; 
+        background: white; width: 100%; 
+        border-top-left-radius: 25px; border-top-right-radius: 25px; 
+        padding: 25px; max-height: 85vh; 
+        display: flex; flex-direction: column; 
         animation: slideUp 0.3s ease-out; 
     }
-
     @keyframes slideUp { from {transform: translateY(100%);} to {transform: translateY(0);} }
     @keyframes fadeInScale { from {opacity: 0; transform: scale(0.95);} to {opacity: 1; transform: scale(1);} }
 
-    /* Desktop Modal: Center Card */
     @media (min-width: 640px) {
         .modal-overlay { align-items: center; }
         .modal-sheet {
-            max-width: 500px;
-            border-radius: 25px;
+            max-width: 500px; border-radius: 25px;
             animation: fadeInScale 0.2s ease-out;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         }
     }
 
-    /* VISITOR LIST GRID (Responsive Columns) */
-    .visitor-grid { 
-        display: grid; 
-        /* Auto fill columns based on available width */
-        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); 
-        gap: 12px; 
-        overflow-y: auto; 
-        padding-bottom: 10px; 
+    /* --- 4. MODERN SELECT MODAL STYLES (NEW) --- */
+    .modal-header-custom {
+        padding-bottom: 20px;
+        border-bottom: 1px solid #f3f4f6;
+        margin-bottom: 20px;
     }
-    .btn-num { 
-        background: #fff; 
-        border: 2px solid #e5e7eb; 
-        border-radius: 12px; 
-        padding: 15px 0; 
-        font-weight: 700; 
-        color: #374151; 
-        font-size: 1rem; 
-        cursor: pointer; 
-        transition: all 0.2s;
+    /* Search Input */
+    .search-input-modern {
+        background-color: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 12px 15px 12px 45px;
+        width: 100%; transition: all 0.2s;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%239ca3af' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat; background-position: 15px center;
     }
-    .btn-num:hover { border-color: #3b82f6; color: #3b82f6; }
-    .btn-num.selected { background-color: #eff6ff; border-color: #3b82f6; color: #2563eb; }
+    .search-input-modern:focus {
+        background-color: #fff; border-color: #3b82f6; outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    /* Filter Chips */
+    .filter-scroll {
+        display: flex; gap: 10px; overflow-x: auto;
+        padding-bottom: 5px; scrollbar-width: none;
+    }
+    .filter-scroll::-webkit-scrollbar { display: none; }
+    .filter-chip {
+        background: #fff; border: 1px solid #e5e7eb; color: #4b5563;
+        padding: 8px 20px; border-radius: 50px; font-size: 0.9rem; font-weight: 600;
+        cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    }
+    .filter-chip:hover { background: #f3f4f6; }
+    .filter-chip.active { background: #111827; color: #fff; border-color: #111827; }
+    /* Dots */
+    .dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    .dot-a { background-color: #3b82f6; }
+    .dot-b { background-color: #10b981; }
+    .dot-c { background-color: #06b6d4; }
 
-    /* Utility */
+    /* Utility Buttons */
     .btn-settings-app { 
-        width: 45px; height: 45px; 
-        background-color: #f3f4f6; border: none; 
-        border-radius: 12px; 
-        display: flex; align-items: center; justify-content: center; 
-        cursor: pointer; font-size: 1.2rem;
-        transition: background 0.2s;
+        width: 45px; height: 45px; background-color: #f3f4f6; border: none; 
+        border-radius: 12px; display: flex; align-items: center; justify-content: center; 
+        cursor: pointer; font-size: 1.2rem; transition: background 0.2s;
     }
     .btn-settings-app:hover { background-color: #e5e7eb; }
+
+    /* HTMX Fade Animation */
+    .fade-row { transition: opacity 0.5s, transform 0.5s; }
+    .htmx-swapping .fade-row { opacity: 0; transform: translateX(20px); }
+
+
+
+    .visitor-grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    padding: 5px;
+}
+
+/* REKA BENTUK KAD PELAWAT */
+    /* REKA BENTUK KAD PELAWAT */
+.visitor-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Hover Effect */
+.visitor-card:hover {
+    transform: translateY(-2px);
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+/* Header Kad (Nombor Tiket) */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.ticket-tag {
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #1f2937;
+    background: #f3f4f6;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+/* Nama Pelawat */
+.visitor-name-box {
+    font-size: 0.9rem;
+    color: #4b5563;
+    margin-bottom: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Footer Kad (Butang) */
+.card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: auto; /* Tolak butang ke bawah */
+}
+
+.btn-card {
+    flex: 1;
+    border: none;
+    border-radius: 8px;
+    padding: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.btn-card-call { background: #eff6ff; color: #2563eb; }
+.btn-card-call:hover { background: #3b82f6; color: white; }
+
+.btn-card-del { background: #fef2f2; color: #ef4444; width: 35px; flex: none; }
+.btn-card-del:hover { background: #ef4444; color: white; }
+
+/* Animasi HTMX Fade Out */
+.fade-me-out.htmx-swapping {
+    opacity: 0;
+    transform: scale(0.9);
+    transition: all 0.5s ease-out;
+}
+
+/* RADIO CARDS (Ganti Dropdown) */
+.service-selection-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 kotak sebaris */
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+/* Sembunyikan bulat radio button asal */
+.service-radio-input { display: none; }
+
+/* Design Label sebagai Kad */
+.service-card-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 15px 5px;
+    background: #f9fafb;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #6b7280;
+    font-weight: 600;
+    text-align: center;
+}
+
+.service-card-label:hover { background: #f3f4f6; transform: translateY(-2px); }
+
+/* Bila Dipilih (Checked State) - Warna ikut jenis */
+.service-radio-input:checked + .service-card-label {
+    background: #eff6ff;
+    border-color: #3b82f6;
+    color: #2563eb;
+    box-shadow: 0 4px 6px rgba(37, 99, 235, 0.1);
+}
+
+/* Warna Khas untuk B dan C */
+#srvB:checked + .service-card-label { background: #ecfdf5; border-color: #10b981; color: #059669; }
+#srvC:checked + .service-card-label { background: #ecfeff; border-color: #06b6d4; color: #0891b2; }
+
+.srv-icon { font-size: 1.5rem; margin-bottom: 5px; }
+
+/* LOADING BUTTON */
+.htmx-request .btn-content { display: none; }
+.htmx-request .spinner-loader { display: inline-block; }
+.spinner-loader { display: none; width: 1rem; height: 1rem; border: 2px solid #fff; border-radius: 50%; border-top-color: transparent; animation: spin 1s linear infinite; }
+@keyframes spin { to {transform: rotate(360deg);} }
+
 </style>
 
-<div class="admin-container"> <div class="app-header">
+<div class="admin-container">
+    
+    <div class="app-header">
         <div class="queue-name">{{ queue.name|truncatechars:20 }}</div>
         <div class="d-flex gap-2">
-            <a href="{% url 'queue_stats' queue.slug %}" class="btn-settings-app text-decoration-none" style="background-color: #ecfdf5; color: #059669;">
+            <a href="{% url 'queue_stats' queue.slug %}" class="btn-settings-app text-decoration-none" style="background-color: #ecfdf5; color: #059669;" title="Statistik">
                 📊
             </a>
-            <button onclick="openSettingsModal()" class="btn-settings-app">
+            <button onclick="openSettingsModal()" class="btn-settings-app" title="Tetapan">
                 ⚙️
             </button>
         </div>
@@ -186,7 +326,6 @@
     </div>
 
     <div class="dashboard-grid">
-        
         <div id="status-card-area" class="status-card">
             <div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div>
         </div>
@@ -194,60 +333,45 @@
         <div id="controls-area" class="controls-area">
             <div class="spinner-border text-primary mx-auto" role="status"></div>
         </div>
-
-    </div> </div>
-
-
+    </div>
+</div>
 
 <div id="numberModal" class="modal-overlay">
     <div class="modal-sheet">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold m-0">Pilih Pelawat</h5>
-            <button onclick="closeModals()" class="btn-close"></button>
-        </div>
-
-        <div class="d-flex gap-2 mb-3 overflow-auto" style="white-space: nowrap;">
-            <button class="btn btn-sm btn-dark px-3 rounded-pill"
-                    hx-get="{% url 'search_visitors' queue.slug %}?type=ALL"
-                    hx-target="#visitor-list-container">
-                Semua
-            </button>
-            <button class="btn btn-sm btn-primary px-3 rounded-pill"
-                    hx-get="{% url 'search_visitors' queue.slug %}?type=A"
-                    hx-target="#visitor-list-container">
-                📝 A
-            </button>
-            <button class="btn btn-sm btn-success px-3 rounded-pill"
-                    hx-get="{% url 'search_visitors' queue.slug %}?type=B"
-                    hx-target="#visitor-list-container">
-                💰 B
-            </button>
-            <button class="btn btn-sm btn-info text-white px-3 rounded-pill"
-                    hx-get="{% url 'search_visitors' queue.slug %}?type=C"
-                    hx-target="#visitor-list-container">
-                ❓ C
-            </button>
-        </div>
-
-        <input type="search" 
-               class="form-control form-control-lg bg-light border-0 mb-3" 
-               placeholder="Cari nombor..." 
-               name="q"
-               hx-get="{% url 'search_visitors' queue.slug %}"
-               hx-trigger="keyup changed delay:500ms, queue_update from:body" 
-               hx-target="#visitor-list-container">
-
-        <div id="visitor-list-container" style="flex: 1; overflow-y: auto;">
-             {% include 'queues/partials/visitor_list.html' %}
-        </div>
-
-        <div id="selection-actions" class="selection-actions">
-            <div class="text-center text-muted small mb-1">Nombor Dipilih: <strong id="selected-number-display" class="text-primary">--</strong></div>
-            <div class="d-grid gap-2">
-                <button id="btn-call-selected" class="btn btn-primary rounded-pill py-2 fw-bold">Panggil Sekarang</button>
-                
-                <button id="btn-remove-selected" class="btn btn-outline-danger rounded-pill py-2">Padam dari Q</button>
+        
+        <div class="modal-header-custom">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold m-0 text-dark">Pilih Pelawat</h4>
+                <button onclick="closeModals()" class="btn-close"></button>
             </div>
+
+            <div class="filter-scroll mb-3">
+                <button class="filter-chip active" hx-get="{% url 'search_visitors' queue.slug %}?type=ALL" hx-target="#visitor-list-container">
+                    Semua
+                </button>
+                <button class="filter-chip" hx-get="{% url 'search_visitors' queue.slug %}?type=A" hx-target="#visitor-list-container">
+                    <span class="dot dot-a"></span>Pendaftaran
+                </button>
+                <button class="filter-chip" hx-get="{% url 'search_visitors' queue.slug %}?type=B" hx-target="#visitor-list-container">
+                    <span class="dot dot-b"></span>Bayaran
+                </button>
+                <button class="filter-chip" hx-get="{% url 'search_visitors' queue.slug %}?type=C" hx-target="#visitor-list-container">
+                    <span class="dot dot-c"></span>Lain-lain
+                </button>
+            </div>
+
+            <input type="search" 
+                   class="search-input-modern" 
+                   placeholder="Cari nama atau nombor..." 
+                   name="q"
+                   id="searchInput"
+                   hx-get="{% url 'search_visitors' queue.slug %}"
+                   hx-trigger="keyup changed delay:500ms, queue_update from:body" 
+                   hx-target="#visitor-list-container">
+        </div>
+
+        <div id="visitor-list-container" style="flex: 1; overflow-y: auto; padding: 0 5px;">
+             {% include 'queues/partials/visitor_list.html' %}
         </div>
 
     </div>
@@ -255,28 +379,59 @@
 
 <div id="addModal" class="modal-overlay">
     <div class="modal-sheet">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold m-0">Tambah Manual</h5>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold m-0 text-dark">Tambah Manual</h5>
             <button onclick="closeModals()" class="btn-close"></button>
         </div>
-        <form hx-post="{% url 'add_manual_visitor' queue.slug %}" hx-swap="none" onsubmit="closeModals()">
+
+        <form id="manualAddForm"
+              hx-post="{% url 'add_manual_visitor' queue.slug %}" 
+              hx-swap="none"
+              hx-indicator="#submit-btn"
+              hx-on::after-request="this.reset(); closeModals();">
+            
             {% csrf_token %}
-            <div class="mb-3">
-                <label class="fw-bold small text-muted">JENIS SERVIS</label>
-                <select name="service_type" class="form-select form-select-lg bg-light border-0">
-                    <option value="A" selected>📝 A - Pendaftaran</option>
-                    <option value="B">💰 B - Pembayaran</option>
-                    <option value="C">❓ C - Pertanyaan</option>
-                </select>
+
+            <label class="fw-bold small text-muted mb-2">PILIH SERVIS</label>
+            
+            <div class="service-selection-grid">
+                <input type="radio" name="service_type" value="A" id="srvA" class="service-radio-input" checked>
+                <label for="srvA" class="service-card-label">
+                    <span class="srv-icon">📝</span>
+                    <span>Daftar</span>
+                </label>
+
+                <input type="radio" name="service_type" value="B" id="srvB" class="service-radio-input">
+                <label for="srvB" class="service-card-label">
+                    <span class="srv-icon">💰</span>
+                    <span>Bayar</span>
+                </label>
+
+                <input type="radio" name="service_type" value="C" id="srvC" class="service-radio-input">
+                <label for="srvC" class="service-card-label">
+                    <span class="srv-icon">❓</span>
+                    <span>Lain2</span>
+                </label>
             </div>
+
             <div class="mb-4">
-                <label class="fw-bold small text-muted">NAMA (PILIHAN)</label>
-                <input type="text" name="custom_name" class="form-control form-control-lg bg-light border-0" placeholder="Contoh: Ali">
+                <label class="fw-bold small text-muted mb-2">NAMA PELAWAT (PILIHAN)</label>
+                <input type="text" 
+                       name="custom_name" 
+                       class="form-control form-control-lg bg-light border-0" 
+                       placeholder="Contoh: Ahmad (Kosongkan jika tiada)">
             </div>
-            <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold">Cetak Tiket</button>
+
+            <button type="submit" id="submit-btn" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow-sm">
+                <span class="btn-content">🖨️ Cetak Tiket</span>
+                <span class="spinner-loader"></span> </button>
+
         </form>
     </div>
 </div>
+
+
+
 
 <div id="confirmModal" class="modal-overlay">
     <div class="modal-sheet text-center">
@@ -314,15 +469,19 @@
         {% include 'queues/partials/settings_form.html' %}
     </div>
 </div>
-
 <script>
-    // --- UI HELPERS ---
+
+    // 1. UI HELPERS (Modals)
     function closeModals() {
         document.querySelectorAll('.modal-overlay').forEach(el => el.style.display = 'none');
-        resetSelection();
     }
     
-    window.openNumberModal = () => document.getElementById('numberModal').style.display = 'flex';
+    // Open Functions
+    window.openNumberModal = () => {
+        document.getElementById('numberModal').style.display = 'flex';
+        // Auto focus ke search input
+        setTimeout(() => document.getElementById('searchInput').focus(), 100); 
+    };
     window.openAddModal = () => document.getElementById('addModal').style.display = 'flex';
     window.openSettingsModal = () => document.getElementById('settingsModal').style.display = 'flex';
     window.openRemoveModal = () => { closeModals(); document.getElementById('removeModal').style.display = 'flex'; }
@@ -333,150 +492,87 @@
         document.getElementById('confirmModal').style.display = 'flex';
     }
 
-    // Logic Pilih Pelawat & Set HTMX Button
-    window.selectVisitor = (btnElement, id, number) => {
-        // Highlight button
-        document.querySelectorAll('.btn-num').forEach(el => el.classList.remove('selected'));
-        if(btnElement) btnElement.classList.add('selected');
-        
-        // Show actions
-        const actionPanel = document.getElementById('selection-actions');
-        if(actionPanel) actionPanel.style.display = 'flex';
-        
-        document.getElementById('selected-number-display').innerText = number;
-        
-        // --- Setup HTMX Buttons Dynamically ---
-        let callBtn = document.getElementById('btn-call-selected');
-        let removeBtn = document.getElementById('btn-remove-selected');
-
-        if(callBtn) {
-            callBtn.setAttribute('hx-get', `/q/visitor/${id}/invite/`);
-            callBtn.setAttribute('hx-swap', 'none'); 
-            htmx.process(callBtn);
-        }
-
-        if(removeBtn) {
-            removeBtn.setAttribute('hx-get', `/q/visitor/${id}/remove/`);
-            removeBtn.setAttribute('hx-swap', 'none');
-            // Note: We use hx-swap='none' because the WebSocket update will trigger the list refresh
-            // But if you want immediate feedback, the WebSocket 'queue_update' trigger on the search input handles it.
-            htmx.process(removeBtn);
-        }
-    }
-
-    function resetSelection() {
-        // Buang highlight pada semua nombor
-        document.querySelectorAll('.btn-num').forEach(el => el.classList.remove('selected'));
-        var actionPanel = document.getElementById('selection-actions');
-        if (actionPanel) {
-            actionPanel.style.display = 'none';
-        }
-    }
-    window.copyToClipboard = (text) => {
-        navigator.clipboard.writeText(text).then(() => alert("Copied!"));
-    }
-
-    // --- WEBSOCKET ---
+    // 2. WEBSOCKET SETUP
     const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
     const socket = new WebSocket(protocol + window.location.host + '/ws/queue/{{ queue.slug }}/');
 
     socket.onmessage = function(e) {
-        // Trigger global event untuk update semua HTMX elements (Search list & Dashboard)
+        console.log("Websocket update received");
+        // Trigger HTMX update pada body
         document.body.dispatchEvent(new Event('queue_update'));
     };
     
-    socket.onclose = () => setTimeout(() => location.reload(), 3000);
+    socket.onclose = () => {
+        console.log("Socket disconnected");
+        setTimeout(() => location.reload(), 3000); // Auto reconnect refresh
+    };
 
-
-
-
-
-    // Fungsi untuk format masa (contoh: 65 saat -> 01:05)
+    // 3. LIVE TIMER LOGIC (Untuk Pelawat Sedang Dilayan)
     function formatTime(seconds) {
         const m = Math.floor(seconds / 60).toString().padStart(2, '0');
         const s = Math.floor(seconds % 60).toString().padStart(2, '0');
         return `${m}:${s}`;
     }
 
-    // Update timer setiap saat
     setInterval(() => {
         const timers = document.querySelectorAll('.live-timer');
-        
         timers.forEach(timer => {
             const startTimeStr = timer.getAttribute('data-start');
             if (!startTimeStr) return;
-
             const startTime = new Date(startTimeStr).getTime();
             const now = new Date().getTime();
-            
-            // Kira beza masa dalam saat
             const diffInSeconds = Math.floor((now - startTime) / 1000);
             
             if (diffInSeconds >= 0) {
                 timer.innerText = formatTime(diffInSeconds);
-                
-                // Optional: Tukar warna merah kalau lebih 10 minit (600 saat)
-                if (diffInSeconds > 600) {
-                    timer.style.color = '#ff6b6b'; 
-                }
+                if (diffInSeconds > 600) timer.style.color = '#ff6b6b'; // Merah jika > 10 min
             }
         });
-    }, 1000); // Jalan setiap 1 saat
+    }, 1000);
 
-
-
-
-// --- KEYBOARD SHORTCUTS (KEYPAD SUPPORT) ---
+    // 4. KEYBOARD SHORTCUTS
     document.addEventListener('keydown', function(event) {
         
-        // 1. Jangan jalan kalau Modal sedang buka (supaya tak tertekan masa taip nama)
+        // Elak conflict jika modal sedang dibuka (Kecuali ESC)
         if (document.querySelector('.modal-overlay[style*="display: flex"]')) {
-            // Kecuali butang ESC untuk tutup modal
             if (event.key === "Escape") closeModals();
             return; 
         }
 
-        // 2. Mapping Butang
         switch (event.code) {
-            case 'Enter':        // Butang Enter (Besar)
-            case 'NumpadEnter':  // Butang Enter pada Numpad
-                event.preventDefault(); // Elak submit form tak sengaja
-                triggerClick('btn-next'); // Cari ID butang Next
+            case 'Enter':        
+            case 'NumpadEnter':  
+                event.preventDefault(); 
+                triggerClick('btn-next'); // Pastikan ID ini wujud dalam admin_board.html
                 break;
 
-            case 'Space':        // Spacebar
-            case 'Numpad0':      // Nombor 0 di Numpad
+            case 'Space':        
+            case 'Numpad0':      
                 event.preventDefault();
-                triggerClick('btn-recall'); // Cari ID butang Recall
+                triggerClick('btn-recall'); // Pastikan ID ini wujud dalam admin_board.html
                 break;
 
-
-            // --- BUTANG "TAMBAH" (Guna Simbol + di Numpad) ---
             case 'NumpadAdd':
-                triggerClick('btn-add');
+                triggerClick('btn-add'); // ID butang dalam admin_board.html
                 break;
-
-            
                 
-            case 'KeyS':         // Huruf 'S'
-            case 'NumpadDecimal': // Titik (.) di Numpad
-                openNumberModal(); // Buka senarai
+            case 'KeyS':         
+            case 'NumpadDecimal': 
+                event.preventDefault(); 
+                openNumberModal(); 
                 break;
         }
     });
 
-    // Helper function untuk simulate click & bagi visual effect
     function triggerClick(elementId) {
         const btn = document.getElementById(elementId);
         if (btn) {
-            btn.click(); // Tekan butang secara software
-            
-            // Visual Effect (Flash) supaya admin tahu butang ditekan
+            btn.click();
+            // Visual Effect
             btn.style.transform = "scale(0.95)";
             setTimeout(() => btn.style.transform = "scale(1)", 100);
         }
     }
-
 </script>
 
 {% endblock %}

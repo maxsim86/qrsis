@@ -10,7 +10,6 @@ urlpatterns = [
     path('q/<slug:slug>/poster/', views.poster_view, name='poster_view'),
     
     # --- VISITOR SPECIFIC (ID Based) ---
-    # Ini adalah bahagian yang hilang menyebabkan Error 404 tadi
     path('q/visitor/<int:visitor_id>/status/', views.visitor_status, name='visitor_status'),
     path('q/visitor/<int:visitor_id>/quit/', views.visitor_quit, name='visitor_quit'),
     path('q/visitor/<int:visitor_id>/invite/', views.invite_specific_visitor, name='invite_specific_visitor'),
@@ -31,5 +30,8 @@ urlpatterns = [
     path('q/<slug:slug>/visitor-join/', views.visitor_join, name='visitor_join'),
     path('q/<str:slug>/stats/', views.queue_stats, name='queue_stats'),
     path('q/<slug:slug>/remote/', views.admin_remote, name='admin_remote'),
+    path('q/visitor/<int:visitor_id>/name/text/', views.visitor_name_text, name='visitor_name_text'),
+    path('q/visitor/<int:visitor_id>/name/edit/', views.edit_visitor_name_form, name='edit_visitor_name_form'),
+    path('q/visitor/<int:visitor_id>/name/save/', views.save_visitor_name, name='save_visitor_name'),
 
 ]

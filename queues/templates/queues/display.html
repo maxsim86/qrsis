@@ -2,64 +2,46 @@
 {% block content %}
 
 <style>
-    /* --- GLOBAL & RESET --- */
-    html, body {
-        height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden; 
-        background-color: #ffffff;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-
-    /* CONTAINER UTAMA */
-    .display-container {
-        height: 100vh; width: 100vw;
-        display: flex; flex-direction: column; justify-content: space-between;
-        box-sizing: border-box; padding-right: 30vw;
-    }
-
-    /* 1. HEADER */
-    .queue-header {
-        flex: 0 0 auto; height: 12vh; width: 100%;
-        display: flex; justify-content: center; align-items: center;     
-        background-color: #ffffff; border-bottom: 1px solid #e5e7eb; gap: 20px;
-    }
+    /* RESET & LAYOUT */
+    html, body { height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden; background-color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .display-container { height: 100vh; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
+    
+    /* HEADER */
+    .queue-header { height: 12vh; display: flex; justify-content: center; align-items: center; border-bottom: 1px solid #e5e7eb; gap: 20px; }
     .queue-logo-img { height: 60%; width: auto; object-fit: contain; }
     .queue-title { font-size: clamp(1.5rem, 4vw, 2.5rem); font-weight: 800; color: #1f2937; text-transform: uppercase; }
 
-    /* 2. ACTIVE SECTION (Tengah) */
-    .active-section {
-        flex: 1; display: flex; flex-direction: column;
-        justify-content: center; align-items: center; width: 100%; text-align: center;      
-    }
+    /* MAIN CONTENT */
+    .active-section { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
     .label-current { font-size: clamp(1.2rem, 3vh, 2.2rem); font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 4px; }
     
-    .big-number {
+    /* NOMBOR BESAR */
+    .big-number { 
         font-size: clamp(10rem, 35vh, 25rem); 
         font-weight: 900; line-height: 1; color: #2563eb; 
         letter-spacing: -5px; transition: transform 0.3s ease-out; margin: 10px 0; 
         font-variant-numeric: tabular-nums; 
     }
-    .pop-in { animation: popScale 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    
     .visitor-name { font-size: clamp(1.5rem, 5vh, 3.5rem); color: #1f2937; font-weight: 700; margin-top: 1vh; }
     
-    .counter-display {
+    .counter-display { 
         font-size: clamp(1.5rem, 4vh, 3.5rem); color: #ef4444; font-weight: 800;
         margin-top: 3vh; text-transform: uppercase; background: #fef2f2;
         padding: 15px 50px; border-radius: 50px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     }
+    
+    /* ANIMASI */
+    .pop-in { animation: popScale 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    @keyframes popScale { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-    /* 3. FOOTER */
-    .footer-section {
-        flex: 0 0 auto; height: 25vh; width: 100%;
-        background-color: #f9fafb; border-top: 1px solid #e5e7eb;
-        display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; 
-    }
+    /* FOOTER */
+    .footer-section { height: 25vh; background: #f9fafb; border-top: 1px solid #e5e7eb; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
     .next-label { font-size: clamp(0.9rem, 2vh, 1.2rem); font-weight: 700; color: #9ca3af; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 2px; }
     .next-list { display: flex; gap: 3vw; justify-content: center; width: 100%; }
     .next-card { background-color: #ffffff; padding: 1.5vh 3vw; border-radius: 20px; min-width: 120px; text-align: center; box-shadow: 0 5px 10px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; }
     .next-number { font-size: clamp(2.5rem, 6vh, 4rem); font-weight: 800; color: #374151; line-height: 1; }
     .waiting-info { position: absolute; bottom: 20px; right: 30px; font-size: 1rem; color: #9ca3af; }
-    
-    @keyframes popScale { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 </style>
 
 <div class="display-container">
@@ -111,35 +93,40 @@
 </div> 
 
 <script>
+    // 1. SETUP ASAS
     const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-    const queueSlug = "{{ queue.slug }}"; 
-    const socket = new WebSocket(protocol + window.location.host + '/ws/queue/' + queueSlug + '/');
+    const socket = new WebSocket(protocol + window.location.host + '/ws/queue/{{ queue.slug }}/');
     const AUDIO_BASE_PATH = "/static/audio/"; 
 
-    // Event listener untuk overlay juga sudah DIBUANG
-
-    // --- AUDIO MANAGER ---
+    // 2. AUDIO MANAGER (Engine Bunyi)
     const AudioManager = {
-        queue: [], isPlaying: false, audioCache: {},     
-
+        queue: [],
+        isPlaying: false,
+        
+        // Fungsi untuk terima arahan
         announce: function(ticket, counterName) {
+            console.log("🔊 Memanggil:", ticket);
             this.queue.push({ ticket, counterName });
             this.processQueue(); 
         },
 
-        processQueue: function() {
+        // Proses giliran bunyi
+        processQueue: async function() {
             if (this.isPlaying || this.queue.length === 0) return;
             this.isPlaying = true;
+            
             const nextItem = this.queue.shift(); 
             const playlist = this.generatePlaylist(nextItem.ticket, nextItem.counterName);
-            this.playSequence(playlist);
+            
+            await this.playSequence(playlist);
         },
 
+        // Generate Playlist (A001 -> a.mp3, 0.mp3...)
         generatePlaylist: function(ticket, counterName) {
             let playlist = ["chime.mp3", "intro.mp3"];
             
-            // Logic Baru: Pecahkan A001 kepada ['A', '0', '0', '1']
-            let characters = ticket.toString().toUpperCase().split('');
+            let cleanTicket = ticket.toString().toUpperCase().trim();
+            let characters = cleanTicket.split('');
             
             characters.forEach(char => {
                 playlist.push(char.toLowerCase() + ".mp3");
@@ -159,6 +146,7 @@
             return playlist;
         },
 
+        // Mainkan urutan fail
         playSequence: async function(filenames) {
             for (let filename of filenames) {
                 await this.playOneFile(filename);
@@ -166,112 +154,105 @@
             setTimeout(() => {
                 this.isPlaying = false;
                 this.processQueue();
-            }, 100); 
+            }, 300); 
         },
 
+        // Mainkan satu fail
         playOneFile: function(filename) {
             return new Promise((resolve) => {
-                let audioObj = this.audioCache[filename] || new Audio(AUDIO_BASE_PATH + filename);
-                if (!this.audioCache[filename]) {
-                    audioObj.preload = 'auto'; 
-                    this.audioCache[filename] = audioObj;
-                } else {
-                    audioObj.currentTime = 0;
-                }
-                audioObj.playbackRate = 1.3; 
-                audioObj.onended = () => resolve();
-                audioObj.onerror = (e) => { 
-                    resolve(); 
-                };
+                let audio = new Audio(AUDIO_BASE_PATH + filename);
                 
-                // --- PENTING: Error Autoplay mungkin berlaku di sini ---
-                audioObj.play().catch(e => { 
-                    console.log("Audio tersekat. Sila benarkan audio di setting browser.");
-                    resolve(); 
-                });
+                audio.onended = () => resolve();
+                
+                audio.onerror = (e) => {
+                    console.error("❌ Fail audio tak jumpa:", filename);
+                    resolve(); // Teruskan walaupun fail hilang
+                };
+
+                let playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.warn("⚠️ Audio disekat browser. Sila klik skrin sekali.");
+                        resolve();
+                    });
+                }
             });
         }
     };
 
-    // --- WEBSOCKET HANDLER ---
+    // 3. WEBSOCKET LISTENER
+    socket.onopen = () => console.log("✅ WebSocket Connected");
+
     socket.onmessage = function(e) {
         const data = JSON.parse(e.data);
-        const eventType = data.message;
-        const payload = data.data;
 
-        if (eventType === 'invite_next') {
-            const numEl = document.getElementById('number-text');
-            const nameEl = document.getElementById('name-text');
-            const counterEl = document.getElementById('counter-text');
-
+        if (data.message === 'invite_next') {
+            const payload = data.data;
             let displayNum = payload.ticket || payload.number;
 
-            numEl.innerText = displayNum; 
-            nameEl.innerText = payload.name || "";
+            // Update DOM
+            const numEl = document.getElementById('number-text');
+            numEl.innerText = displayNum;
+            document.getElementById('name-text').innerText = payload.name || "";
             
+            const counterEl = document.getElementById('counter-text');
             if (payload.counter) {
-                counterEl.style.display = "block";
+                counterEl.style.display = 'block';
                 counterEl.innerText = payload.counter.toUpperCase();
             } else {
-                counterEl.style.display = "none";
+                counterEl.style.display = 'none';
             }
 
+            // Animasi Pop-in
             numEl.classList.remove('pop-in');
             void numEl.offsetWidth; 
             numEl.classList.add('pop-in');
 
+            // Trigger Audio
             AudioManager.announce(displayNum, payload.counter);
         }
+        
+        // Update senarai 'Akan Datang' & Waiting Count
+        if (data.message === 'queue_update') {
+            if (data.data.next_visitors) updateNextList(data.data.next_visitors);
+            if (data.data.waiting_count !== undefined) {
+                document.getElementById('total-waiting').innerText = data.data.waiting_count;
+            }
+        }
 
-        if (eventType === 'queue_reset') {
+        // Reset Queue
+        if (data.message === 'queue_reset') {
              document.getElementById('number-text').innerText = "---"; 
              document.getElementById('name-text').innerText = "";
              document.getElementById('counter-text').style.display = "none";
              updateNextList([]);
+             document.getElementById('total-waiting').innerText = "0";
         }
-        
-        if (payload.next_visitors) updateNextList(payload.next_visitors);
-        if (payload.waiting_count !== undefined) document.getElementById('total-waiting').innerText = payload.waiting_count;
     };
 
-    socket.onclose = function() { 
+    socket.onclose = () => {
         console.log("Socket putus. Reconnecting...");
-        setTimeout(() => location.reload(), 3000); 
+        setTimeout(() => location.reload(), 3000);
     };
 
-    function updateNextList(visitorsArray) {
+    function updateNextList(visitors) {
         const container = document.getElementById('next-list-container');
-        container.innerHTML = ""; 
-        
-        if (!visitorsArray || visitorsArray.length === 0) {
-            container.innerHTML = `
+        if(container) {
+            container.innerHTML = "";
+            if (!visitors || visitors.length === 0) {
+                 container.innerHTML = `
                 <div class="next-card"><span class="next-number">-</span></div>
                 <div class="next-card"><span class="next-number">-</span></div>
                 <div class="next-card"><span class="next-number">-</span></div>`;
-            return;
+            } else {
+                visitors.slice(0, 3).forEach(t => {
+                    let div = document.createElement('div');
+                    div.className = 'next-card'; 
+                    div.innerHTML = `<span class="next-number">${t}</span>`;
+                    container.appendChild(div);
+                });
+            }
         }
-
-        visitorsArray.slice(0, 3).forEach(ticket => {
-            const card = document.createElement('div'); card.className = 'next-card';
-            card.innerHTML = `<span class="next-number">${ticket}</span>`;
-            container.appendChild(card);
-        });
     }
-
-    // Preload Audio
-    window.addEventListener('load', function() {
-        const commonFiles = ["chime.mp3", "intro.mp3", "kaunter.mp3", "silake.mp3", "sebutan_kaunter.mp3"];
-        const numberFiles = ["0.mp3", "1.mp3", "2.mp3", "3.mp3", "4.mp3", "5.mp3", "6.mp3", "7.mp3", "8.mp3", "9.mp3"];
-        const letterFiles = ["a.mp3", "b.mp3", "c.mp3"]; 
-        
-        const allFiles = [...commonFiles, ...numberFiles, ...letterFiles];
-
-        allFiles.forEach(f => {
-            let a = new Audio(AUDIO_BASE_PATH + f);
-            a.preload = 'auto'; 
-            AudioManager.audioCache[f] = a;
-        });
-        console.log("✅ Audio Cache Preloaded");
-    });
 </script>
 {% endblock %}

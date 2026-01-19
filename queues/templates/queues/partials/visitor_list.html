@@ -1,52 +1,46 @@
-<style>
-    /* Grid Layout untuk butang nombor */
-    .visitor-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-        gap: 15px;
-        padding-top: 15px;
-    }
-
-    .btn-num {
-        background-color: #ffffff;
-        border: 2px solid #e5e7eb;
-        border-radius: 12px;
-        padding: 15px 5px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        position: relative;
-    }
-
-    .btn-num:hover {
-        border-color: #3b82f6;
-        background-color: #eff6ff;
-        transform: translateY(-2px);
-    }
-
-    .btn-num:active { transform: scale(0.95); }
-
-    .ticket-main { font-size: 1.4rem; font-weight: 800; color: #1f2937; }
-    .ticket-sub { font-size: 0.75rem; text-transform: uppercase; color: #6b7280; margin-top: 4px; font-weight: 600; }
-</style>
-
-<div id="visitor-grid-content" class="visitor-grid">
-    {% for v in all_waiting_visitors %}
-        <div class="btn-num" onclick="selectVisitor(this, '{{ v.id }}', '{{ v.ticket_number }}')">
+<div class="visitor-grid-container">
+    {% for visitor in all_waiting_visitors %}
+        
+        <div class="visitor-card fade-me-out">
             
-            <div class="ticket-main">{{ v.ticket_number }}</div>
-            
-            <div class="ticket-sub">
-                {% if v.service_type == 'A' %} Pendaftaran
-                {% elif v.service_type == 'B' %} Pembayaran
-                {% elif v.service_type == 'C' %} Pertanyaan
+            <div class="card-header">
+                <span class="ticket-tag">{{ visitor.ticket_number }}</span>
+                {% if "A" in visitor.ticket_number %}
+                    <span class="dot dot-a" title="Pendaftaran"></span>
+                {% elif "B" in visitor.ticket_number %}
+                    <span class="dot dot-b" title="Bayaran"></span>
                 {% endif %}
             </div>
-            
+
+            <div class="visitor-name-box">
+                {% include 'queues/partials/visitor_name_display.html' %}
+            </div>
+
+            <div class="card-actions">
+                <button class="btn-card btn-card-call"
+                        hx-get="{% url 'invite_specific_visitor' visitor.id %}"
+                        hx-swap="none"
+                        title="Panggil">
+                    🔊 Panggil
+                </button>
+
+                <button class="btn-card btn-card-del"
+                        hx-delete="{% url 'remove_specific_visitor' visitor.id %}"
+                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                        hx-confirm="Padam {{ visitor.ticket_number }}?"
+                        hx-target="closest .visitor-card"
+                        hx-swap="outerHTML swap:0.5s"
+                        title="Padam">
+                    🗑️
+                </button>
+            </div>
+
         </div>
+
     {% empty %}
-        <div class="text-center w-100 text-muted p-4" style="grid-column: 1 / -1;">
-            Tiada pelawat dijumpai.
+        <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #9ca3af;">
+            <div style="font-size: 3rem; margin-bottom: 10px; opacity: 0.5;">📭</div>
+            <p>Tiada pelawat dijumpai.</p>
         </div>
     {% endfor %}
 </div>
