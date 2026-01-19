@@ -2,269 +2,297 @@
 {% block content %}
 
 <style>
-    /* --- GLOBAL STYLES --- */
-    body { background-color: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow-x: hidden; }
+    /* --- GLOBAL LAYOUT --- */
+    html, body {
+        height: 100%; margin: 0; padding: 0;
+        background-color: #ffffff;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
 
-    /* Header Lokasi */
+    /* Wrapper Flexbox: Pastikan footer sentiasa di bawah */
+    .app-wrapper {
+        display: flex; flex-direction: column;
+        height: 100vh; /* Full Height */
+        width: 100%;
+        overflow: hidden; /* Elak scroll jika tak perlu */
+    }
+
+    /* HEADER */
     .location-header {
-        position: absolute; top: 20px; width: 100%; text-align: center;
-        font-size: 0.9rem; font-weight: 500; color: #374151; 
+        flex: 0 0 auto; /* Jangan kecut */
+        padding: 15px 0; text-align: center;
+        font-size: 0.9rem; font-weight: 600; color: #374151;
         display: flex; justify-content: center; align-items: center; gap: 6px;
-        z-index: 10;
+        background: white; z-index: 10;
     }
 
-    /* Container Utama */
+    /* CONTAINER TENGAH (Bulatan) */
     .status-container {
-        min-height: 100vh;
-        display: flex; flex-direction: column; justify-content: center; align-items: center;
-        text-align: center; padding: 20px;
+        flex: 1; /* Ambil semua ruang tengah */
+        display: flex; flex-direction: column; 
+        justify-content: center; align-items: center;
+        padding: 20px;
         position: relative;
     }
 
-    /* --- BULATAN STATUS (Style Seperti Gambar) --- */
-    .status-wrapper { position: relative; display: flex; justify-content: center; align-items: center; margin-bottom: 40px; }
-    
-    /* Latar Belakang Blob (Hiasan) */
-    .blob-bg {
-        position: absolute;
-        width: 320px; height: 320px;
-        background: #eff6ff; /* Very Light Blue */
-        border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
-        z-index: 1;
-        animation: morph 6s ease-in-out infinite;
+    /* --- STYLE BULATAN (CSS INI UNTUK CONTENT ANAK) --- */
+    .circle-wrapper {
+        position: relative;
+        width: 300px; height: 300px;
+        display: flex; justify-content: center; align-items: center;
     }
 
-    /* Bulatan Utama */
-    .circle-card {
-        width: 260px; height: 260px;
-        background: white;
+    .pulse-ring {
+        position: absolute; width: 100%; height: 100%;
         border-radius: 50%;
-        border: 12px solid #3b82f6; /* Blue Border Tebal */
-        display: flex; flex-direction: column; justify-content: center; align-items: center;
-        box-shadow: 0 10px 30px rgba(59, 130, 246, 0.15);
-        z-index: 2;
+        background: rgba(59, 130, 246, 0.1); /* Biru */
+        z-index: 1; animation: pulseRing 2s infinite;
+    }
+    .pulse-ring.serving { background: rgba(34, 197, 94, 0.1); /* Hijau */ }
+
+    .main-circle {
+        width: 280px; height: 280px;
+        background: white; border-radius: 50%;
+        border: 15px solid #3b82f6; /* Border Biru Tebal */
+        display: flex; flex-direction: column; 
+        justify-content: center; align-items: center; text-align: center;
+        z-index: 2; box-shadow: 0 10px 40px rgba(59, 130, 246, 0.15);
         position: relative;
     }
-    
-    .circle-card.serving { border-color: #22c55e; /* Hijau bila giliran sampai */ }
+    .main-circle.serving { border-color: #22c55e; box-shadow: 0 10px 40px rgba(34, 197, 94, 0.15); }
 
-    .text-top { font-size: 0.9rem; color: #6b7280; font-weight: 500; margin-bottom: 5px; }
-    .text-top strong { color: #111827; }
-
-    .text-main { 
-        font-size: 2.2rem; font-weight: 800; color: #111827; line-height: 1.1; 
-        padding: 0 10px;
+    /* Font dalam bulatan */
+    .txt-top { font-size: 0.9rem; color: #6b7280; margin-bottom: 5px; font-weight: 500; }
+    .txt-big { 
+        font-size: 3.5rem; /* SANGAT BESAR */
+        font-weight: 800; color: #111827; 
+        line-height: 1; margin: 5px 0; letter-spacing: -1px;
     }
+    .serving-text { color: #22c55e; font-size: 2.8rem; }
+    .done-text { color: #9ca3af; font-size: 2.5rem; }
     
-    .text-sub { 
-        font-size: 1rem; color: #4b5563; margin-top: 10px; 
-        display: flex; align-items: center; gap: 5px;
-    }
-    .divider-line { width: 20px; height: 2px; background: #d1d5db; display: inline-block; }
+    .txt-sub { font-size: 1.1rem; color: #4b5563; margin-top: 5px; font-weight: 500; }
+    .divider { width: 40px; height: 3px; background: #e5e7eb; margin: 10px 0; border-radius: 2px; }
 
-    /* --- BUTTONS --- */
+    /* FOOTER (Butang) */
+    .action-footer {
+        flex: 0 0 auto; /* Jangan kecut */
+        padding: 20px; background: white;
+        display: flex; flex-direction: column; gap: 10px;
+        padding-bottom: max(20px, env(safe-area-inset-bottom));
+    }
+
+    /* BUTANG STYLE */
     .btn-action {
-        width: 100%; max-width: 280px; padding: 14px;
-        border-radius: 12px; font-weight: 600; text-decoration: none; display: block; margin-bottom: 12px;
-        text-align: center; cursor: pointer; transition: transform 0.1s; font-size: 1rem;
+        width: 100%; padding: 18px;
+        border-radius: 16px; font-weight: 700; text-decoration: none; 
+        display: flex; justify-content: center; align-items: center; gap: 10px;
+        text-align: center; cursor: pointer; transition: all 0.2s; font-size: 1rem; border: none;
     }
-    .btn-action:active { transform: scale(0.98); }
-    .btn-blue { background-color: #3b82f6; color: white; border: none; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
-    .btn-gray { background-color: #f3f4f6; color: #4b5563; border: none; }
+    .btn-action:active { transform: scale(0.96); }
+    .btn-blue { background-color: #3b82f6; color: white; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); }
+    .btn-green { background-color: #10b981; color: white; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
+    .btn-gray { background-color: #f3f4f6; color: #6b7280; }
+    
+    /* ANIMASI */
+    @keyframes pulseRing { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.3); opacity: 0; } }
 
-    /* --- MODALS (Return & Invite) --- */
+    /* MODAL */
     .modal-overlay {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.6); z-index: 1000;
+        background: rgba(0,0,0,0.8); z-index: 2000;
         display: none; justify-content: center; align-items: center;
-        backdrop-filter: blur(4px);
+        backdrop-filter: blur(5px);
     }
     .modal-card {
-        background: white; width: 85%; max-width: 350px;
+        background: white; width: 85%; max-width: 320px;
         padding: 30px; border-radius: 24px; text-align: center;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-        animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    .modal-icon-img { width: 80px; height: 80px; margin-bottom: 15px; object-fit: contain; }
-    .modal-emoji { font-size: 4rem; margin-bottom: 10px; display: block; }
-    
-    .modal-h { font-size: 1.4rem; font-weight: 800; color: #111827; margin-bottom: 8px; }
-    .modal-p { color: #6b7280; font-size: 1rem; margin-bottom: 25px; line-height: 1.5; }
-
-    @keyframes morph {
-        0%, 100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: rotate(0deg); }
-        34% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; transform: rotate(5deg); }
-        67% { border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%; transform: rotate(-5deg); }
+        animation: popUp 0.3s ease-out;
     }
     @keyframes popUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 </style>
 
-<div class="location-header">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-    {{ queue.name }}
-</div>
+<div class="app-wrapper">
+    
+    <div class="location-header">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        <span>{{ queue.name }}</span>
+    </div>
 
-<div class="status-container"
-     id="status-content"
-     hx-get="{% url 'visitor_status' visitor.id %}"
-     hx-trigger="every 3s, queue_update from:body">
+    <div class="status-container"
+         id="status-content"
+         hx-get="{% url 'visitor_status' visitor.id %}"
+         hx-trigger="every 5s, queue_update from:body">
+         
+        {% include 'queues/partials/visitor_status_content.html' %}
+        
+    </div>
 
-    {% include 'queues/partials/visitor_status_content.html' %}
+    <div class="action-footer">
+        {% if visitor.status == 'WAITING' %}
+            <button id="btn-enable-notif" class="btn-action btn-blue" onclick="enableSmartAlerts()">
+                <span>🔔</span> Aktifkan Notifikasi
+            </button>
+            <a href="{% url 'visitor_quit' visitor.id %}" onclick="return confirm('Keluar barisan?');" class="btn-action btn-gray">
+                Keluar dari Q
+            </a>
+        {% endif %}
+    </div>
 
 </div>
 
 <div id="returnModal" class="modal-overlay">
     <div class="modal-card">
-        <div class="modal-emoji">⏳</div>
-        <div class="modal-h">Anda telah dipindahkan ke Q</div>
-        <div class="modal-p">Sila tunggu giliran anda</div>
-        <button onclick="closeModal('returnModal')" class="btn-action btn-blue">Bagus</button>
+        <div style="font-size: 4rem;">⏳</div>
+        <h2>Masuk Q Semula</h2>
+        <p style="color:#666;">Anda telah dipindahkan kembali ke dalam barisan.</p>
+        <button onclick="closeModal('returnModal')" class="btn-action btn-blue">Faham</button>
     </div>
 </div>
 
 <div id="inviteModal" class="modal-overlay">
     <div class="modal-card">
-        <div class="modal-emoji">🎉</div>
-        <div class="modal-h">Giliran anda!</div>
-        <div class="modal-p">Sila terus ke kaunter</div>
-        <button onclick="closeModal('inviteModal')" class="btn-action btn-blue">Giliran Anda</button>
+        <div style="font-size: 4rem;">🎉</div>
+        <h2>Giliran Anda!</h2>
+        <p style="color:#666;">Sila hadir ke kaunter sekarang.</p>
+        <button onclick="closeModal('inviteModal')" class="btn-action btn-blue">Saya Datang</button>
     </div>
 </div>
-
 
 <audio id="alertSound" preload="auto">
     <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
 </audio>
-
-{% if visitor.status == 'WAITING' %}
-    <button id="btn-enable-notif" class="btn-action btn-blue" onclick="enableSmartAlerts()">
-        🔔 Benarkan Pemberitahuan dan Kekal Terjaga
-    </button>
-    <a href="{% url 'visitor_quit' visitor.id %}" class="btn-action btn-gray">Keluar dari Q</a>
-{% endif %}
-
 
 <script>
     const currentVisitorId = "{{ visitor.id }}"; 
     const alertSound = document.getElementById('alertSound');
     let wakeLock = null;
 
-    // --- 1. SETUP SMART ALERTS ---
-    async function enableSmartAlerts() {
+    // --- 1. FUNGSI SETUP ALERTS (DIPERBAIKI) ---
+    function enableSmartAlerts() {
         const btn = document.getElementById('btn-enable-notif');
         
-        // A. Minta Izin Notification System
-        if ("Notification" in window) {
-            Notification.requestPermission().then(permission => {
-                if (permission === "granted") {
-                    console.log("Notification granted");
-                }
-            });
-        }
-
-        // B. 'Unlock' Audio pada iOS/Android
-        // Browser mobile tak bagi bunyi auto-play melainkan user tekan sesuatu dulu.
-        // Kita mainkan bunyi senyap (mute) sekejap.
-        alertSound.volume = 0;
+        // A. UNLOCK AUDIO (PENTING: MESTI JALAN TERUS TANPA AWAIT)
+        // Kita paksa main dan pause serta-merta bila user tekan butang.
+        // Jangan letak dalam try-catch block yang kompleks.
+        alertSound.muted = true; // Mute dulu untuk trick browser
         alertSound.play().then(() => {
+            // Kalau berjaya main
             alertSound.pause();
             alertSound.currentTime = 0;
-            alertSound.volume = 1.0; // Set balik volume kuat
-        }).catch(e => console.log("Audio permission error:", e));
+            alertSound.muted = false; // Unmute semula untuk standby
+            alertSound.volume = 1.0;
+            console.log("Audio unlocked successfully");
+        }).catch(error => {
+            console.warn("Audio autoplay prevented:", error);
+            alert("Sila pastikan telefon anda tidak dalam mod 'Silent'.");
+        });
 
-        // C. Aktifkan WAKE LOCK (Supaya skrin tak gelap)
+        // Update butang UI dulu supaya user nampak respons
+        btn.innerHTML = "✅ Notifikasi Aktif";
+        btn.classList.remove('btn-blue', 'pulse-btn');
+        btn.classList.add('btn-green');
+        btn.disabled = true;
+
+        // B. SETUP LAIN (Notification & WakeLock) - Jalan di background
+        setupBackgroundTasks();
+    }
+
+    async function setupBackgroundTasks() {
+        // Minta izin Notification
+        if ("Notification" in window) {
+            await Notification.requestPermission();
+        }
+
+        // Minta Screen Wake Lock (Supaya skrin tak padam)
         try {
             if ('wakeLock' in navigator) {
                 wakeLock = await navigator.wakeLock.request('screen');
-                console.log('Screen Wake Lock active');
-                btn.innerText = "✅ Notifications Active (Do not close tab)";
-                btn.style.backgroundColor = "#22c55e"; // Tukar jadi hijau
+                console.log("Wake Lock active");
                 
-                // Jika user minimize dan masuk balik, request semula
+                // Re-acquire lock jika user minimize dan buka balik app
                 document.addEventListener('visibilitychange', async () => {
                     if (wakeLock !== null && document.visibilityState === 'visible') {
                         wakeLock = await navigator.wakeLock.request('screen');
                     }
                 });
-            } else {
-                alert("Sila pastikan skrin anda sentiasa menyala.");
             }
         } catch (err) {
-            console.error(`${err.name}, ${err.message}`);
+            console.log("Wake Lock error:", err);
         }
     }
 
-    // --- 2. FUNGSI TRIGGER ALERT (BUNYI + GEGAR + NOTIF) ---
+    // --- 2. FUNGSI TRIGGER (BUNYI + VIBRATE) ---
     function triggerItIsYourTurn() {
-        // A. Bunyi
-        alertSound.play().catch(e => console.log("Gagal main bunyi:", e));
-
-        // B. Getaran (Vibration) - Android Only
-        if (navigator.vibrate) {
-            navigator.vibrate([500, 200, 500, 200, 1000]); // Corak getaran: Vroom... Vroom... VROOOOM
+        // A. Mainkan Bunyi (Sekarang browser patut dah benarkan)
+        let playPromise = alertSound.play();
+        
+        if (playPromise !== undefined) {
+            playPromise.catch(error => {
+                console.error("Gagal main bunyi:", error);
+                // Fallback: Cuba main sekali lagi jika gagal
+                alertSound.muted = false;
+                alertSound.play();
+            });
         }
 
-        // C. System Notification (Lock Screen)
+        // B. Vibrate (Untuk Android)
+        if (navigator.vibrate) {
+            navigator.vibrate([500, 200, 500, 200, 1000]);
+        }
+        
+        // C. Push Notification
         if (Notification.permission === "granted") {
-    const notif = new Notification("Giliran Anda!", {
-        body: "Sila ke kaunter sekarang. Nombor anda #{{ visitor.number|stringformat:'03d' }}",
-        
-        // --- UBAH JADI MACAM NI ---
-        // Kita cek dulu: Kalau ada logo, baru ambil URL. Kalau tak, biar kosong string.
-        icon: "{% if queue.logo %}{{ queue.logo.url }}{% endif %}",
-        // --------------------------
-        
-        vibrate: [200, 100, 200]
-    });
-            
-            // Bila user tekan notif, buka balik browser
+            const notif = new Notification("Giliran Anda!", {
+                body: "Sila ke kaunter sekarang. Nombor #{{ visitor.ticket_number }}",
+                icon: "{% if queue.logo %}{{ queue.logo.url }}{% endif %}",
+                vibrate: [200, 100, 200],
+                requireInteraction: true
+            });
             notif.onclick = function() {
                 window.focus();
                 notif.close();
             };
         }
 
-        // D. Tunjuk Modal dalam UI
+        // D. Tunjuk Modal
         document.getElementById('inviteModal').style.display = 'flex';
     }
 
     // --- 3. WEBSOCKET LOGIC ---
     const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-    const queueSlug = "{{ queue.slug }}"; 
-    const socket = new WebSocket(protocol + window.location.host + '/ws/queue/' + queueSlug + '/');
+    const socket = new WebSocket(protocol + window.location.host + '/ws/queue/{{ queue.slug }}/');
+
+    socket.onopen = () => console.log("WebSocket Connected");
 
     socket.onmessage = function(e) {
         const data = JSON.parse(e.data);
         const eventType = data.message;
         const payload = data.data;
 
-        // Refresh Visual (HTMX)
+        // Refresh UI (HTMX)
         document.body.dispatchEvent(new Event('queue_update'));
 
-        // Logic Modal & Bunyi
-        if (eventType === 'visitor_returned' && payload.visitor_id == currentVisitorId) {
-            document.getElementById('returnModal').style.display = 'flex';
-        }
-
-        // TRIGGER ALARM DISINI
-        if (eventType === 'invite_next' && payload.visitor_id == currentVisitorId) {
-            triggerItIsYourTurn();
+        // Check ID Pelawat
+        if (payload.visitor_id == currentVisitorId) {
+            if (eventType === 'visitor_returned') {
+                document.getElementById('returnModal').style.display = 'flex';
+            }
+            if (eventType === 'invite_next') {
+                triggerItIsYourTurn();
+            }
         }
     };
     
-    // Auto-reconnect jika socket putus (sebab skrin terpadam lama)
-    socket.onclose = function() {
-        console.log("Socket putus, cuba connect semula...");
-        setTimeout(() => {
-            window.location.reload(); // Reload page terus paling selamat
-        }, 3000);
+    socket.onclose = () => {
+        console.log("Socket putus. Reconnecting...");
+        setTimeout(() => location.reload(), 3000);
     };
 
-    function closeModal(modalId) {
-        document.getElementById(modalId).style.display = 'none';
-        alertSound.pause(); // Stop bunyi bila user tekan 'On my way'
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+        alertSound.pause();
         alertSound.currentTime = 0;
-        document.body.dispatchEvent(new Event('queue_update'));
     }
 </script>
 {% endblock %}

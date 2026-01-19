@@ -471,6 +471,33 @@
 </div>
 <script>
 
+document.body.addEventListener('ticketCreated', function(evt) {
+    const data = evt.detail; // Dapat data dari views.py
+    
+    // Tutup Modal dulu
+    closeModals();
+    
+    // Papar Popup Cantik
+    Swal.fire({
+        title: 'Berjaya!',
+        text: 'Tiket ' + data.number + ' telah dicetak.',
+        icon: 'success',
+        timer: 2000, // Tutup sendiri lepas 2 saat
+        showConfirmButton: false,
+        backdrop: `rgba(0,0,123,0.4)`
+    });
+    
+    // Reset form (Optional, jika htmx tak reset)
+    document.getElementById('manualAddForm').reset();
+});
+
+
+
+
+
+
+
+
     // 1. UI HELPERS (Modals)
     function closeModals() {
         document.querySelectorAll('.modal-overlay').forEach(el => el.style.display = 'none');

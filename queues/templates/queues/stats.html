@@ -5,35 +5,67 @@
 
 <style>
     body { background-color: #f3f4f6; }
-    .stats-container { max-width: 900px; margin: 30px auto; padding: 20px; }
+    .stats-container { max-width: 1000px; margin: 30px auto; padding: 20px; }
     
-    .stats-header { text-align: center; margin-bottom: 30px; }
-    .stats-title { font-size: 2rem; font-weight: 800; color: #1f2937; }
-    .stats-date { color: #6b7280; font-size: 1.1rem; }
+    /* Header & Actions */
+    .header-wrapper { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
+    .stats-header { text-align: left; }
+    .stats-title { font-size: 2rem; font-weight: 800; color: #1f2937; margin: 0; }
+    .stats-date { color: #6b7280; font-size: 1.1rem; margin-top: 5px; }
+    
+    .action-buttons { display: flex; gap: 10px; }
+    .btn-action { padding: 10px 20px; border-radius: 10px; font-weight: 600; text-decoration: none; border: none; cursor: pointer; transition: 0.2s; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+    .btn-print { background: #374151; color: white; }
+    .btn-print:hover { background: #1f2937; }
+    .btn-csv { background: #10b981; color: white; }
+    .btn-csv:hover { background: #059669; }
 
-    /* Cards untuk Total Number */
+    /* Cards */
     .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px; }
-    .card-stat { background: white; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    .card-stat { background: white; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; }
     .stat-num { font-size: 3rem; font-weight: 800; color: #3b82f6; line-height: 1; }
     .stat-label { font-size: 0.9rem; text-transform: uppercase; color: #9ca3af; font-weight: 600; margin-top: 5px; }
 
-    /* Chart Containers */
+    /* Charts */
     .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    .chart-box { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    .chart-box { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; page-break-inside: avoid; }
     
+    .full-width { grid-column: span 2; }
+
     @media (max-width: 768px) {
         .charts-grid { grid-template-columns: 1fr; }
+        .full-width { grid-column: span 1; }
+        .header-wrapper { flex-direction: column; text-align: center; }
     }
     
-    .btn-back { display: inline-block; margin-top: 30px; text-decoration: none; color: #6b7280; font-weight: 600; }
+    .btn-back { display: inline-block; margin-top: 30px; text-decoration: none; color: #6b7280; font-weight: 600; padding: 10px; }
+
+    /* --- PRINT SETTINGS (Untuk PDF) --- */
+    @media print {
+        body { background-color: white; }
+        .action-buttons, .btn-back, .app-header { display: none !important; } /* Sorok butang masa print */
+        .stats-container { margin: 0; padding: 0; max-width: 100%; }
+        .card-stat, .chart-box { box-shadow: none; border: 1px solid #ddd; }
+        .chart-box { break-inside: avoid; } /* Elak chart terpotong dua page */
+        canvas { max-height: 300px; } /* Kecilkan sikit chart masa print */
+    }
 </style>
 
 <div class="stats-container">
 
-    <div class="stats-header">
-        <div class="stats-title">Statistik Harian</div>
-        <div class="stats-date">{{ today|date:"l, d F Y" }}</div>
-        <div style="margin-top: 5px;">{{ queue.name }}</div>
+    <div class="header-wrapper">
+        <div class="stats-header">
+            <h1 class="stats-title">Laporan Statistik</h1>
+            <div class="stats-date">{{ today|date:"l, d F Y" }} &bull; {{ queue.name }}</div>
+        </div>
+        <div class="action-buttons">
+            <button onclick="downloadCSV()" class="btn-action btn-csv">
+                📊 CSV (Excel)
+            </button>
+            <button onclick="window.print()" class="btn-action btn-print">
+                🖨️ Cetak / PDF
+            </button>
+        </div>
     </div>
 
     <div class="summary-grid">
@@ -42,21 +74,16 @@
             <div class="stat-label">Jumlah Pelawat</div>
         </div>
         <div class="card-stat">
-            <div class="stat-num text-success" style="color: #10b981;">
-                <script>document.write({{ chart_status_data }}[0] + {{ chart_status_data }}[1])</script>
-            </div>
+            <div class="stat-num text-success" id="total-served" style="color: #10b981;">0</div>
             <div class="stat-label">Telah Dilayan</div>
         </div>
         <div class="card-stat">
-            <div class="stat-num text-warning" style="color: #f59e0b;">
-                <script>document.write({{ chart_status_data }}[2])</script>
-            </div>
+            <div class="stat-num text-warning" id="total-waiting" style="color: #f59e0b;">0</div>
             <div class="stat-label">Masih Menunggu</div>
         </div>
     </div>
 
     <div class="charts-grid">
-        
         <div class="chart-box">
             <h5 class="fw-bold text-center mb-3">Mengikut Servis</h5>
             <canvas id="serviceChart"></canvas>
@@ -67,8 +94,9 @@
             <canvas id="statusChart"></canvas>
         </div>
 
-        <div class="chart-box" style="grid-column: span 2;"> <h5 class="fw-bold text-center mb-3">Waktu Puncak (Hari Ini)</h5>
-            <canvas id="peakChart"></canvas>
+        <div class="chart-box full-width"> 
+            <h5 class="fw-bold text-center mb-3">Waktu Puncak (Trafik Jam)</h5>
+            <canvas id="peakChart" height="100"></canvas>
         </div>
     </div>
 
@@ -79,92 +107,122 @@
 </div>
 
 <script>
-    // --- DATA DARI DJANGO VIEWS ---
+    // --- 1. DATA PROCESSING ---
     const serviceData = JSON.parse('{{ chart_service_data|safe }}'); // [A, B, C]
     const statusData = JSON.parse('{{ chart_status_data|safe }}');   // [Completed, Serving, Waiting]
-
     const hoursLabels = JSON.parse('{{ chart_hours_labels|safe }}');
     const hoursData = JSON.parse('{{ chart_hours_data|safe }}');
-    // 1. CHART SERVIS (Bar)
-    const ctx1 = document.getElementById('serviceChart').getContext('2d');
-    new Chart(ctx1, {
+
+    // Update nombor summary card (Ganti document.write)
+    // statusData = [0:Completed, 1:Serving, 2:Waiting]
+    const servedTotal = (statusData[0] || 0) + (statusData[1] || 0); // Selesai + Serving
+    const waitingTotal = statusData[2] || 0;
+
+    document.getElementById('total-served').innerText = servedTotal;
+    document.getElementById('total-waiting').innerText = waitingTotal;
+
+    // --- 2. CHART CONFIGURATIONS ---
+    
+    // A. Service Chart
+    new Chart(document.getElementById('serviceChart').getContext('2d'), {
         type: 'bar',
         data: {
-            labels: ['Pendaftaran (A)', 'Pembayaran (B)', 'Pertanyaan (C)'],
+            labels: ['Pendaftaran (A)', 'Pembayaran (B)', 'Lain-lain (C)'],
             datasets: [{
-                label: 'Jumlah Pelawat',
+                label: 'Pelawat',
                 data: serviceData,
-                backgroundColor: [
-                    'rgba(59, 130, 246, 0.7)', // Biru
-                    'rgba(16, 185, 129, 0.7)', // Hijau
-                    'rgba(139, 92, 246, 0.7)'  // Ungu
-                ],
-                borderColor: [
-                    '#3b82f6', '#10b981', '#8b5cf6'
-                ],
-                borderWidth: 1,
-                borderRadius: 8
+                backgroundColor: ['#3b82f6', '#10b981', '#8b5cf6'],
+                borderRadius: 6
             }]
         },
         options: {
             responsive: true,
-            scales: {
-                y: { beginAtZero: true, ticks: { stepSize: 1 } }
-            },
-            plugins: {
-                legend: { display: false }
-            }
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
         }
     });
 
-    // 2. CHART STATUS (Doughnut)
-    const ctx2 = document.getElementById('statusChart').getContext('2d');
-    new Chart(ctx2, {
+    // B. Status Chart
+    new Chart(document.getElementById('statusChart').getContext('2d'), {
         type: 'doughnut',
         data: {
             labels: ['Selesai', 'Sedang Dilayan', 'Menunggu'],
             datasets: [{
                 data: statusData,
-                backgroundColor: [
-                    '#10b981', // Hijau (Selesai)
-                    '#3b82f6', // Biru (Serving)
-                    '#f59e0b'  // Kuning (menunggu))
-                ],
-                borderWidth: 0,
-                hoverOffset: 4
+                backgroundColor: ['#10b981', '#3b82f6', '#f59e0b'],
+                borderWidth: 0
             }]
         },
         options: {
             responsive: true,
-            cutout: '70%',
-            plugins: {
-                legend: { position: 'bottom' }
-            }
+            cutout: '65%',
+            plugins: { legend: { position: 'bottom' } }
         }
     });
 
-
-    const ctx3 = document.getElementById('peakChart').getContext('2d');
-    new Chart(ctx3, {
+    // C. Peak Hour Chart
+    new Chart(document.getElementById('peakChart').getContext('2d'), {
         type: 'line',
         data: {
             labels: hoursLabels,
             datasets: [{
-                label: 'Pelawat Masuk',
+                label: 'Kemasukan Pelawat',
                 data: hoursData,
-                borderColor: '#ef4444', // Merah
+                borderColor: '#ef4444',
                 backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                tension: 0.4, // Bagi garisan melengkung sikit (smooth)
-                fill: true
+                tension: 0.4,
+                fill: true,
+                pointRadius: 4,
+                pointBackgroundColor: '#fff',
+                pointBorderColor: '#ef4444'
             }]
         },
         options: {
             responsive: true,
-            scales: { y: { beginAtZero: true } }
+            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
         }
     });
 
+    // --- 3. DOWNLOAD CSV FUNCTION ---
+    function downloadCSV() {
+        // Sediakan data CSV
+        let csvContent = "data:text/csv;charset=utf-8,";
+        
+        // Header Laporan
+        csvContent += "Laporan Statistik Harian\n";
+        csvContent += "Tarikh," + "{{ today|date:'d-m-Y' }}" + "\n\n";
 
+        // Bahagian 1: Ringkasan
+        csvContent += "RINGKASAN\n";
+        csvContent += "Kategori,Jumlah\n";
+        csvContent += "Jumlah Keseluruhan,{{ total_today }}\n";
+        csvContent += "Telah Dilayan," + servedTotal + "\n";
+        csvContent += "Masih Menunggu," + waitingTotal + "\n\n";
+
+        // Bahagian 2: Pecahan Servis
+        csvContent += "PECAHAN SERVIS\n";
+        csvContent += "Jenis Servis,Jumlah\n";
+        csvContent += "A - Pendaftaran," + serviceData[0] + "\n";
+        csvContent += "B - Pembayaran," + serviceData[1] + "\n";
+        csvContent += "C - Lain-lain," + serviceData[2] + "\n\n";
+
+        // Bahagian 3: Waktu Puncak
+        csvContent += "TRAFIK MENGIKUT JAM\n";
+        csvContent += "Jam,Bilangan Pelawat\n";
+        hoursLabels.forEach((label, index) => {
+            csvContent += label + "," + hoursData[index] + "\n";
+        });
+
+        // Buat Link Download
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "laporan_statistik_{{ today|date:'Y-m-d' }}.csv");
+        document.body.appendChild(link);
+        
+        link.click();
+        document.body.removeChild(link);
+    }
 </script>
 
 {% endblock %}

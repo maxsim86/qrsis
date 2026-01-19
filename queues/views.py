@@ -497,9 +497,10 @@ def admin_interface(request, slug):
     
 
 def add_manual_visitor(request, slug):
+    # 1. LOGIK ASAL: Simpan Pelawat ke Database
     queue = get_object_or_404(Queue, slug=slug)
     
-    # Ambil service type dari form (Anda kena tambah dropdown di HTML nanti)
+    # Ambil service type dari form
     service_type = request.POST.get('service_type', 'A') 
 
     # Kira nombor ikut servis
@@ -512,7 +513,8 @@ def add_manual_visitor(request, slug):
     else:
         visitor_name = f"Visitor #{service_type}{next_number:03d}"
     
-    new_visitor = Visitor.objects.create(
+    # Create object visitor baru
+    visitor = Visitor.objects.create(
         queue=queue,
         name=visitor_name,
         number=next_number,
@@ -520,22 +522,37 @@ def add_manual_visitor(request, slug):
         status='WAITING'
     )
     
-    # Gunakan ticket_number property
-    ticket_str = new_visitor.ticket_number 
-    
-    messages.success(request, f"Added {visitor_name} ({ticket_str})")
-    
+    # Hantar update ke WebSocket (supaya TV dan list admin update serta-merta)
     send_socket_update(slug, 'new_visitor', {
-        'visitor_id': new_visitor.id,
-        'ticket': ticket_str,
-        'number': ticket_str,
-        'name': new_visitor.name
+        'visitor_id': visitor.id,
+        'ticket': visitor.ticket_number,
+        'number': visitor.ticket_number,
+        'name': visitor.name
     })
     
+    # 2. LOGIK BARU: Respon untuk HTMX (Popup)
     if request.headers.get('HX-Request'):
-        return HttpResponse(status=204)
+        # Buat response kosong (204 No Content) supaya page tak refresh
+        response = HttpResponse(status=204)
+        
+        # Data untuk popup SweetAlert
+        trigger_data = {
+            "ticketCreated": {
+                "number": visitor.ticket_number,
+                "service": visitor.get_service_type_display()
+            },
+            "queue_update": "true" # Signal tambahan untuk refresh list jika perlu
+        }
+        
+        # Masukkan data ke dalam Header
+        response['HX-Trigger'] = json.dumps(trigger_data)
+        
+        return response
 
+    # Fallback untuk non-HTMX request
+    messages.success(request, f"Added {visitor_name} ({visitor.ticket_number})")
     return redirect('admin_interface', slug=slug)
+
 
     
 def acknowledge_return(request, visitor_id):

@@ -1,50 +1,43 @@
-<div class="status-wrapper">
-    <div class="blob-bg"></div>
+<div class="circle-wrapper">
     
-    <div class="circle-card {% if visitor.status == 'SERVING' %}serving{% endif %}">
+    <div class="pulse-ring {% if visitor.status == 'SERVING' %}serving{% endif %}"></div>
+
+    <div class="main-circle {% if visitor.status == 'SERVING' %}serving{% endif %}">
         
         {% if visitor.status == 'WAITING' %}
-            <div class="text-top">Nombor anda <strong>#{{ visitor.ticket_number }}</strong></div>
+            <div class="txt-top">Nombor anda <strong>#{{ visitor.ticket_number }}</strong></div>
             
-            <div class="text-main">
+            <div class="txt-big">
                 {% if position == 1 %}
-                    Anda no 1
-                {% elif position == 2 %}
-                    Anda no 2
-                {% elif position == 3 %}
-                    Anda no 3
+                    Anda<br>No. 1
                 {% else %}
-                    Nombor {{ position }}
+                    No. {{ position }}
                 {% endif %}
-                <br>dalam barisan
             </div>
             
-            <div class="text-sub">
-                <span class="divider-line"></span>
-                {% if position <= 2 %}
-                   hampir tiba!
-                {% else %}
-                    tunggu sikit lagi
-                {% endif %}
+            <div class="divider"></div>
+            
+            <div class="txt-sub">
+                dalam barisan
             </div>
 
         {% elif visitor.status == 'SERVING' %}
-            <div class="text-top">Nombor <strong>#{{ visitor.ticket_number }}</strong></div>
-            <div class="text-main" style="color: #22c55e;">Giliran anda<br>sekarang!</div>
-            <div class="text-sub">
-                <span class="divider-line"></span>
-                Sila ke kaunter!
+            <div class="txt-top">Nombor <strong>#{{ visitor.ticket_number }}</strong></div>
+            
+            <div class="txt-big serving-text">
+                Giliran<br>Anda!
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="txt-sub">
+                Sila ke kaunter
             </div>
 
         {% else %}
-            <div class="text-main">Selesai</div>
-            <div class="text-sub">Terima kasih</div>
+            <div class="txt-big done-text">Selesai</div>
+            <div class="txt-sub">Terima kasih</div>
         {% endif %}
-        
+
     </div>
 </div>
-
-{% if visitor.status == 'WAITING' %}
-    <button class="btn-action btn-blue" onclick="alert('Notifications enabled!')">Benarkan notifikasi</button>
-    <a href="{% url 'visitor_quit' visitor.id %}" class="btn-action btn-gray">Keluar dari Q</a>
-{% endif %}
