@@ -426,26 +426,28 @@ async def visitor_status(request, visitor_id):
         visitor = await Visitor.objects.select_related('queue').aget(id=visitor_id)
     except Visitor.DoesNotExist:   
         return render(request, 'queues/session_ended.html')
-    
-    # Kerana kita dah guna select_related, kita boleh akses visitor.queue tanpa db call baru
+        
     queue = visitor.queue
-    
+    estimated_wait = 0
     if visitor.status == 'WAITING':
         # 3. Guna 'acount' (Async Count)
         people_ahead = await Visitor.objects.filter(
             queue=queue, 
             status='WAITING', 
             id__lt=visitor.id
-        ).acount() # Perhatikan ada 'a' di depan count
-        
+        ).acount()
+                
         position = people_ahead + 1
+        AVERAGE_TIME_PER_PERSON = 5
+        estimated_wait = position*AVERAGE_TIME_PER_PERSON
     else:
         position = 0
     
     context = {
         'visitor': visitor,
         'queue': queue,
-        'position': position
+        'position': position,
+        'estimated_wait':estimated_wait,
     }
     
     if request.headers.get('HX-Request'):

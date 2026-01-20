@@ -1,139 +1,174 @@
 {% extends 'base.html' %}
 {% block content %}
 
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
 <style>
-    /* --- GLOBAL LAYOUT --- */
+    /* --- GLOBAL & BACKGROUND --- */
     html, body {
         height: 100%; margin: 0; padding: 0;
-        background-color: #ffffff;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background-color: #f0f4f8;
+        background-image: 
+            radial-gradient(at 0% 0%, hsla(253,16%,7%,0) 0, hsla(253,16%,7%,0) 50%), 
+            radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, hsla(225,39%,30%,0) 50%), 
+            radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, hsla(339,49%,30%,0) 50%);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        color: #1e293b;
     }
 
-    /* Wrapper Flexbox: Pastikan footer sentiasa di bawah */
     .app-wrapper {
         display: flex; flex-direction: column;
-        height: 100vh; /* Full Height */
-        width: 100%;
-        overflow: hidden; /* Elak scroll jika tak perlu */
+        height: 100vh; width: 100%; overflow: hidden;
+        background: rgba(255, 255, 255, 0.85); /* Overlay Putih */
+        backdrop-filter: blur(50px);
     }
 
     /* HEADER */
     .location-header {
-        flex: 0 0 auto; /* Jangan kecut */
-        padding: 15px 0; text-align: center;
-        font-size: 0.9rem; font-weight: 600; color: #374151;
-        display: flex; justify-content: center; align-items: center; gap: 6px;
-        background: white; z-index: 10;
+        flex: 0 0 auto; padding: 20px 0; text-align: center;
+        font-size: 0.85rem; font-weight: 700; color: #64748b;
+        text-transform: uppercase; letter-spacing: 1.5px;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
     }
 
-    /* CONTAINER TENGAH (Bulatan) */
+    /* CONTAINER TENGAH */
     .status-container {
-        flex: 1; /* Ambil semua ruang tengah */
-        display: flex; flex-direction: column; 
+        flex: 1; display: flex; flex-direction: column; 
         justify-content: center; align-items: center;
-        padding: 20px;
-        position: relative;
+        position: relative; width: 100%;
     }
 
-    /* --- STYLE BULATAN (CSS INI UNTUK CONTENT ANAK) --- */
+    /* --- BULATAN MODEN (KEKAL / STATIC) --- */
     .circle-wrapper {
         position: relative;
-        width: 300px; height: 300px;
+        width: 320px; height: 320px;
         display: flex; justify-content: center; align-items: center;
     }
 
-    .pulse-ring {
-        position: absolute; width: 100%; height: 100%;
+    /* SVG RING */
+    .progress-ring {
+        position: absolute; top: 0; left: 0;
+        width: 100%; height: 100%;
+        transform: rotate(90deg); /* Mula bawah */
+        z-index: 1;
+        filter: drop-shadow(0 10px 20px rgba(37, 99, 235, 0.15));
+    }
+
+    .progress-ring__circle {
+        transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.5s ease;
+        transform-origin: 50% 50%;
+        stroke-linecap: round;
+    }
+
+    /* KANDUNGAN TEKS (YANG AKAN BERUBAH) */
+    .circle-content {
+        z-index: 2; position: absolute;
+        width: 260px; height: 260px;
         border-radius: 50%;
-        background: rgba(59, 130, 246, 0.1); /* Biru */
-        z-index: 1; animation: pulseRing 2s infinite;
-    }
-    .pulse-ring.serving { background: rgba(34, 197, 94, 0.1); /* Hijau */ }
-
-    .main-circle {
-        width: 280px; height: 280px;
-        background: white; border-radius: 50%;
-        border: 15px solid #3b82f6; /* Border Biru Tebal */
-        display: flex; flex-direction: column; 
+        background: white;
+        box-shadow: inset 0 0 40px rgba(0,0,0,0.02);
+        display: flex; flex-direction: column;
         justify-content: center; align-items: center; text-align: center;
-        z-index: 2; box-shadow: 0 10px 40px rgba(59, 130, 246, 0.15);
-        position: relative;
     }
-    .main-circle.serving { border-color: #22c55e; box-shadow: 0 10px 40px rgba(34, 197, 94, 0.15); }
 
-    /* Font dalam bulatan */
-    .txt-top { font-size: 0.9rem; color: #6b7280; margin-bottom: 5px; font-weight: 500; }
-    .txt-big { 
-        font-size: 3.5rem; /* SANGAT BESAR */
-        font-weight: 800; color: #111827; 
-        line-height: 1; margin: 5px 0; letter-spacing: -1px;
+    /* DEFINISI WARNA (CSS VARIABLES) */
+    :root {
+        --color-waiting-start: #60a5fa;
+        --color-waiting-end: #2563eb;
+        --color-serving-start: #4ade80;
+        --color-serving-end: #16a34a;
     }
-    .serving-text { color: #22c55e; font-size: 2.8rem; }
-    .done-text { color: #9ca3af; font-size: 2.5rem; }
-    
-    .txt-sub { font-size: 1.1rem; color: #4b5563; margin-top: 5px; font-weight: 500; }
-    .divider { width: 40px; height: 3px; background: #e5e7eb; margin: 10px 0; border-radius: 2px; }
 
-    /* FOOTER (Butang) */
+    /* FOOTER */
     .action-footer {
-        flex: 0 0 auto; /* Jangan kecut */
-        padding: 20px; background: white;
-        display: flex; flex-direction: column; gap: 10px;
-        padding-bottom: max(20px, env(safe-area-inset-bottom));
+        flex: 0 0 auto; padding: 25px; 
+        background: white;
+        border-radius: 30px 30px 0 0;
+        box-shadow: 0 -10px 40px rgba(0,0,0,0.05);
+        display: flex; flex-direction: column; gap: 15px;
+        padding-bottom: max(25px, env(safe-area-inset-bottom));
     }
 
-    /* BUTANG STYLE */
     .btn-action {
-        width: 100%; padding: 18px;
-        border-radius: 16px; font-weight: 700; text-decoration: none; 
+        width: 100%; padding: 18px; border-radius: 16px; 
+        font-weight: 700; font-size: 1rem; border: none;
         display: flex; justify-content: center; align-items: center; gap: 10px;
-        text-align: center; cursor: pointer; transition: all 0.2s; font-size: 1rem; border: none;
+        cursor: pointer; transition: transform 0.1s; text-decoration: none;
     }
-    .btn-action:active { transform: scale(0.96); }
-    .btn-blue { background-color: #3b82f6; color: white; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); }
-    .btn-green { background-color: #10b981; color: white; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
-    .btn-gray { background-color: #f3f4f6; color: #6b7280; }
+    .btn-action:active { transform: scale(0.98); }
     
-    /* ANIMASI */
-    @keyframes pulseRing { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.3); opacity: 0; } }
+    .btn-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); }
+    .btn-green { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3); }
+    .btn-gray { background: #f1f5f9; color: #64748b; }
 
     /* MODAL */
     .modal-overlay {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.8); z-index: 2000;
-        display: none; justify-content: center; align-items: center;
-        backdrop-filter: blur(5px);
+        background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(8px);
+        z-index: 2000; display: none; justify-content: center; align-items: center;
     }
     .modal-card {
         background: white; width: 85%; max-width: 320px;
-        padding: 30px; border-radius: 24px; text-align: center;
-        animation: popUp 0.3s ease-out;
+        padding: 40px 30px; border-radius: 30px; text-align: center;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-    @keyframes popUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    @keyframes popUp { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 </style>
 
 <div class="app-wrapper">
     
     <div class="location-header">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-        <span>{{ queue.name }}</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right:6px"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        {{ queue.name }}
     </div>
 
-    <div class="status-container"
-         id="status-content"
-         hx-get="{% url 'visitor_status' visitor.id %}"
-         hx-trigger="every 5s, queue_update from:body">
-         
-        {% include 'queues/partials/visitor_status_content.html' %}
+    <div class="status-container">
         
+        <div class="circle-wrapper">
+            
+            <svg class="progress-ring" viewBox="0 0 120 120">
+                <defs>
+                    <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#60a5fa" />
+                        <stop offset="100%" stop-color="#2563eb" />
+                    </linearGradient>
+                    <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#4ade80" />
+                        <stop offset="100%" stop-color="#16a34a" />
+                    </linearGradient>
+                </defs>
+
+                <circle cx="60" cy="60" r="54" fill="none" stroke="#e2e8f0" stroke-width="8" />
+                
+                <circle id="ring-circle" 
+                        class="progress-ring__circle"
+                        cx="60" cy="60" r="54" 
+                        fill="none" 
+                        stroke="url(#blueGradient)"
+                        stroke-width="8"
+                        pathLength="100" 
+                        stroke-dasharray="100 100"
+                        stroke-dashoffset="100" /> </svg>
+
+            <div class="circle-content"
+                 id="dynamic-content"
+                 hx-get="{% url 'visitor_status' visitor.id %}"
+                 hx-trigger="every 5s, queue_update from:body">
+                 
+                 {% include 'queues/partials/visitor_status_content.html' %}
+                 
+            </div>
+        </div>
+
     </div>
 
-    <div class="action-footer">
+    <div class="action-footer" hx-boost="false">
         {% if visitor.status == 'WAITING' %}
             <button id="btn-enable-notif" class="btn-action btn-blue" onclick="enableSmartAlerts()">
                 <span>🔔</span> Aktifkan Notifikasi
             </button>
-            <a href="{% url 'visitor_quit' visitor.id %}" onclick="return confirm('Keluar barisan?');" class="btn-action btn-gray">
+            <a href="{% url 'visitor_quit' visitor.id %}" onclick="return confirm('Pasti mahu keluar?');" class="btn-action btn-gray">
                 Keluar dari Q
             </a>
         {% endif %}
@@ -143,19 +178,19 @@
 
 <div id="returnModal" class="modal-overlay">
     <div class="modal-card">
-        <div style="font-size: 4rem;">⏳</div>
-        <h2>Masuk Q Semula</h2>
-        <p style="color:#666;">Anda telah dipindahkan kembali ke dalam barisan.</p>
-        <button onclick="closeModal('returnModal')" class="btn-action btn-blue">Faham</button>
+        <div style="font-size: 3.5rem;">⏳</div>
+        <h2 style="margin:10px 0; color:#1e293b;">Masuk Q Semula</h2>
+        <p style="color:#64748b; margin-bottom:20px;">Anda telah dipindahkan ke dalam barisan.</p>
+        <button onclick="closeModal('returnModal')" class="btn-action btn-blue">Ok</button>
     </div>
 </div>
 
 <div id="inviteModal" class="modal-overlay">
     <div class="modal-card">
-        <div style="font-size: 4rem;">🎉</div>
-        <h2>Giliran Anda!</h2>
-        <p style="color:#666;">Sila hadir ke kaunter sekarang.</p>
-        <button onclick="closeModal('inviteModal')" class="btn-action btn-blue">Saya Datang</button>
+        <div style="font-size: 3.5rem;">🎉</div>
+        <h2 style="margin:10px 0; color:#1e293b;">Giliran Anda!</h2>
+        <p style="color:#64748b; margin-bottom:20px;">Sila hadir ke kaunter sekarang.</p>
+        <button onclick="closeModal('inviteModal')" class="btn-action btn-green">Saya Datang</button>
     </div>
 </div>
 
@@ -166,133 +201,128 @@
 <script>
     const currentVisitorId = "{{ visitor.id }}"; 
     const alertSound = document.getElementById('alertSound');
+    const ringCircle = document.getElementById('ring-circle');
     let wakeLock = null;
 
-    // --- 1. FUNGSI SETUP ALERTS (DIPERBAIKI) ---
-    function enableSmartAlerts() {
-        const btn = document.getElementById('btn-enable-notif');
+    // --- LOGIK UI & ANIMASI ---
+    function updateRingState(status) {
+        const footer = document.querySelector('.action-footer');
         
-        // A. UNLOCK AUDIO (PENTING: MESTI JALAN TERUS TANPA AWAIT)
-        // Kita paksa main dan pause serta-merta bila user tekan butang.
-        // Jangan letak dalam try-catch block yang kompleks.
-        alertSound.muted = true; // Mute dulu untuk trick browser
-        alertSound.play().then(() => {
-            // Kalau berjaya main
-            alertSound.pause();
-            alertSound.currentTime = 0;
-            alertSound.muted = false; // Unmute semula untuk standby
-            alertSound.volume = 1.0;
-            console.log("Audio unlocked successfully");
-        }).catch(error => {
-            console.warn("Audio autoplay prevented:", error);
-            alert("Sila pastikan telefon anda tidak dalam mod 'Silent'.");
-        });
-
-        // Update butang UI dulu supaya user nampak respons
-        btn.innerHTML = "✅ Notifikasi Aktif";
-        btn.classList.remove('btn-blue', 'pulse-btn');
-        btn.classList.add('btn-green');
-        btn.disabled = true;
-
-        // B. SETUP LAIN (Notification & WakeLock) - Jalan di background
-        setupBackgroundTasks();
+        // 1. Status: SERVING (Giliran Tiba)
+        if (status === 'SERVING') {
+            ringCircle.style.stroke = "url(#greenGradient)";
+            ringCircle.style.strokeDashoffset = "0"; 
+            ringCircle.style.filter = "drop-shadow(0 0 15px rgba(34, 197, 94, 0.6))";
+            
+            // Sembunyikan butang sebab dah dipanggil
+            if(footer) footer.style.display = 'none'; 
+        } 
+        
+        // 2. Status: COMPLETED (Selesai)
+        else if (status === 'COMPLETED') {
+            ringCircle.style.stroke = "#cbd5e1"; // Warna Kelabu
+            ringCircle.style.strokeDashoffset = "0";
+            ringCircle.style.filter = "none";
+            
+            // Sembunyikan butang sebab dah selesai
+            if(footer) footer.style.display = 'none';
+        }
+        
+        // 3. Status: WAITING (Masih Menunggu)
+        else {
+            ringCircle.style.stroke = "url(#blueGradient)";
+            ringCircle.style.strokeDashoffset = "0"; 
+            ringCircle.style.filter = "drop-shadow(0 10px 20px rgba(37, 99, 235, 0.15))";
+            
+            // Tunjuk butang semula (contohnya kalau staff tekan 'Return to Queue')
+            if(footer) footer.style.display = 'flex';
+        }
     }
 
-    async function setupBackgroundTasks() {
-        // Minta izin Notification
-        if ("Notification" in window) {
-            await Notification.requestPermission();
-        }
+    // Dengar event HTMX untuk update ring
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+        const newStatus = document.getElementById('status-hidden-input')?.value;
+        if(newStatus) updateRingState(newStatus);
+    });
 
-        // Minta Screen Wake Lock (Supaya skrin tak padam)
+    // Jalankan sekali masa mula-mula load
+    setTimeout(() => {
+        // Efek gerak dari kosong ke penuh masa mula buka page
+        ringCircle.style.transition = "stroke-dashoffset 1.5s ease-out";
+        updateRingState("{{ visitor.status }}");
+    }, 100);
+
+
+    // --- SETUP ALERTS ---
+    function enableSmartAlerts() {
+        const btn = document.getElementById('btn-enable-notif');
+        btn.innerHTML = "⏳ Mengaktifkan...";
+        
+        alertSound.muted = true;
+        alertSound.play().then(() => {
+            alertSound.pause(); alertSound.currentTime = 0;
+            alertSound.muted = false; alertSound.volume = 1.0;
+        }).catch(() => alert("Sila pastikan telefon tidak Silent."));
+
+        if ("Notification" in window) Notification.requestPermission();
+        requestWakeLock();
+
+        btn.innerHTML = "✅ Notifikasi Aktif";
+        btn.classList.replace('btn-blue', 'btn-green');
+        btn.disabled = true;
+    }
+
+    async function requestWakeLock() {
         try {
             if ('wakeLock' in navigator) {
                 wakeLock = await navigator.wakeLock.request('screen');
-                console.log("Wake Lock active");
-                
-                // Re-acquire lock jika user minimize dan buka balik app
                 document.addEventListener('visibilitychange', async () => {
                     if (wakeLock !== null && document.visibilityState === 'visible') {
                         wakeLock = await navigator.wakeLock.request('screen');
                     }
                 });
             }
-        } catch (err) {
-            console.log("Wake Lock error:", err);
-        }
+        } catch(e) {}
     }
 
-    // --- 2. FUNGSI TRIGGER (BUNYI + VIBRATE) ---
     function triggerItIsYourTurn() {
-        // A. Mainkan Bunyi (Sekarang browser patut dah benarkan)
-        let playPromise = alertSound.play();
+        alertSound.play().catch(() => {});
+        if (navigator.vibrate) navigator.vibrate([500, 300, 500]);
         
-        if (playPromise !== undefined) {
-            playPromise.catch(error => {
-                console.error("Gagal main bunyi:", error);
-                // Fallback: Cuba main sekali lagi jika gagal
-                alertSound.muted = false;
-                alertSound.play();
-            });
-        }
+        confetti({
+            origin: { y: 0.7 }, spread: 60, particleCount: 100,
+            colors: ['#22c55e', '#3b82f6', '#f59e0b']
+        });
 
-        // B. Vibrate (Untuk Android)
-        if (navigator.vibrate) {
-            navigator.vibrate([500, 200, 500, 200, 1000]);
-        }
-        
-        // C. Push Notification
-        if (Notification.permission === "granted") {
-            const notif = new Notification("Giliran Anda!", {
-                body: "Sila ke kaunter sekarang. Nombor #{{ visitor.ticket_number }}",
-                icon: "{% if queue.logo %}{{ queue.logo.url }}{% endif %}",
-                vibrate: [200, 100, 200],
-                requireInteraction: true
-            });
-            notif.onclick = function() {
-                window.focus();
-                notif.close();
-            };
-        }
-
-        // D. Tunjuk Modal
         document.getElementById('inviteModal').style.display = 'flex';
     }
 
-    // --- 3. WEBSOCKET LOGIC ---
+    // --- WEBSOCKET ---
     const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
     const socket = new WebSocket(protocol + window.location.host + '/ws/queue/{{ queue.slug }}/');
 
-    socket.onopen = () => console.log("WebSocket Connected");
-
     socket.onmessage = function(e) {
         const data = JSON.parse(e.data);
-        const eventType = data.message;
         const payload = data.data;
 
-        // Refresh UI (HTMX)
+        // Trigger HTMX refresh
         document.body.dispatchEvent(new Event('queue_update'));
 
-        // Check ID Pelawat
         if (payload.visitor_id == currentVisitorId) {
-            if (eventType === 'visitor_returned') {
+            if (data.message === 'visitor_returned') {
                 document.getElementById('returnModal').style.display = 'flex';
             }
-            if (eventType === 'invite_next') {
+            if (data.message === 'invite_next') {
                 triggerItIsYourTurn();
             }
         }
     };
     
-    socket.onclose = () => {
-        console.log("Socket putus. Reconnecting...");
-        setTimeout(() => location.reload(), 3000);
-    };
+    socket.onclose = () => setTimeout(() => location.reload(), 3000);
 
     function closeModal(id) {
         document.getElementById(id).style.display = 'none';
-        alertSound.pause();
-        alertSound.currentTime = 0;
+        alertSound.pause(); alertSound.currentTime = 0;
     }
 </script>
 {% endblock %}

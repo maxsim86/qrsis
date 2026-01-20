@@ -2,42 +2,80 @@
     
     <div class="pulse-ring {% if visitor.status == 'SERVING' %}serving{% endif %}"></div>
 
-    <div class="main-circle {% if visitor.status == 'SERVING' %}serving{% endif %}">
+    <svg class="progress-ring" viewBox="0 0 120 120">
+        <defs>
+            <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#60a5fa" />
+                <stop offset="100%" stop-color="#2563eb" />
+            </linearGradient>
+
+            <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#4ade80" />
+                <stop offset="100%" stop-color="#16a34a" />
+            </linearGradient>
+        </defs>
+
+        <circle 
+            cx="60" cy="60" r="54" 
+            fill="white" 
+            stroke="#f1f5f9" 
+            stroke-width="8" 
+        />
         
+        <circle 
+            class="progress-ring__circle {% if visitor.status == 'SERVING' %}circle-serving{% else %}circle-waiting{% endif %}"
+            cx="60" cy="60" r="54" 
+            fill="transparent" 
+            stroke-width="8"
+            pathLength="100" 
+        />
+    </svg>
+
+    <div class="circle-content">
+        <input type="hidden" id="status-hidden-input" value="{{ visitor.status }}">
+        
+
         {% if visitor.status == 'WAITING' %}
-            <div class="txt-top">Nombor anda <strong>#{{ visitor.ticket_number }}</strong></div>
-            
-            <div class="txt-big">
-                {% if position == 1 %}
-                    Anda<br>No. 1
-                {% else %}
-                    No. {{ position }}
-                {% endif %}
-            </div>
-            
-            <div class="divider"></div>
-            
-            <div class="txt-sub">
-                dalam barisan
-            </div>
+    <div style="font-size: 0.9rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+        Nombor Anda
+    </div>
+    
+    <div style="font-size: 3.5rem; font-weight: 800; color: #1e293b; line-height: 1; margin: 10px 0;">
+        #{{ visitor.ticket_number }}
+    </div>
+    
+    <div style="width: 40px; height: 3px; background: #e2e8f0; margin: 10px auto;"></div>
+    
+    <div style="margin-top: 5px;">
+        <div style="font-size: 1rem; color: #94a3b8;">Giliran ke-</div>
+        <div style="font-size: 1.8rem; font-weight: 700; color: #3b82f6;">
+            {{ position }}
+        </div>
+    </div>
+    
+    {% if estimated_wait > 0 %}
+    <div style="margin-top: 10px; font-size: 0.9rem; color: #64748b; background: #f1f5f9; padding: 5px 15px; border-radius: 20px;">
+        ≈ {{ estimated_wait }} minit lagi
+    </div>
+    {% endif %}
 
-        {% elif visitor.status == 'SERVING' %}
-            <div class="txt-top">Nombor <strong>#{{ visitor.ticket_number }}</strong></div>
-            
-            <div class="txt-big serving-text">
-                Giliran<br>Anda!
-            </div>
-            
-            <div class="divider"></div>
-            
-            <div class="txt-sub">
-                Sila ke kaunter
-            </div>
+{% elif visitor.status == 'SERVING' %}
+    
+    <div style="font-size: 3rem; line-height: 1.1;">🎉</div>
+    
+    <div style="font-size: 2.2rem; font-weight: 800; line-height: 1.1; margin: 10px 0; background: -webkit-linear-gradient(45deg, #22c55e, #16a34a); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        Giliran<br>Anda!
+    </div>
+    
+    <div style="font-size: 1.1rem; color: #475569; font-weight: 500;">
+        Sila ke kaunter
+    </div>
 
-        {% else %}
-            <div class="txt-big done-text">Selesai</div>
-            <div class="txt-sub">Terima kasih</div>
-        {% endif %}
+{% else %}
+    <div style="font-size: 2.5rem; font-weight: 700; color: #94a3b8;">Selesai</div>
+    <div style="color: #64748b;">Terima kasih</div>
+{% endif %}
+
 
     </div>
 </div>
