@@ -144,9 +144,6 @@ def search_visitors(request, slug):
         'all_waiting_visitors': visitors
     })
     
-    
-    
-    
 
 def get_admin_updates(request, slug):
     queue = get_object_or_404(Queue, slug=slug)
@@ -232,20 +229,20 @@ def kiosk_join(request, slug):
 
 def send_socket_update(slug, event_type, extra_data=None):
     channel_layer = get_channel_layer()
-    
-    # Kita automatik ambil data queue terkini setiap kali signal dihantar
     queue = Queue.objects.get(slug=slug)
+    
+    # Ambil data realtime (waiting_count & next_visitors)
     realtime_data = get_realtime_data(queue)
     
-    # Gabungkan data manual (contoh: info orang yg dipanggil) dengan data realtime
-    final_data = {**realtime_data, **(extra_data or {})}
+    # Gabungkan data
+    final_payload = {**realtime_data, **(extra_data or {})}
 
     async_to_sync(channel_layer.group_send)(
         f'queue_{slug}',
         {
-            'type': 'queue_update',
-            'message': event_type,
-            'data': final_data
+            'type': 'queue_update', # Ini memanggil handler queue_update di consumers.py
+            'message': event_type,  # Ini label untuk JS (cth: 'invite_next')
+            'data': final_payload
         }
     )
     
@@ -499,23 +496,15 @@ def admin_interface(request, slug):
     
 
 def add_manual_visitor(request, slug):
-    # 1. LOGIK ASAL: Simpan Pelawat ke Database
     queue = get_object_or_404(Queue, slug=slug)
-    
-    # Ambil service type dari form
     service_type = request.POST.get('service_type', 'A') 
-
-    # Kira nombor ikut servis
+    
     last_visitor = Visitor.objects.filter(queue=queue, service_type=service_type).aggregate(Max('number'))
     next_number = (last_visitor['number__max'] or 0) + 1
     
     custom_name = request.POST.get('custom_name')
-    if custom_name:
-        visitor_name = custom_name
-    else:
-        visitor_name = f"Visitor #{service_type}{next_number:03d}"
+    visitor_name = custom_name if custom_name else f"Visitor #{service_type}{next_number:03d}"
     
-    # Create object visitor baru
     visitor = Visitor.objects.create(
         queue=queue,
         name=visitor_name,
@@ -524,37 +513,21 @@ def add_manual_visitor(request, slug):
         status='WAITING'
     )
     
-    # Hantar update ke WebSocket (supaya TV dan list admin update serta-merta)
-    send_socket_update(slug, 'new_visitor', {
-        'visitor_id': visitor.id,
-        'ticket': visitor.ticket_number,
-        'number': visitor.ticket_number,
-        'name': visitor.name
+    # PENTING: Gunakan event_type 'queue_update' supaya 
+    # fungsi updateNextList() di JavaScript dipicu.
+    send_socket_update(slug, 'queue_update', {
+        'new_ticket': visitor.ticket_number
     })
     
-    # 2. LOGIK BARU: Respon untuk HTMX (Popup)
     if request.headers.get('HX-Request'):
-        # Buat response kosong (204 No Content) supaya page tak refresh
         response = HttpResponse(status=204)
-        
-        # Data untuk popup SweetAlert
         trigger_data = {
-            "ticketCreated": {
-                "number": visitor.ticket_number,
-                "service": visitor.get_service_type_display()
-            },
-            "queue_update": "true" # Signal tambahan untuk refresh list jika perlu
+            "ticketCreated": {"number": visitor.ticket_number},
         }
-        
-        # Masukkan data ke dalam Header
         response['HX-Trigger'] = json.dumps(trigger_data)
-        
         return response
 
-    # Fallback untuk non-HTMX request
-    messages.success(request, f"Added {visitor_name} ({visitor.ticket_number})")
     return redirect('admin_interface', slug=slug)
-
 
     
 def acknowledge_return(request, visitor_id):
