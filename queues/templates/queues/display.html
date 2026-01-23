@@ -119,31 +119,6 @@
         min-width: 140px;
     }
 
-/* --- TEKS UTAMA (JAM & SUHU) --- */
-.time-display, .temp-display {
-    font-size: clamp(1.2rem, 3vh, 2.2rem);
-    font-weight: 800;
-    
-    /* TUKAR KE WARNA GELAP (Dark Slate) */
-    color: #1e293b !important; 
-    
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-}
-
-/* --- TEKS SEKUNDER (TARIKH & KETERANGAN) --- */
-.date-display, .weather-desc {
-    font-size: clamp(0.7rem, 1.2vh, 1rem);
-    font-weight: 600;
-    
-    /* TUKAR KE WARNA KELABU GELAP */
-    color: #64748b !important; 
-    
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-top: 5px;
-}
-
 /* --- IKON CUACA --- */
 .weather-icon {
     font-size: clamp(1.5rem, 3vh, 2.5rem);
@@ -256,11 +231,6 @@
                 </div>
                 <div id="weather-desc" class="weather-desc">Memuatkan...</div>
             </div>
-
-            <div class="widget-box">
-                <div id="clock-time" class="time-display">00:00:00</div>
-                <div id="clock-date" class="date-display">Isnin, 1 Jan</div>
-            </div>
         </div>
         
     </div>  
@@ -306,23 +276,7 @@
     const socket = new WebSocket(protocol + window.location.host + '/ws/queue/{{ queue.slug }}/');
     const AUDIO_BASE_PATH = "/static/audio/"; 
 
-    // --- 2. CLOCK & WEATHER LOGIC ---
-    function updateClock() {
-        const now = new Date();
-        
-        const timeStr = now.toLocaleTimeString('en-US', { 
-            hour12: true, 
-            hour: 'numeric', // atau '2-digit' jika mahu 02:00 PM
-            minute: '2-digit', 
-            second: '2-digit' 
-        });
-        const dateStr = now.toLocaleDateString('ms-MY', { weekday: 'long', day: 'numeric', month: 'short' });
-        
-        document.getElementById('clock-time').innerText = timeStr;
-        document.getElementById('clock-date').innerText = dateStr;
-    }
-    setInterval(updateClock, 1000);
-    updateClock(); // Run immediately
+
 
     // Weather API (Open-Meteo) - Tiada API Key Diperlukan
     // Lokasi set ke: Klang/Shah Alam (Lat 3.03, Long 101.45). Boleh tukar jika perlu.

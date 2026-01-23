@@ -73,6 +73,18 @@
                value="{{ queue.input_label }}" placeholder="Enter your name">
     </div>
 
+    <div class="mb-3">
+        <label class="form-label fw-bold small text-muted">MAX CAPACITY (HAD ORANG)</label>
+        <div class="input-group">
+            <input type="number" name="capacity" class="form-control bg-light border-0" 
+                   value="{{ queue.capacity }}" placeholder="Contoh: 100">
+            <span class="input-group-text bg-light border-0 text-muted">orang</span>
+        </div>
+        <div class="form-text small">
+            Masukkan nombor besar (contoh: <b>10000</b>) jika anda mahu "Unlimited".
+        </div>
+    </div>
+
     <div class="d-grid mt-4">
         <button type="submit" class="btn btn-primary rounded-pill fw-bold">Save Changes</button>
     </div>

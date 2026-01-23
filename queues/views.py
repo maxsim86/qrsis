@@ -288,9 +288,9 @@ def update_queue_settings(request, slug):
             try:
                 queue.capacity = int(cap)
             except ValueError:
-                queue.capacity = 50 
+                queue.capacity = 10000 
         else:
-            queue.capacity = 50
+            queue.capacity = 10000
 
         # 4. HANDLE LOGO UPLOAD (INI YANG ANDA TERTINGGAL)
         # Kita mesti cek request.FILES untuk ambil gambar
