@@ -33,7 +33,6 @@
         height: 15vh; 
         display: flex; 
         
-        /* PENTING: Ini memastikan elemen flex (Title) duduk tengah */
         justify-content: center; 
         align-items: center; 
         
@@ -323,7 +322,7 @@
             await this.playSequence(playlist);
         },
         generatePlaylist: function(ticket, counterName) {
-            let playlist = ["chime.mp3", "intro.mp3"];
+            let playlist = ["chime.mp3"];
             let cleanTicket = ticket.toString().toUpperCase().trim();
             cleanTicket.split('').forEach(char => playlist.push(char.toLowerCase() + ".mp3"));
             if (counterName) {
@@ -333,6 +332,7 @@
             } else { playlist.push("kaunter.mp3"); }
             return playlist;
         },
+        
         playSequence: async function(filenames) {
             for (let filename of filenames) { await this.playOneFile(filename); }
             setTimeout(() => { this.isPlaying = false; this.processQueue(); }, 300); 
