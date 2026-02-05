@@ -7,7 +7,6 @@ import base64
 from django.contrib import messages
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-#from asgiref.sync import sync_to_async
 from django.db import transaction
 from django.http import HttpResponse
 import re
@@ -27,29 +26,22 @@ def edit_visitor_name_form(request, visitor_id):
 def save_visitor_name(request, visitor_id):
     visitor = get_object_or_404(Visitor, id=visitor_id)
     new_name = request.POST.get('name')
-    
     if new_name:
         visitor.name = new_name
         visitor.save()
-        
         # Optional: Hantar update ke websocket supaya TV pun update nama baru
         send_socket_update(visitor.queue.slug, 'update_visitor', {
             'visitor_id': visitor.id,
             'name': visitor.name,
             'ticket': visitor.ticket_number
         })
-
-    # Kembali ke paparan biasa selepas simpan
     return render(request, 'queues/partials/visitor_name_display.html', {'visitor': visitor})
 
 def admin_remote(request, slug):
     queue = get_object_or_404(Queue, slug=slug)
-    
-    # Dapatkan status terkini untuk dipaparkan di remote
     current_serving = Visitor.objects.filter(queue=queue, status='SERVING').last()
     waiting_count = Visitor.objects.filter(queue=queue, status='WAITING').count()
     next_visitor = Visitor.objects.filter(queue=queue, status='WAITING').order_by('id').first()
-
     context = {
         'queue': queue,
         'current_serving': current_serving,
@@ -61,59 +53,38 @@ def admin_remote(request, slug):
 
 def queue_stats(request, slug):
     queue = get_object_or_404(Queue, slug=slug)
-    # 1. Ambil pelawat HARI INI sahaja
     today = timezone.now().date()
     visitors_today = Visitor.objects.filter(queue=queue, joined_at__date=today)
-    
-    # 2. Statistik Asas
     total_today = visitors_today.count()
     completed_count = visitors_today.filter(status='COMPLETED').count()
     waiting_count = visitors_today.filter(status='WAITING').count()
     serving_count = visitors_today.filter(status='SERVING').count()
-    
-    # 3. Statistik Mengikut Servis (A, B, C)
     count_a = visitors_today.filter(service_type='A').count()
     count_b = visitors_today.filter(service_type='B').count()
     count_c = visitors_today.filter(service_type='C').count()
-    
-    # 4. Data untuk Carta 1 & 2
     chart_service_data = [count_a, count_b, count_c]
     chart_status_data = [completed_count, serving_count, waiting_count]
-
-    # --- 5. LOGIK BARU: WAKTU PUNCAK (PEAK HOURS) ---
-    # Kira berapa orang datang pada pukul 8, 9, 10, dll.
     peak_data = visitors_today.annotate(hour=ExtractHour('joined_at')) \
                               .values('hour') \
                               .annotate(count=Count('id')) \
                               .order_by('hour')
-    
-    # Sediakan label jam (8:00 - 17:00)
-    # Ini create list: ["8:00", "9:00", ... "17:00"]
     hours_labels = [f"{h}:00" for h in range(8, 18)] 
-    
-    # Sediakan data kosong (0 pelawat untuk setiap jam)
     hours_data = [0] * 10 
-    
-    # Isi data sebenar ke dalam slot jam yang betul
     for item in peak_data:
         h = item['hour']
-        # Pastikan jam berada dalam lingkungan ofis (8am - 5pm)
         if 8 <= h < 18:
-            index = h - 8 # Contoh: Pukul 8 tolak 8 = index 0
+            index = h - 8
             hours_data[index] = item['count']
 
     context = {
         'queue': queue,
         'today': today,
         'total_today': total_today,
-        # Data Carta Asal
         'chart_service_data': json.dumps(chart_service_data),
         'chart_status_data': json.dumps(chart_status_data),
-        # Data Carta Baru (Waktu Puncak)
         'chart_hours_labels': json.dumps(hours_labels),
         'chart_hours_data': json.dumps(hours_data),
     }
-    
     return render(request, 'queues/stats.html', context)
 
 
@@ -249,22 +220,16 @@ def send_socket_update(slug, event_type, extra_data=None):
     
 def set_counter(request, slug):
     queue = get_object_or_404(Queue, slug=slug)
-    
     if request.method == "POST":
         # Ambil nama dari input (cth: "Kaunter 1" atau "Bilik Rawatan 2")
         counter_name = request.POST.get('counter_name')
-        
-        # Simpan dalam session browser ini sahaja
         request.session['counter_name'] = counter_name
-        
         return redirect('admin_interface', slug=slug)
-        
     return render(request, 'queues/set_counter.html', {'queue': queue})
 
 
 def update_queue_settings(request, slug):
     queue = get_object_or_404(Queue, slug=slug)
-    
     if request.method == "POST":
         # 1. Update Text Fields
         queue.name = request.POST.get('name')
@@ -276,8 +241,6 @@ def update_queue_settings(request, slug):
             queue.input_label = raw_label
         else:
             queue.input_label = "Enter your name"
-        # --------------------------
-        
         # 2. Update Dropdowns (Default ke AUTO jika kosong)
         queue.wait_time_display = request.POST.get('wait_time_display') or 'AUTO'
         queue.status_language = request.POST.get('status_language') or 'AUTO'
@@ -292,14 +255,17 @@ def update_queue_settings(request, slug):
         else:
             queue.capacity = 10000
 
-        # 4. HANDLE LOGO UPLOAD (INI YANG ANDA TERTINGGAL)
-        # Kita mesti cek request.FILES untuk ambil gambar
         if request.FILES.get('logo'):
             queue.logo = request.FILES['logo']
 
         # 5. Remove Logo Checkbox
         if request.POST.get('remove_logo') == 'on':
             queue.logo = None
+            
+        if request.FILES.get('video'):
+            queue.video=request.FILES['video']
+        if request.POST.get('remove_video') == 'on':
+            queue.video=None
         
         queue.save()
         messages.success(request, "Queue settings updated!")
@@ -418,8 +384,6 @@ def visitor_join(request, slug):
 
 async def visitor_status(request, visitor_id):
     try:
-        # 1. Guna 'aget' (Async Get)
-        # 2. Guna 'select_related' supaya data 'queue' diambil sekali (elak error lazy loading)
         visitor = await Visitor.objects.select_related('queue').aget(id=visitor_id)
     except Visitor.DoesNotExist:   
         return render(request, 'queues/session_ended.html')
@@ -512,9 +476,7 @@ def add_manual_visitor(request, slug):
         service_type=service_type,
         status='WAITING'
     )
-    
-    # PENTING: Gunakan event_type 'queue_update' supaya 
-    # fungsi updateNextList() di JavaScript dipicu.
+
     send_socket_update(slug, 'queue_update', {
         'new_ticket': visitor.ticket_number
     })

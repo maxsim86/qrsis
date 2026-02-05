@@ -1,348 +1,305 @@
 {% extends 'base.html' %}
 {% block content %}
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
 <style>
-    /* --- 1. SETTING ASAS & FONT --- */
+    /* --- RESET & GLOBAL VARIABLES --- */
     :root {
-        --primary-gradient: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #60a5fa 100%);
-        --text-dark: #1e293b;
-        --text-grey: #64748b;
-        --bg-color: #f8fafc;
+        --left-bg: #ffffff;
+        --right-bg: #000000;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --accent: #2563eb; /* Biru Diraja */
+        --border-color: #e2e8f0;
     }
+
+    * { box-sizing: border-box; }
+
+
 
     html, body { 
-        height: 100%; width: 100%; margin: 0; padding: 0; 
-        overflow: hidden; 
-        background-color: var(--bg-color);
-        background-image: 
-            radial-gradient(at 0% 0%, hsla(215,90%,92%,1) 0, transparent 50%), 
-            radial-gradient(at 100% 0%, hsla(210,100%,96%,1) 0, transparent 50%), 
-            radial-gradient(at 100% 100%, hsla(215,90%,92%,1) 0, transparent 50%), 
-            radial-gradient(at 0% 100%, hsla(210,100%,96%,1) 0, transparent 50%);
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-    }
-    
-    .display-container { 
-        height: 100vh; 
-        display: flex; 
-        flex-direction: column; 
-    }
-    
-   /* --- HEADER (Relative Container) --- */
-    .queue-header { 
-        height: 15vh; 
-        display: flex; 
-        
-        justify-content: center; 
-        align-items: center; 
-        
-        position: relative; /* Menjadi rujukan untuk absolute positioning */
-        padding: 0 2vw;
-        border-bottom: 1px solid rgba(0,0,0,0.05);
-        background: rgba(255, 255, 255, 0.75);
-        backdrop-filter: blur(16px);
+        margin: 0; 
+        padding: 0;
+        width: 100%; 
+        height: 100%; 
+        overflow: hidden; /* Buang scrollbar */
     }
 
-/* --- BAHAGIAN KIRI (LOGO & TAJUK) --- */
-.header-center {
-    display: flex;
-    align-items: center;
-    gap: 1.5vw;
-    flex: 1; /* Ambil ruang lebihan */
-    min-width: 0; /* Elak tajuk panjang menolak widget */
-}
-
-    .queue-logo-img { 
-        position: absolute; /* Bebas dari layout flex */
-        left: 3vw;          /* Jarak dari kiri */
-        top: 50%;           /* Tengah secara menegak */
-        transform: translateY(-50%); /* Center vertical sempurna */
+    /* --- LAYOUT UTAMA (Grid 2 Kolum) --- */
+    .split-layout {
+        position: fixed; 
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
         
-        height: 9vh; 
-        width: auto; 
-        object-fit: contain; 
-        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); 
+        width: 100vw;
+        height: 100vh;
+        z-index: 9999;
+        
+        display: grid;
+        grid-template-columns: 35% 65%;
+        background-color: black;
+        margin: 0;
+        padding: 0;
     }
 
-/* --- 2. TAJUK (CENTER) --- */
-    .queue-title { 
-        /* Saiz Font Dinamik (Akan mengecil sikit jika skrin kecil) */
-        font-size: clamp(1.5rem, 1vw, 3.5rem); 
-        
-        font-weight: 800; 
-        color: var(--text-dark); 
-        text-transform: uppercase; 
-        letter-spacing: 2px;
-        text-align: center;
-        
-        /* PEMBETULAN DI SINI */
-        width: 60%; /* Beri ruang lebih luas (sebelum ini 50%) */
-        
-        /* Benarkan teks turun ke baris kedua jika terlalu panjang */
-        white-space: normal; 
-        line-height: 1.1; /* Jarak antara baris jika turun baris */
-        
-        /* Pastikan ia sentiasa center */
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        
-        /* Buang overflow hidden supaya teks tak hilang */
-        overflow: visible; 
-    }
-
-/* --- 3. WIDGET GROUP (ABSOLUTE RIGHT) --- */
-    .widget-group {
-        position: absolute; /* Bebas dari layout flex */
-        right: 3vw;         /* Jarak dari kanan */
-        top: 50%;
-        transform: translateY(-50%);
-        
+    /* --- PANEL KIRI (GILIRAN) --- */
+    .queue-sidebar {
+        background: var(--left-bg);
+        height: 100vh;
         display: flex;
-        gap: 1vw;
-        align-items: center;
+        flex-direction: column; /* Susun menegak */
+        padding: 3vh 2.5vw;
+        border-right: 1px solid var(--border-color);
+        box-shadow: 10px 0 30px rgba(0,0,0,0.15); /* Shadow supaya timbul */
+        position: relative;
+        z-index: 10;
     }
 
-/* STYLE KOTAK WIDGET (KEKAL SAMA) */
-    .widget-box {
-        background: #f1f5f9; 
-        padding: 0.8vh 1.5vw;
-        border-radius: 16px;
-        border: 1px solid #cbd5e1; 
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    /* 1. Header (Logo) - Melekat Atas */
+    .header-area {
+        flex-shrink: 0;
+        text-align: center;
+        padding-bottom: 2vh;
+        border-bottom: 2px solid #f1f5f9;
+        margin-bottom: 2vh;
+    }
+    .brand-logo { 
+        height: 8vh; width: auto; object-fit: contain; margin-bottom: 0.5vh; 
+    }
+    .brand-title {
+        font-size: clamp(1rem, 1.5vw, 1.5rem);
+        font-weight: 800; color: var(--text-primary);
+        text-transform: uppercase; letter-spacing: 1px;
+    }
+
+    /* 2. Content Tengah (Nombor) - Isi Ruang Kosong */
+    .main-content {
+        flex-grow: 1; /* AJAIB: Ini memaksa ruang ni membesar */
         display: flex;
         flex-direction: column;
-        align-items: flex-end;
         justify-content: center;
-        min-width: 140px;
+        align-items: center;
+        text-align: center;
     }
 
-/* --- IKON CUACA --- */
-.weather-icon {
-    font-size: clamp(1.5rem, 3vh, 2.5rem);
-    /* Tiada warna ditetapkan supaya warna emoji asal kekal */
-}
-    .temp-display { font-size: clamp(1rem, 2.2vh, 1.8rem); font-weight: 700; color: #334155; }
-    .weather-desc { font-size: clamp(0.6rem, 1vh, 0.9rem); color: #64748b; text-transform: capitalize; }
-
-    /* --- 3. MAIN CONTENT --- */
-    .active-section { 
-        flex: 1; 
-        display: flex; 
-        flex-direction: column; 
-        justify-content: center; 
-        align-items: center; 
-        text-align: center; 
-    }
-    .label-current { 
-        font-size: clamp(1.2rem, 3vh, 2.5rem); 
-        font-weight: 700; color: var(--text-grey); 
-        text-transform: uppercase; letter-spacing: 6px; 
-        margin-bottom: -1vh; opacity: 0.8;
-    }
-    
-    .big-number { 
-        font-size: clamp(14rem, 42vh, 45rem); 
-        font-weight: 900; line-height: 1; margin: 0;
-        background: var(--primary-gradient);
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-        filter: drop-shadow(0 20px 30px rgba(37, 99, 235, 0.25));
-        font-variant-numeric: tabular-nums; letter-spacing: -8px;
-    }
-    
-    .visitor-name { 
-        font-size: clamp(1.8rem, 4.5vh, 4rem); 
-        color: var(--text-dark); font-weight: 700; margin-top: 1vh;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-    
-    .counter-display { 
-        font-size: clamp(1.5rem, 4vh, 3.5rem); 
-        color: #ef4444; font-weight: 800; margin-top: 3vh; 
-        text-transform: uppercase; background: #fff;
-        padding: 1.5vh 4vw; border-radius: 20px; 
-        box-shadow: 0 10px 25px -5px rgba(239, 68, 68, 0.15);
-        border: 2px solid #fee2e2; letter-spacing: 2px;
-    }
-    
-    /* --- 4. FOOTER --- */
-    .footer-section { 
-        height: 28vh; background: white; 
-        border-radius: 40px 40px 0 0;
-        box-shadow: 0 -10px 40px rgba(0,0,0,0.03);
-        display: flex; flex-direction: column; 
-        justify-content: center; align-items: center; 
-        gap: 2vh; z-index: 10;
-    }
-    
-    .next-label { 
-        font-size: clamp(1rem, 2.2vh, 1.5rem); 
-        font-weight: 700; color: #94a3b8; 
-        text-transform: uppercase; letter-spacing: 3px; 
-    }
-    .next-list { display: flex; gap: 2vw; justify-content: center; width: 100%; }
-    
-    .next-card { 
-        background-color: #f8fafc; width: 22vw; height: 14vh;
-        border-radius: 24px; display: flex; align-items: center; justify-content: center;
-        border: 2px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); 
-        transition: transform 0.3s;
+    .status-pill {
+        background: #dbeafe; color: var(--accent);
+        padding: 0.5vh 1.5vw; border-radius: 50px;
+        font-size: clamp(0.8rem, 1.1vw, 1.2rem);
+        font-weight: 700; text-transform: uppercase; letter-spacing: 2px;
+        margin-bottom: 1vh;
     }
 
-    .next-number { 
-        font-size: clamp(3rem, 10vh, 8rem); font-weight: 800; 
-        color: #475569; line-height: 1; font-variant-numeric: tabular-nums;
+    .ticket-number {
+        font-family: 'Oswald', sans-serif; /* Font Nombor Tegap */
+        font-size: clamp(8rem, 22vh, 25rem); /* Responsif gila-gila */
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1;
+        letter-spacing: -3px;
+        margin: 1vh 0;
     }
-    
-    .waiting-bar { 
-        background: #eff6ff; color: #3b82f6;
-        padding: 1vh 2.5vw; border-radius: 50px;
-        font-size: clamp(1rem, 2vh, 1.5rem); font-weight: 700;
-        margin-top: auto; margin-bottom: 2vh;
-        border: 1px solid #dbeafe;
-    }
-    
-    .pop-in { animation: popScale 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-    @keyframes popScale { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-    /* MEDIA QUERY FOR MOBILE/SMALL SCREEN */
-    @media (max-width: 768px) {
-        .widget-group { display: none; } /* Sorok widget jika skrin terlalu kecil */
+    .visitor-name {
+        font-size: clamp(1.2rem, 2vw, 2.2rem);
+        font-weight: 600; color: var(--text-secondary);
+        max-width: 90%;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
+
+    .counter-badge {
+        margin-top: 3vh;
+        background: var(--accent); color: white;
+        padding: 1.5vh 0; width: 100%; border-radius: 12px;
+        font-size: clamp(1.5rem, 2.5vw, 3rem); font-weight: 700;
+        text-transform: uppercase;
+        box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+    }
+
+    /* 3. Footer (List Next) - Melekat Bawah */
+    .footer-area {
+        flex-shrink: 0;
+        margin-top: auto;
+        padding-top: 2vh;
+    }
+    .footer-header {
+        display: flex; justify-content: space-between; align-items: center; margin-bottom: 1vh;
+    }
+    .lbl-next { font-size: 0.9rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; }
+    .lbl-wait { font-size: 0.9rem; font-weight: 700; color: var(--accent); }
+    
+    .next-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .next-box {
+        background: #f8fafc; border: 1px solid #cbd5e1;
+        height: 8vh; border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: clamp(1.5rem, 2vw, 2.5rem); font-weight: 700; color: #475569;
+    }
+
+    /* --- PANEL KANAN (VIDEO) --- */
+    .media-area {
+        background: black;
+        position: relative;
+        overflow: hidden;
+    }
+    video {
+        width: 100%; height: 100%; object-fit: cover;
+        position: absolute; top:0; left:0;
+    }
+    
+    /* Overlay Widget (Jam) */
+    .glass-widget {
+        position: absolute; top: 4vh; right: 4vh; z-index: 50;
+        background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.1);
+        padding: 15px 30px; border-radius: 16px;
+        color: white; display: flex; align-items: center; gap: 25px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .time-big { font-size: 2.5rem; font-weight: 700; line-height: 1; letter-spacing: 1px; }
+    .date-small { font-size: 0.85rem; text-transform: uppercase; opacity: 0.8; letter-spacing: 1px; margin-top: 5px;}
+    .vline { width: 1px; height: 50px; background: rgba(255,255,255,0.2); }
+    .temp-big { font-size: 2rem; font-weight: 700; color: #fbbf24; }
+    .city-small { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; }
+
+    /* ANIMASI */
+    .blink-active { animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+    .slide-up { animation: slideUp 0.5s ease-out; }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
 </style>
 
-<div class="display-container">
+<div class="split-layout">
     
-    <div class="queue-header">
-        
-        {% if queue.logo %}
-            <img src="{{ queue.logo.url }}" class="queue-logo-img" alt="Logo">
-        {% endif %}
+    <div class="queue-sidebar">
+        <div class="header-area">
+            {% if queue.logo %}
+                <img src="{{ queue.logo.url }}" class="brand-logo">
+            {% endif %}
+            <div class="brand-title">{{ queue.name }}</div>
+        </div>
 
-        <div class="queue-title">{{ queue.name }}</div>
+        <div class="main-content">
+            <div class="status-pill">Sedang Dipanggil</div>
+            
+            <div id="number-text" class="ticket-number">
+                {% if current_serving %} {{ current_serving.ticket_number }} {% else %} -- {% endif %}
+            </div>
 
-        <div class="widget-group">
-            <div class="widget-box" id="weather-widget">
-                <div class="weather-row">
-                    <span id="weather-icon" class="weather-icon">⛅</span>
-                    <span id="temp-display" class="temp-display">--°C</span>
-                </div>
-                <div id="weather-desc" class="weather-desc">Memuatkan...</div>
+            <div id="name-text" class="visitor-name">
+                {{ current_serving.name|default:"Sila Tunggu..." }}
+            </div>
+
+            <div id="counter-display-box" class="counter-badge {% if current_serving %}blink-active{% endif %}" 
+                 style="{% if not current_serving %}display:none;{% endif %}">
+                {{ current_serving.served_by|default:"-" }}
             </div>
         </div>
-        
-    </div>  
 
-    <div class="active-section">
-        <div class="label-current">Nombor Sekarang</div>
-        
-        <div id="number-text" class="big-number">
-            {% if current_serving %} {{ current_serving.ticket_number }} {% else %} --- {% endif %}
-        </div>
-        
-        <div id="name-text" class="visitor-name">
-            {{ current_serving.name|default:"" }}
-        </div>
-        
-        <div id="counter-text" class="counter-display" style="{% if not current_serving %}display: none;{% endif %}">
-            {{ current_serving.served_by|default:"KAUNTER" }}
+        <div class="footer-area">
+            <div class="footer-header">
+                <span class="lbl-next">Seterusnya</span>
+                <span class="lbl-wait">Menunggu: <span id="total-waiting">{{ waiting_count|default:"0" }}</span></span>
+            </div>
+            <div class="next-grid" id="next-list-container">
+                <div class="next-box">-</div>
+                <div class="next-box">-</div>
+                <div class="next-box">-</div>
+            </div>
         </div>
     </div>
 
-    <div class="footer-section">
-        <div class="next-label">Giliran Seterusnya</div>
-        <div id="next-list-container" class="next-list">
-            {% if next_visitors %}
-                {% for ticket in next_visitors %}
-                    <div class="next-card"><span class="next-number">{{ ticket }}</span></div>
-                {% endfor %}
-            {% else %}
-                <div class="next-card"><span class="next-number">-</span></div>
-                <div class="next-card"><span class="next-number">-</span></div>
-                <div class="next-card"><span class="next-number">-</span></div>
-            {% endif %}
-        </div>
-        <div class="waiting-bar">
-            Menunggu: <span id="total-waiting" style="color:#2563eb; margin-left: 5px;">{{ waiting_count|default:"0" }}</span>
+    <div class="media-area">
+        {% if queue.video %}
+        if (payload && payload.next_visitors) updateNextList(payload.next_visitors);
+        if (payload && payload.waiting_count !== u
+            <video src="{{ queue.video.url }}" autoplay loop muted playsinline></video>
+        {% else %}
+            <div style="height:100%; display:flex; justify-content:center; align-items:center; background: #0f172a;">
+                <h1 style="color:rgba(255,255,255,0.1); font-size: 5vw; font-weight: 900;">DISPLAY AREA</h1>
+            </div>
+        {% endif %}
+
+        <div class="glass-widget">
+            <div>
+                <div id="clock-time" class="time-big">00:00</div>
+                <div id="clock-date" class="date-small">ISNIN, 1 JAN</div>
+            </div>
+            <div class="vline"></div>
+            <div>
+                <div id="weather-temp" class="temp-big">--°C</div>
+                <div class="city-small">KLANG</div>
+            </div>
         </div>
     </div>
-</div> 
+</div>
 
 <script>
-    // --- 1. CONFIG ---
+    // 1. JAM
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('clock-time').innerText = now.toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute:'2-digit' });
+        document.getElementById('clock-date').innerText = now.toLocaleDateString('ms-MY', { weekday: 'long', day: 'numeric', month: 'short' }).toUpperCase();
+    }
+    setInterval(updateClock, 1000); updateClock();
+
+    // 2. CUACA (Guna lokasi umum Klang/KL)
+    async function fetchWeather() {
+        try {
+            const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=3.03&longitude=101.45&current_weather=true');
+            const data = await res.json();
+            document.getElementById('weather-temp').innerText = Math.round(data.current_weather.temperature) + "°C";
+        } catch(e) {}
+    }
+    fetchWeather(); setInterval(fetchWeather, 900000);
+
     const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
     const socket = new WebSocket(protocol + window.location.host + '/ws/queue/{{ queue.slug }}/');
     const AUDIO_BASE_PATH = "/static/audio/"; 
 
-
-
-    // Weather API (Open-Meteo) - Tiada API Key Diperlukan
-    // Lokasi set ke: Klang/Shah Alam (Lat 3.03, Long 101.45). Boleh tukar jika perlu.
-    async function fetchWeather() {
-        try {
-            const lat = 3.03; 
-            const long = 101.45;
-            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${long}&current_weather=true`;
-            
-            const response = await fetch(url);
-            const data = await response.json();
-            const weather = data.current_weather;
-            
-            // Map WMO codes to icons/text
-            const code = weather.weathercode;
-            let icon = "⛅";
-            let desc = "Mendung";
-
-            if (code === 0) { icon = "☀️"; desc = "Cerah"; }
-            else if (code >= 1 && code <= 3) { icon = "☁️"; desc = "Berawan"; }
-            else if (code >= 51 && code <= 67) { icon = "🌧️"; desc = "Hujan"; }
-            else if (code >= 80 && code <= 99) { icon = "⛈️"; desc = "Ribut"; }
-
-            document.getElementById('temp-display').innerText = `${Math.round(weather.temperature)}°C`;
-            document.getElementById('weather-icon').innerText = icon;
-            document.getElementById('weather-desc').innerText = desc;
-
-        } catch (error) {
-            console.error("Gagal dapatkan cuaca:", error);
-        }
-    }
-    fetchWeather();
-    setInterval(fetchWeather, 900000); // Update setiap 15 minit
-
-    // --- 3. AUDIO & WEBSOCKET ENGINE (KEKAL SAMA) ---
     const AudioManager = {
-        queue: [], isPlaying: false,
-        announce: function(ticket, counterName) { this.queue.push({ ticket, counterName }); this.processQueue(); },
-        processQueue: async function() {
-            if (this.isPlaying || this.queue.length === 0) return;
-            this.isPlaying = true;
-            const nextItem = this.queue.shift(); 
-            const playlist = this.generatePlaylist(nextItem.ticket, nextItem.counterName);
-            await this.playSequence(playlist);
-        },
-        generatePlaylist: function(ticket, counterName) {
-            let playlist = ["chime.mp3"];
-            let cleanTicket = ticket.toString().toUpperCase().trim();
-            cleanTicket.split('').forEach(char => playlist.push(char.toLowerCase() + ".mp3"));
-            if (counterName) {
-                let counterNum = counterName.replace(/[^0-9]/g, '');
-                if(counterNum) { playlist.push("sebutan_kaunter.mp3"); playlist.push(counterNum + ".mp3"); } 
-                else { playlist.push("kaunter.mp3"); }
-            } else { playlist.push("kaunter.mp3"); }
-            return playlist;
+        playOneFile: function(filename) {
+            return new Promise(r => {
+                let a = new Audio(AUDIO_BASE_PATH + filename);
+                
+                // --- SETTING KELAJUAN ---
+                a.playbackRate = 1.25; // Tukar nombor ini (1.0 = Normal, 1.25 = Laju Sikit)
+                a.preservesPitch = true; // Supaya suara tak jadi macam 'chipmunk'
+                // ------------------------
+
+                a.onended = r; 
+                a.onerror = r; 
+                
+                // Cuba mainkan
+                a.play().catch(error => {
+                    console.log("Audio error:", error);
+                    r(); // Skip jika error supaya sistem tak jam
+                });
+            });
         },
         
-        playSequence: async function(filenames) {
-            for (let filename of filenames) { await this.playOneFile(filename); }
-            setTimeout(() => { this.isPlaying = false; this.processQueue(); }, 300); 
+        playSequence: async function(list) { 
+            for(let f of list) await this.playOneFile(f); 
         },
-        playOneFile: function(filename) {
-            return new Promise((resolve) => {
-                let audio = new Audio(AUDIO_BASE_PATH + filename);
-                audio.onended = () => resolve(); audio.onerror = () => resolve(); 
-                audio.play().catch(() => resolve());
-            });
+        
+        announce: async function(ticket, counter) {
+            let list = ["chime.mp3"];
+            ticket.toString().trim().split('').forEach(c => list.push(c.toLowerCase()+".mp3"));
+            
+            if(counter) { 
+                 let num = counter.replace(/[^0-9]/g, '');
+                 list.push("sebutan_kaunter.mp3");
+                 if(num) list.push(num + ".mp3");
+            } else { 
+                list.push("kaunter.mp3"); 
+            }
+            
+            await this.playSequence(list);
         }
     };
 
@@ -356,36 +313,34 @@
         if (data.message === 'invite_next') {
             let displayNum = payload.ticket || payload.number;
             const numEl = document.getElementById('number-text');
+            
+            // Update Text
             numEl.innerText = displayNum;
             document.getElementById('name-text').innerText = payload.name || "";
-            const counterEl = document.getElementById('counter-text');
-            if (payload.counter) { counterEl.style.display = 'block'; counterEl.innerText = payload.counter.toUpperCase(); } 
-            else { counterEl.style.display = 'none'; }
+            
+            // Handle Counter Box
+            const cBox = document.getElementById('counter-display-box');
+            if(payload.counter) {
+                cBox.style.display = 'block';
+                cBox.innerText = payload.counter;
+            } else {
+                cBox.style.display = 'none';
+            }
 
-            numEl.classList.remove('pop-in'); void numEl.offsetWidth; numEl.classList.add('pop-in');
+            numEl.classList.remove('slide-up'); void numEl.offsetWidth; numEl.classList.add('slide-up');
+            
+            // Audio
             AudioManager.announce(displayNum, payload.counter);
-        }
-        if (data.message === 'queue_reset') {
-             document.getElementById('number-text').innerText = "---"; 
-             document.getElementById('name-text').innerText = "";
-             document.getElementById('counter-text').style.display = "none";
-             updateNextList([]);
-             document.getElementById('total-waiting').innerText = "0";
         }
     };
     socket.onclose = () => setTimeout(() => location.reload(), 3000);
 
     function updateNextList(visitors) {
-        const container = document.getElementById('next-list-container');
-        if(container) {
-            container.innerHTML = "";
-            for(let i=0; i<3; i++) {
-                let val = visitors[i] ? visitors[i] : "-";
-                let div = document.createElement('div');
-                div.className = 'next-card'; 
-                div.innerHTML = `<span class="next-number">${val}</span>`;
-                container.appendChild(div);
-            }
+        const c = document.getElementById('next-list-container');
+        c.innerHTML = "";
+        for(let i=0; i<3; i++) {
+            let v = visitors[i] || "-";
+            c.innerHTML += `<div class="next-box">${v}</div>`;
         }
     }
 </script>

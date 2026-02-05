@@ -15,6 +15,7 @@ class Queue(models.Model):
     ask_input = models.BooleanField(default=False)       # Ask for visitor input
     capacity = models.IntegerField(default=1000)         # Queue capacity
     logo = models.ImageField(upload_to='queue_logos/', blank=True, null=True)
+    video = models.FileField(upload_to='queue_videos/', blank=True, null=True)
     
     WAIT_TIME_CHOICES = [
         ('AUTO', 'Automatically calculated'),
