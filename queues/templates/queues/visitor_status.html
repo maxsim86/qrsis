@@ -4,7 +4,7 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <style>
-    /* --- GLOBAL & BACKGROUND --- */
+
     html, body {
         height: 100%; margin: 0; padding: 0;
         background-color: #f0f4f8;
@@ -116,6 +116,8 @@
     @keyframes popUp { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 </style>
 
+
+
 <div class="app-wrapper">
     
     <div class="location-header">
@@ -180,7 +182,7 @@
     <div class="modal-card">
         <div style="font-size: 3.5rem;">⏳</div>
         <h2 style="margin:10px 0; color:#1e293b;">Masuk Q Semula</h2>
-        <p style="color:#64748b; margin-bottom:20px;">Anda telah dipindahkan ke dalam barisan.</p>
+        <p style="color:#64748b; margin-bottom:20px;">Anda telah dimasukkan ke dalam Q semula.</p>
         <button onclick="closeModal('returnModal')" class="btn-action btn-blue">Ok</button>
     </div>
 </div>
@@ -297,7 +299,6 @@
         document.getElementById('inviteModal').style.display = 'flex';
     }
 
-    // --- WEBSOCKET ---
     const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
     const socket = new WebSocket(protocol + window.location.host + '/ws/queue/{{ queue.slug }}/');
 

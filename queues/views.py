@@ -15,6 +15,7 @@ from django.db.models import Count
 from django.utils import timezone
 from django.db.models.functions import ExtractHour
 
+
 def visitor_name_text(request, visitor_id):
     visitor = get_object_or_404(Visitor, id=visitor_id)
     return render(request, 'queues/partials/visitor_name_display.html', {'visitor': visitor})
@@ -302,7 +303,6 @@ def dashboard(request, slug):
         'kiosk_url': f"{base_url}/q/{slug}/join/", 
         
         # URL 2: Visitor Dashboard (BARU - Untuk QR Code Pelawat)
-        # Gunakan 'visitor_join' view yang kita buat tadi
         'visitor_dashboard_url': f"{base_url}/q/{slug}/visitor-join/", 
         
         # URL Lain
@@ -315,7 +315,6 @@ def dashboard(request, slug):
 # 3. Page untuk Print QR Poster (Screenshot 3)
 def poster_view(request, slug):
     queue = get_object_or_404(Queue, slug=slug)
-    #join_url = f"http://{request.get_host()}/q/{slug}/join/"
     join_url = f"{request.scheme}://{request.get_host()}/q/{slug}/visitor-join/"
     
     qr = qrcode.QRCode(box_size=10, border=4)
