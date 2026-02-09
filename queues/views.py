@@ -16,6 +16,11 @@ from django.utils import timezone
 from django.db.models.functions import ExtractHour
 
 
+def get_media_content(request, slug):
+    queue = get_object_or_404(Queue, slug=slug)
+    return render(request, 'queues/partials/media_content.html', {'queue':queue})
+
+
 def visitor_name_text(request, visitor_id):
     visitor = get_object_or_404(Visitor, id=visitor_id)
     return render(request, 'queues/partials/visitor_name_display.html', {'visitor': visitor})
@@ -197,8 +202,6 @@ def kiosk_join(request, slug):
     return render(request, 'queues/kiosk.html', {'queue': queue})
 
 
-
-
 def send_socket_update(slug, event_type, extra_data=None):
     channel_layer = get_channel_layer()
     queue = Queue.objects.get(slug=slug)
@@ -240,9 +243,9 @@ def update_queue_settings(request, slug):
 
         if raw_label:
             queue.input_label = raw_label
+            queue.stream_url=request.POST.get('stream_url')
         else:
             queue.input_label = "Enter your name"
-        # 2. Update Dropdowns (Default ke AUTO jika kosong)
         queue.wait_time_display = request.POST.get('wait_time_display') or 'AUTO'
         queue.status_language = request.POST.get('status_language') or 'AUTO'
 
@@ -269,6 +272,15 @@ def update_queue_settings(request, slug):
             queue.video=None
         
         queue.save()
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"queue_{queue.slug}",
+            {
+                "type": "queue_update",
+                "message": "settings_changed",
+                "data": {}
+            }
+        )
         messages.success(request, "Queue settings updated!")
 
     if request.headers.get('HX-Request'):
@@ -312,7 +324,7 @@ def dashboard(request, slug):
     }
     return render(request, 'queues/dashboard.html', context)
 
-# 3. Page untuk Print QR Poster (Screenshot 3)
+# 3. Page untuk Print QR Poster
 def poster_view(request, slug):
     queue = get_object_or_404(Queue, slug=slug)
     join_url = f"{request.scheme}://{request.get_host()}/q/{slug}/visitor-join/"
@@ -357,7 +369,6 @@ def visitor_join(request, slug):
             status='WAITING'
         )
 
-        # Notify Admin via WebSocket
         send_socket_update(slug, 'new_visitor', {
             'visitor_id': new_visitor.id,
             'number': f"{new_visitor.number:03d}",
@@ -537,22 +548,16 @@ def remove_visitors(request, slug):
         
     return redirect('admin_interface', slug=slug)
 
+
 def remove_specific_visitor(request, visitor_id):
     visitor = get_object_or_404(Visitor, id=visitor_id)
     slug = visitor.queue.slug
-#     # 1. Padam Visitor
-    visitor.delete()
-    
-#     # 2. Hantar Signal WebSocket (Update List & Counter)
-#     # Kita guna signal 'queue_reset' atau 'visitor_quit' pun boleh, 
-#     # asalkan frontend refresh list.
+    visitor.delete() 
     send_socket_update(slug, 'visitor_quit', {})
 
     if request.headers.get('HX-Request'):
-        return HttpResponse(status=204) # Tambah ini
+        return HttpResponse(status=204)
     return redirect('admin_interface', slug=slug)
-# Tambah ini di hujung remove_specific_visitor dan invite_specific_visitor
-
 
 
 def call_next(request, slug):

@@ -1,151 +1,159 @@
 <form hx-post="{% url 'update_queue_settings' queue.slug %}" 
       hx-swap="outerHTML" 
       hx-encoding="multipart/form-data"
-      class="py-2">
-    
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-success p-2 mb-3 small rounded-3 fade show">
-                <i class="bi bi-check-circle-fill me-1"></i> {{ message }}
-            </div>
-        {% endfor %}
+      class="d-flex flex-column h-100">
+      {% if messages %}
+        <div class="mb-2">
+            {% for message in messages %}
+                <div class="alert alert-success p-2 small rounded-3 fade show mb-1">
+                    <i class="bi bi-check-circle-fill me-1"></i> {{ message }}
+                </div>
+            {% endfor %}
+        </div>
     {% endif %}
     
     {% csrf_token %}
-    
-    <div class="mb-3">
-        <label class="form-label fw-bold small text-muted">QUEUE NAME</label>
-        <input type="text" name="name" class="form-control bg-light border-0" value="{{ queue.name }}" required>
-    </div>
 
-    <div class="mb-3">
-        <label class="form-label fw-bold small text-muted">LOGO</label>
+    <div class="flex-grow-1 overflow-auto px-1" style="max-height: 65vh;">
         
-        {% if queue.logo %}
-            <div class="card bg-light border-0 mb-2">
-                <div class="card-body p-2 d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center gap-2">
-                        <img src="{{ queue.logo.url }}" alt="Logo" style="height: 40px; width: auto; object-fit: contain; border-radius: 4px;">
-                        <span class="small text-muted">Current Logo</span>
-                    </div>
-                    <div class="form-check m-0">
-                        <input class="form-check-input" type="checkbox" name="remove_logo" id="rmLogo">
-                        <label class="form-check-label small text-danger fw-bold" for="rmLogo">
-                            Remove
-                        </label>
+        <div class="accordion" id="settingsAccordion">
+            
+            <div class="accordion-item border-0 mb-2 shadow-sm rounded">
+                <h2 class="accordion-header">
+                    <button class="accordion-button fw-bold text-dark bg-light collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInfo">
+                        <i class="bi bi-info-circle me-2 text-primary"></i> Info & Kapasiti
+                    </button>
+                </h2>
+                <div id="collapseInfo" class="accordion-collapse collapse show" data-bs-parent="#settingsAccordion">
+                    <div class="accordion-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">QUEUE NAME</label>
+                            <input type="text" name="name" class="form-control bg-light border-0" value="{{ queue.name }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">INPUT LABEL</label>
+                            <input type="text" name="input_label" class="form-control bg-light border-0" value="{{ queue.input_label }}" placeholder="Enter your name">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">MAX CAPACITY</label>
+                            <div class="input-group">
+                                <input type="number" name="capacity" class="form-control bg-light border-0" value="{{ queue.capacity }}" placeholder="100">
+                                <span class="input-group-text bg-light border-0 text-muted">org</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        {% endif %}
 
-        <input type="file" name="logo" class="form-control bg-light border-0" accept="image/*">
-        <div class="form-text small">Recommended: PNG with transparent background.</div>
-    </div>
+            <div class="accordion-item border-0 mb-2 shadow-sm rounded">
+                <h2 class="accordion-header">
+                    <button class="accordion-button fw-bold text-dark bg-light collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMedia">
+                        <i class="bi bi-image me-2 text-success"></i> Logo & Video
+                    </button>
+                </h2>
+                <div id="collapseMedia" class="accordion-collapse collapse" data-bs-parent="#settingsAccordion">
+                    <div class="accordion-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">LOGO</label>
+                            {% if queue.logo %}
+                                <div class="d-flex align-items-center gap-2 mb-2 p-2 bg-light rounded">
+                                    <img src="{{ queue.logo.url }}" style="height: 30px; width: auto;">
+                                    <div class="form-check m-0">
+                                        <input class="form-check-input" type="checkbox" name="remove_logo" id="rmLogo">
+                                        <label class="form-check-label small text-danger" for="rmLogo">Remove</label>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            <input type="file" name="logo" class="form-control form-control-sm bg-light" accept="image/*">
+                        </div>
 
-    <div class="mb-3">
-        <label class="form-label fw-bold small text-muted">VIDEO IKLAN (DISPLAY)</label>
-        
-        {% if queue.video %}
-            <div class="card bg-light border-0 mb-2">
-                <div class="card-body p-2 d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-film fs-4"></i>
-                        <span class="small text-muted">Video Sedia Ada</span>
-                    </div>
-                    <div class="form-check m-0">
-                        <input class="form-check-input" type="checkbox" name="remove_video" id="rmVideo">
-                        <label class="form-check-label small text-danger fw-bold" for="rmVideo">Padam</label>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">VIDEO FILE</label>
+                            {% if queue.video %}
+                                <div class="d-flex align-items-center gap-2 mb-2 p-2 bg-light rounded">
+                                    <i class="bi bi-film"></i> <span class="small">Ada Video</span>
+                                    <div class="form-check m-0 ms-auto">
+                                        <input class="form-check-input" type="checkbox" name="remove_video" id="rmVideo">
+                                        <label class="form-check-label small text-danger" for="rmVideo">Padam</label>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            <input type="file" name="video" class="form-control form-control-sm bg-light" accept="video/*">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">YOUTUBE LIVE URL</label>
+                            <input type="text" name="stream_url" class="form-control bg-light border-0 small" 
+                                   value="{{ queue.stream_url|default:'' }}" placeholder="https://www.youtube.com/embed/...">
+                        </div>
                     </div>
                 </div>
             </div>
-        {% endif %}
 
-        <input type="file" name="video" class="form-control bg-light border-0" accept="video/*">
-        <div class="form-text small">Format disyorkan: MP4 (Saiz ringan, 720p).</div>
-    </div>
+            <div class="accordion-item border-0 mb-2 shadow-sm rounded">
+                <h2 class="accordion-header">
+                    <button class="accordion-button fw-bold text-dark bg-light collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAccess">
+                        <i class="bi bi-gear me-2 text-warning"></i> Akses & Link
+                    </button>
+                </h2>
+                <div id="collapseAccess" class="accordion-collapse collapse" data-bs-parent="#settingsAccordion">
+                    <div class="accordion-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">KIOSK LINK</label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control bg-light" value="{{ request.scheme }}://{{ request.get_host }}/q/{{ queue.slug }}/join/" readonly>
+                                <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('{{ request.scheme }}://{{ request.get_host }}/q/{{ queue.slug }}/join/')">Copy</button>
+                            </div>
+                        </div>
 
-    <div class="mb-3">
-        <label class="form-label fw-bold small text-muted">KIOSK LINK</label>
-        <div class="input-group">
-            <input type="text" class="form-control bg-light border-0" value="{{ request.scheme }}://{{ request.get_host }}/q/{{ queue.slug }}/join/" readonly>
-            <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('{{ request.scheme }}://{{ request.get_host }}/q/{{ queue.slug }}/join/')">Copy</button>
-        </div>
-    </div>
-
-    <div class="card bg-light border-0 mb-3">
-        <div class="card-body d-flex justify-content-between align-items-center py-3">
-            <span class="fw-bold text-dark">Allow Join</span>
-            <div class="form-check form-switch m-0">
-                <input class="form-check-input fs-5" type="checkbox" name="allow_join" {% if queue.allow_join %}checked{% endif %}>
+                        <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
+                            <span class="fw-bold small text-dark">Allow Join</span>
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input" type="checkbox" name="allow_join" {% if queue.allow_join %}checked{% endif %}>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold small text-dark">Ask Name</span>
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input" type="checkbox" name="ask_input" {% if queue.ask_input %}checked{% endif %}>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
 
-    <div class="card bg-light border-0 mb-3">
-        <div class="card-body d-flex justify-content-between align-items-center py-3">
-            <span class="fw-bold text-dark">Ask Visitor Name</span>
-            <div class="form-check form-switch m-0">
-                <input class="form-check-input fs-5" type="checkbox" name="ask_input" {% if queue.ask_input %}checked{% endif %}>
+        </div> </div>
+
+    <div class="mt-3 pt-2 border-top bg-white sticky-bottom">
+        <div class="d-grid">
+            <button type="submit" class="btn btn-primary rounded-pill fw-bold shadow-sm">
+                <i class="bi bi-save me-1"></i> Save Changes
+            </button>
+        </div>
+
+        <div id="progress-container" class="mt-2" style="display:none;">
+            <div class="progress" style="height: 6px;">
+                <div id="progress-bar" class="progress-bar bg-primary" role="progressbar" style="width: 0%"></div>
             </div>
-        </div>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label fw-bold small text-muted">INPUT LABEL</label>
-        <input type="text" name="input_label" class="form-control bg-light border-0" 
-               value="{{ queue.input_label }}" placeholder="Enter your name">
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label fw-bold small text-muted">MAX CAPACITY</label>
-        <div class="input-group">
-            <input type="number" name="capacity" class="form-control bg-light border-0" 
-                   value="{{ queue.capacity }}" placeholder="Contoh: 100">
-            <span class="input-group-text bg-light border-0 text-muted">orang</span>
-        </div>
-        <div class="form-text small">
-            Biarkan <b>10000</b> untuk "Unlimited".
-        </div>
-    </div>
-
-    <div class="d-grid mt-4">
-        <button type="submit" class="btn btn-primary rounded-pill fw-bold">Save Changes</button>
-    </div>
-
-    <div id="progress-container" class="mt-3" style="display:none;">
-        <div class="d-flex justify-content-between small text-muted mb-1">
-            <span>Sedang Memuat Naik...</span>
-            <span id="progress-text">0%</span>
-        </div>
-        <div class="progress" style="height: 10px;">
-            <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" 
-                 role="progressbar" style="width: 0%"></div>
-        </div>
-        <div class="text-center mt-2 small text-danger">
-            ⚠️ Jangan tutup browser sehingga selesai.
+            <div class="text-center mt-1" style="font-size: 0.7rem;">Uploading... <span id="progress-text">0%</span></div>
         </div>
     </div>
 
     <script>
-        // Check supaya tak tambah event listener dua kali
         if (!window.hasAddedProgress) {
             document.body.addEventListener('htmx:xhr:progress', function(evt) {
                 const pContainer = document.getElementById('progress-container');
                 const pBar = document.getElementById('progress-bar');
                 const pText = document.getElementById('progress-text');
 
-                // Hanya tunjuk jika container wujud dalam form ini
                 if(pContainer && pBar && pText) {
                     pContainer.style.display = 'block';
                     var percent = Math.round((evt.detail.loaded / evt.detail.total) * 100);
-                    
                     pBar.style.width = percent + '%';
                     pText.innerText = percent + '%';
-                    
                     if(percent >= 100){
-                        pText.innerText = "Memproses...";
-                        pBar.classList.remove('bg-primary');
-                        pBar.classList.add('bg-success');
+                        pText.innerText = "Processing...";
+                        pBar.classList.replace('bg-primary', 'bg-success');
                     }
                 }
             });

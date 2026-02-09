@@ -1,212 +1,161 @@
 {% extends 'base.html' %}
-{% block content %}
+{% load queue_utils %} {% block content %}
 
 <style>
-    /* --- RESET & GLOBAL VARIABLES --- */
+    /* --- GLOBAL --- */
     :root {
         --left-bg: #ffffff;
         --right-bg: #000000;
         --text-primary: #1e293b;
         --text-secondary: #64748b;
-        --accent: #2563eb; /* Biru Diraja */
+        --accent: #2563eb;
         --border-color: #e2e8f0;
     }
 
-    * { box-sizing: border-box; }
-
-
-
     html, body { 
-        margin: 0; 
-        padding: 0;
-        width: 100%; 
-        height: 100%; 
-        overflow: hidden; /* Buang scrollbar */
+        margin: 0; padding: 0; width: 100%; height: 100%; 
+        overflow: hidden; background: #000;
+        font-family: 'Inter', sans-serif;
     }
 
-    /* --- LAYOUT UTAMA (Grid 2 Kolum) --- */
+    /* --- LAYOUT UTAMA --- */
     .split-layout {
-        position: fixed; 
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        
-        width: 100vw;
-        height: 100vh;
-        z-index: 9999;
-        
         display: grid;
         grid-template-columns: 35% 65%;
-        background-color: black;
-        margin: 0;
-        padding: 0;
+        width: 100vw; height: 100vh;
+        position: fixed; top: 0; left: 0; z-index: 100;
     }
 
-    /* --- PANEL KIRI (GILIRAN) --- */
+    /* --- PANEL KIRI (QUEUE INFO) --- */
     .queue-sidebar {
         background: var(--left-bg);
-        height: 100vh;
-        display: flex;
-        flex-direction: column; /* Susun menegak */
+        display: flex; flex-direction: column;
         padding: 3vh 2.5vw;
         border-right: 1px solid var(--border-color);
-        box-shadow: 10px 0 30px rgba(0,0,0,0.15); /* Shadow supaya timbul */
-        position: relative;
+        box-shadow: 10px 0 30px rgba(0,0,0,0.15);
         z-index: 10;
+        height: 100vh;
     }
 
-    /* 1. Header (Logo) - Melekat Atas */
-    .header-area {
-        flex-shrink: 0;
-        text-align: center;
-        padding-bottom: 2vh;
-        border-bottom: 2px solid #f1f5f9;
-        margin-bottom: 2vh;
-    }
-    .brand-logo { 
-        height: 8vh; width: auto; object-fit: contain; margin-bottom: 0.5vh; 
-    }
-    .brand-title {
-        font-size: clamp(1rem, 1.5vw, 1.5rem);
-        font-weight: 800; color: var(--text-primary);
-        text-transform: uppercase; letter-spacing: 1px;
-    }
+    /* Header & Content Kiri */
+    .header-area { text-align: center; padding-bottom: 2vh; border-bottom: 2px solid #f1f5f9; margin-bottom: 2vh; flex-shrink: 0; }
+    .brand-logo { height: 8vh; width: auto; object-fit: contain; margin-bottom: 0.5vh; }
+    .brand-title { font-size: clamp(1rem, 1.5vw, 1.5rem); font-weight: 800; color: var(--text-primary); text-transform: uppercase; }
 
-    /* 2. Content Tengah (Nombor) - Isi Ruang Kosong */
-    .main-content {
-        flex-grow: 1; /* AJAIB: Ini memaksa ruang ni membesar */
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-    }
+    .main-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+    .status-pill { background: #dbeafe; color: var(--accent); padding: 0.5vh 1.5vw; border-radius: 50px; font-size: clamp(0.8rem, 1.1vw, 1.2rem); font-weight: 700; text-transform: uppercase; margin-bottom: 1vh; }
+    .ticket-number { font-family: 'Oswald', sans-serif; font-size: clamp(8rem, 22vh, 25rem); font-weight: 700; color: var(--text-primary); line-height: 1; letter-spacing: -3px; margin: 1vh 0; }
+    .visitor-name { font-size: clamp(1.2rem, 2vw, 2.2rem); font-weight: 600; color: var(--text-secondary); max-width: 90%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    
+    .counter-badge { margin-top: 3vh; background: var(--accent); color: white; padding: 1.5vh 0; width: 100%; border-radius: 12px; font-size: clamp(1.5rem, 2.5vw, 3rem); font-weight: 700; text-transform: uppercase; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); display: none; }
 
-    .status-pill {
-        background: #dbeafe; color: var(--accent);
-        padding: 0.5vh 1.5vw; border-radius: 50px;
-        font-size: clamp(0.8rem, 1.1vw, 1.2rem);
-        font-weight: 700; text-transform: uppercase; letter-spacing: 2px;
-        margin-bottom: 1vh;
-    }
-
-    .ticket-number {
-        font-family: 'Oswald', sans-serif; /* Font Nombor Tegap */
-        font-size: clamp(8rem, 22vh, 25rem); /* Responsif gila-gila */
-        font-weight: 700;
-        color: var(--text-primary);
-        line-height: 1;
-        letter-spacing: -3px;
-        margin: 1vh 0;
-    }
-
-    .visitor-name {
-        font-size: clamp(1.2rem, 2vw, 2.2rem);
-        font-weight: 600; color: var(--text-secondary);
-        max-width: 90%;
-        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-
-    .counter-badge {
-        margin-top: 3vh;
-        background: var(--accent); color: white;
-        padding: 1.5vh 0; width: 100%; border-radius: 12px;
-        font-size: clamp(1.5rem, 2.5vw, 3rem); font-weight: 700;
-        text-transform: uppercase;
-        box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
-    }
-
-    /* 3. Footer (List Next) - Melekat Bawah */
-    .footer-area {
-        flex-shrink: 0;
-        margin-top: auto;
-        padding-top: 2vh;
-    }
-    .footer-header {
-        display: flex; justify-content: space-between; align-items: center; margin-bottom: 1vh;
-    }
+    /* Footer & QR */
+    .footer-area { margin-top: auto; padding-top: 2vh; flex-shrink: 0; }
+    .footer-header { display: flex; justify-content: space-between; margin-bottom: 1vh; }
     .lbl-next { font-size: 0.9rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; }
     .lbl-wait { font-size: 0.9rem; font-weight: 700; color: var(--accent); }
-    
     .next-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .next-box {
-        background: #f8fafc; border: 1px solid #cbd5e1;
-        height: 8vh; border-radius: 8px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: clamp(1.5rem, 2vw, 2.5rem); font-weight: 700; color: #475569;
+    .next-box { background: #f8fafc; border: 1px solid #cbd5e1; height: 8vh; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: clamp(1.5rem, 2vw, 2.5rem); font-weight: 700; color: #475569; }
+    
+    .qr-box { margin-top: 20px; text-align: center; background: #f1f5f9; padding: 15px; border-radius: 12px; flex-shrink: 0; }
+    .qr-text { font-size: 0.8rem; font-weight: 700; color: #64748b; margin-top: 10px; text-transform: uppercase; }
+
+    /* --- PANEL KANAN (MEDIA) --- */
+    .media-area {
+        background: black; 
+        position: relative; 
+        overflow: hidden;
+        /* PENTING: Pastikan media-area memenuhi grid */
+        width: 100%; 
+        height: 100%; 
     }
 
-    /* --- PANEL KANAN (VIDEO) --- */
-    .media-area {
+    #media-wrapper {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 1; /* Layer bawah widget jam */
+    }
+
+    /* Style untuk content dalam partials */
+    .media-content-video { 
+        width: 100%; 
+        height: 100%; 
+        object-fit: contain; /* Guna contain dulu untuk debug */
+        position: absolute; 
+        top: 0; 
+        left: 0;
         background: black;
-        position: relative;
-        overflow: hidden;
-    }
-    video {
-        width: 100%; height: 100%; object-fit: cover;
-        position: absolute; top:0; left:0;
-    }
+    }  
     
-    /* Overlay Widget (Jam) */
+
+    .media-content-iframe {
+        position: absolute; 
+        top: 50%; 
+        left: 50%; 
+        width: 100%; 
+        height: 100%;
+        transform: translate(-50%, -50%) scale(1.35); 
+        border: none; 
+        pointer-events: none;
+        background: black;
+    }
+
+    /* Widget Jam */
+    
+
     .glass-widget {
-        position: absolute; top: 4vh; right: 4vh; z-index: 50;
+        position: absolute; top: 4vh; right: 4vh; 
+        z-index: 50; /* Pastikan ini tinggi */
         background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(20px);
         border: 1px solid rgba(255,255,255,0.1);
         padding: 15px 30px; border-radius: 16px;
         color: white; display: flex; align-items: center; gap: 25px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
+
+
     .time-big { font-size: 2.5rem; font-weight: 700; line-height: 1; letter-spacing: 1px; }
     .date-small { font-size: 0.85rem; text-transform: uppercase; opacity: 0.8; letter-spacing: 1px; margin-top: 5px;}
     .vline { width: 1px; height: 50px; background: rgba(255,255,255,0.2); }
     .temp-big { font-size: 2rem; font-weight: 700; color: #fbbf24; }
     .city-small { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; }
 
-    /* ANIMASI */
     .blink-active { animation: pulse 1.5s infinite; }
     @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
     .slide-up { animation: slideUp 0.5s ease-out; }
     @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
 </style>
+
 
 <div class="split-layout">
     
     <div class="queue-sidebar">
         <div class="header-area">
-            {% if queue.logo %}
-                <img src="{{ queue.logo.url }}" class="brand-logo">
-            {% endif %}
+            {% if queue.logo %} <img src="{{ queue.logo.url }}" class="brand-logo"> {% endif %}
             <div class="brand-title">{{ queue.name }}</div>
         </div>
 
         <div class="main-content">
             <div class="status-pill">Sedang Dipanggil</div>
-            
             <div id="number-text" class="ticket-number">
                 {% if current_serving %} {{ current_serving.ticket_number }} {% else %} -- {% endif %}
             </div>
-
             <div id="name-text" class="visitor-name">
                 {{ current_serving.name|default:"Sila Tunggu..." }}
             </div>
-
             <div id="counter-display-box" class="counter-badge {% if current_serving %}blink-active{% endif %}" 
-                 style="{% if not current_serving %}display:none;{% endif %}">
+                 style="{% if current_serving %}display:block;{% endif %}">
                 {{ current_serving.served_by|default:"-" }}
             </div>
         </div>
 
-
-
-        <div style="margin-top: 20px; text-align: center; background: #f1f5f9; padding: 15px; border-radius: 12px;">
-    <div id="qrcode" style="display: flex; justify-content: center;"></div>
-    <div style="font-size: 0.8rem; font-weight: 700; color: #64748b; margin-top: 10px; text-transform: uppercase;">
-        Scan untuk Masuk
-    </div>
-</div>
-
+        <div class="qr-box">
+            <div id="qrcode" style="display: flex; justify-content: center;"></div>
+            <div class="qr-text">Scan untuk Masuk</div>
+        </div>
 
         <div class="footer-area">
             <div class="footer-header">
@@ -214,24 +163,22 @@
                 <span class="lbl-wait">Menunggu: <span id="total-waiting">{{ waiting_count|default:"0" }}</span></span>
             </div>
             <div class="next-grid" id="next-list-container">
-                <div class="next-box">-</div>
-                <div class="next-box">-</div>
-                <div class="next-box">-</div>
+                <div class="next-box">-</div> <div class="next-box">-</div> <div class="next-box">-</div>
             </div>
         </div>
     </div>
 
-    <div class="media-area">
-        {% if queue.video %}
-        if (payload && payload.next_visitors) updateNextList(payload.next_visitors);
-        if (payload && payload.waiting_count !== u
-            <video src="{{ queue.video.url }}" autoplay loop muted playsinline></video>
-        {% else %}
-            <div style="height:100%; display:flex; justify-content:center; align-items:center; background: #0f172a;">
-                <h1 style="color:rgba(255,255,255,0.1); font-size: 5vw; font-weight: 900;">DISPLAY AREA</h1>
-            </div>
-        {% endif %}
 
+    <div class="media-area">
+        
+        <div id="media-wrapper"
+             style="width: 100%; height: 100%; position: absolute; top:0; left:0;" 
+             hx-get="{% url 'get_media_content' queue.slug %}"
+             hx-trigger="refresh_media from:body"
+             hx-swap="innerHTML">
+             
+             {% include 'queues/partials/media_content.html' %}
+        </div>
         <div class="glass-widget">
             <div>
                 <div id="clock-time" class="time-big">00:00</div>
@@ -244,23 +191,24 @@
             </div>
         </div>
     </div>
+
 </div>
 
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
-
-
+    const AUDIO_BASE_PATH = "/static/audio/";
     var joinUrl = "{{ request.scheme }}://{{ request.get_host }}/q/{{ queue.slug }}/join/";
 
-    new QRCode(document.getElementById("qrcode"), {
-        text: joinUrl,
-        width: 100,
-        height: 100,
-        colorDark : "#1e293b",
-        colorLight : "#f1f5f9",
-        correctLevel : QRCode.CorrectLevel.H
-    });
+    // QR Code
+    try {
+        new QRCode(document.getElementById("qrcode"), {
+            text: joinUrl, width: 100, height: 100,
+            colorDark : "#1e293b", colorLight : "#f1f5f9", correctLevel : QRCode.CorrectLevel.H
+        });
+    } catch(e) {}
 
-    // 1. JAM
+    // Clock
     function updateClock() {
         const now = new Date();
         document.getElementById('clock-time').innerText = now.toLocaleTimeString('en-US', { hour12: true, hour: 'numeric', minute:'2-digit' });
@@ -268,7 +216,7 @@
     }
     setInterval(updateClock, 1000); updateClock();
 
-    // 2. CUACA (Guna lokasi umum Klang/KL)
+    // Weather
     async function fetchWeather() {
         try {
             const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=3.03&longitude=101.45&current_weather=true');
@@ -278,90 +226,161 @@
     }
     fetchWeather(); setInterval(fetchWeather, 900000);
 
-    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-    const socket = new WebSocket(protocol + window.location.host + '/ws/queue/{{ queue.slug }}/');
-    const AUDIO_BASE_PATH = "/static/audio/"; 
-
+    // Audio Engine
     const AudioManager = {
-        playOneFile: function(filename) {
-            return new Promise(r => {
-                let a = new Audio(AUDIO_BASE_PATH + filename);
-                
-                // --- SETTING KELAJUAN ---
-                a.playbackRate = 1.25; // Tukar nombor ini (1.0 = Normal, 1.25 = Laju Sikit)
-                a.preservesPitch = true; // Supaya suara tak jadi macam 'chipmunk'
-                // ------------------------
-
-                a.onended = r; 
-                a.onerror = r; 
-                
-                // Cuba mainkan
-                a.play().catch(error => {
-                    console.log("Audio error:", error);
-                    r(); // Skip jika error supaya sistem tak jam
-                });
+        playOne: (filename) => {
+            return new Promise(resolve => {
+                let audio = new Audio(AUDIO_BASE_PATH + filename);
+                audio.playbackRate = 1.25; 
+                audio.preservesPitch = true;
+                audio.onended = resolve;
+                audio.onerror = () => { console.warn("Missing:", filename); resolve(); };
+                audio.play().catch(e => { console.error(e); resolve(); });
             });
         },
-        
-        playSequence: async function(list) { 
-            for(let f of list) await this.playOneFile(f); 
+        playSequence: async function(playlist) {
+            for (let file of playlist) await this.playOne(file);
         },
-        
         announce: async function(ticket, counter) {
-            let list = ["chime.mp3"];
-            ticket.toString().trim().split('').forEach(c => list.push(c.toLowerCase()+".mp3"));
-            
-            if(counter) { 
-                 let num = counter.replace(/[^0-9]/g, '');
-                 list.push("sebutan_kaunter.mp3");
-                 if(num) list.push(num + ".mp3");
-            } else { 
-                list.push("kaunter.mp3"); 
+            let playlist = ["chime.mp3"];
+            let chars = ticket.toString().trim().split('');
+            chars.forEach(char => {
+                let safeChar = char.toLowerCase().replace(/[^a-z0-9]/g, ''); 
+                if(safeChar) playlist.push(safeChar + ".mp3");
+            });
+            if (counter) {
+                playlist.push("sebutan_kaunter.mp3");
+                let counterNum = counter.replace(/[^0-9]/g, '');
+                if (counterNum) playlist.push(counterNum + ".mp3");
+            } else {
+                playlist.push("kaunter.mp3");
             }
-            
-            await this.playSequence(list);
+            await this.playSequence(playlist);
         }
     };
+
+    // WebSocket
+    const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+    const socket = new WebSocket(protocol + window.location.host + '/ws/queue/{{ queue.slug }}/');
 
     socket.onmessage = function(e) {
         const data = JSON.parse(e.data);
         const payload = data.data;
 
-        if (payload && payload.next_visitors) updateNextList(payload.next_visitors);
-        if (payload && payload.waiting_count !== undefined) document.getElementById('total-waiting').innerText = payload.waiting_count;
 
+
+        if (data.message === 'queue_reset') {
+            console.log("Queue telah dikosongkan.");
+
+            // 1. Reset Nombor Utama ke "--"
+            const numEl = document.getElementById('number-text');
+            numEl.innerText = "--";
+            
+            // 2. Reset Nama ke "Sila Tunggu..."
+            document.getElementById('name-text').innerText = "Sila Tunggu...";
+
+            // 3. Sembunyikan Kotak Kaunter
+            document.getElementById('counter-display-box').style.display = 'none';
+
+            // 4. Reset Jumlah Menunggu ke 0
+            document.getElementById('total-waiting').innerText = "0";
+
+            // 5. Kosongkan List "Seterusnya"
+            const container = document.getElementById('next-list-container');
+            container.innerHTML = "";
+            for(let i=0; i<3; i++) {
+                container.innerHTML += `<div class="next-box">-</div>`;
+            }
+            
+            // Pilihan: Buang class animasi jika ada
+            numEl.classList.remove('slide-up');
+        }
+
+
+
+
+
+
+        // 1. Next List
+        if (payload && payload.next_visitors) {
+            const container = document.getElementById('next-list-container');
+            container.innerHTML = "";
+            for(let i=0; i<3; i++) {
+                let v = payload.next_visitors[i] || "-";
+                container.innerHTML += `<div class="next-box">${v}</div>`;
+            }
+        }
+        
+        // 2. Waiting Count
+        if (payload && payload.waiting_count !== undefined) {
+            document.getElementById('total-waiting').innerText = payload.waiting_count;
+        }
+
+        // 3. Invite Next
         if (data.message === 'invite_next') {
             let displayNum = payload.ticket || payload.number;
             const numEl = document.getElementById('number-text');
-            
-            // Update Text
-            numEl.innerText = displayNum;
-            document.getElementById('name-text').innerText = payload.name || "";
-            
-            // Handle Counter Box
+            const nameEl = document.getElementById('name-text');
             const cBox = document.getElementById('counter-display-box');
+
+            numEl.innerText = displayNum;
+            nameEl.innerText = payload.name || "";
+            
             if(payload.counter) {
                 cBox.style.display = 'block';
                 cBox.innerText = payload.counter;
             } else {
                 cBox.style.display = 'none';
             }
-
-            numEl.classList.remove('slide-up'); void numEl.offsetWidth; numEl.classList.add('slide-up');
-            
-            // Audio
+            numEl.classList.remove('slide-up');
+            void numEl.offsetWidth; 
+            numEl.classList.add('slide-up');
             AudioManager.announce(displayNum, payload.counter);
         }
+
+        // 4. SETTINGS CHANGED (UNTUK TRIGGER HTMX)
+        if (data.message === 'settings_changed') {
+            console.log("Setting berubah, update media...");
+            // Hantar signal kepada HTMX di <body> untuk refresh div #media-wrapper
+            document.body.dispatchEvent(new Event('refresh_media'));
+        }
     };
+
     socket.onclose = () => setTimeout(() => location.reload(), 3000);
 
-    function updateNextList(visitors) {
-        const c = document.getElementById('next-list-container');
-        c.innerHTML = "";
-        for(let i=0; i<3; i++) {
-            let v = visitors[i] || "-";
-            c.innerHTML += `<div class="next-box">${v}</div>`;
+
+
+
+
+
+
+    document.body.addEventListener('htmx:afterSwap', function(evt) {
+    // Cari elemen video baru
+    const newVideo = evt.detail.target.querySelector('video');
+    
+    if (newVideo) {
+        console.log("Video baru dikesan, memaksa play...");
+        
+        // Pastikan video bisu (browser wajibkan mute untuk autoplay)
+        newVideo.muted = true;
+        
+        // Cuba mainkan
+        var playPromise = newVideo.play();
+        
+        if (playPromise !== undefined) {
+            playPromise.then(_ => {
+                console.log("Video berjaya dimainkan.");
+            })
+            .catch(error => {
+                console.error("Autoplay dihalang oleh browser:", error);
+                // Jika fail, kita cuba mute sekali lagi dan play
+                newVideo.muted = true;
+                newVideo.play();
+            });
         }
     }
+});
+
 </script>
+
 {% endblock %}

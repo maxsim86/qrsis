@@ -1,0 +1,23 @@
+{% load queue_utils %}
+
+{% if queue.video %}
+    <video src="{{ queue.video.url }}" autoplay loop muted playsinline class="media-content-video"></video>
+
+{% elif queue.stream_url %}
+    <iframe 
+        src="{{ queue.stream_url|youtube_embed }}" 
+        class="media-content-iframe" 
+        frameborder="0" 
+        referrerpolicy="strict-origin-when-cross-origin"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+    </iframe>
+    <div style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:10;"></div>
+
+{% else %}
+    <div style="height:100%; width:100%; display:flex; justify-content:center; align-items:center;">
+        <div style="text-align:center; opacity:0.3; color: white;">
+            <p style="font-size: 1.5rem;">Tiada Media</p>
+        </div>
+    </div>
+{% endif %}

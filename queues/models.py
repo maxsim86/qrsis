@@ -16,6 +16,7 @@ class Queue(models.Model):
     capacity = models.IntegerField(default=1000)         # Queue capacity
     logo = models.ImageField(upload_to='queue_logos/', blank=True, null=True)
     video = models.FileField(upload_to='queue_videos/', blank=True, null=True)
+    stream_url = models.CharField(max_length=500, blank=True, null=True, help_text="Link Embed YouTube (Contoh: https://www.youtube.com/embed/live_stream_id)")
     
     WAIT_TIME_CHOICES = [
         ('AUTO', 'Automatically calculated'),

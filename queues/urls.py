@@ -33,5 +33,6 @@ urlpatterns = [
     path('q/visitor/<int:visitor_id>/name/text/', views.visitor_name_text, name='visitor_name_text'),
     path('q/visitor/<int:visitor_id>/name/edit/', views.edit_visitor_name_form, name='edit_visitor_name_form'),
     path('q/visitor/<int:visitor_id>/name/save/', views.save_visitor_name, name='save_visitor_name'),
+    path('<slug:slug>/media-content/', views.get_media_content, name='get_media_content'),
 
 ]
