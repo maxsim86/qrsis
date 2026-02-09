@@ -5,11 +5,8 @@ from django.utils.text import slugify
 
 class Queue(models.Model):
     name = models.CharField(max_length=200, verbose_name="Nama Barisan")
-    #name = models.CharField(max_length=100)
-    #slug = models.SlugField(unique=True, default=uuid.uuid4) # Unik link untuk QR
     slug = models.SlugField(unique=True, max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    # Untuk simpan input label (contoh: "Masukkan nama anda")
     input_label = models.CharField(max_length=100, default="Masukkan nama anda")
     allow_join = models.BooleanField(default=True)       # Visitor self-sign-in
     ask_input = models.BooleanField(default=False)       # Ask for visitor input

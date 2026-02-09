@@ -198,7 +198,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
     const AUDIO_BASE_PATH = "/static/audio/";
-    var joinUrl = "{{ request.scheme }}://{{ request.get_host }}/q/{{ queue.slug }}/join/";
+    var joinUrl = "{{ request.scheme }}://{{ request.get_host }}{% url 'visitor_join' queue.slug %}";
 
     // QR Code
     try {
